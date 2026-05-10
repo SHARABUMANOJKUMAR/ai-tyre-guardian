@@ -9,8 +9,62 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TyreLifeRouteImport } from './routes/tyre-life'
+import { Route as ShopRouteImport } from './routes/shop'
+import { Route as ServicesRouteImport } from './routes/services'
+import { Route as ReviewsRouteImport } from './routes/reviews'
+import { Route as FleetRouteImport } from './routes/fleet'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as BookRouteImport } from './routes/book'
+import { Route as BlogRouteImport } from './routes/blog'
+import { Route as AiCheckRouteImport } from './routes/ai-check'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TyreLifeRoute = TyreLifeRouteImport.update({
+  id: '/tyre-life',
+  path: '/tyre-life',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopRoute = ShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewsRoute = ReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FleetRoute = FleetRouteImport.update({
+  id: '/fleet',
+  path: '/fleet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookRoute = BookRouteImport.update({
+  id: '/book',
+  path: '/book',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiCheckRoute = AiCheckRouteImport.update({
+  id: '/ai-check',
+  path: '/ai-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +73,158 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-check': typeof AiCheckRoute
+  '/blog': typeof BlogRoute
+  '/book': typeof BookRoute
+  '/contact': typeof ContactRoute
+  '/fleet': typeof FleetRoute
+  '/reviews': typeof ReviewsRoute
+  '/services': typeof ServicesRoute
+  '/shop': typeof ShopRoute
+  '/tyre-life': typeof TyreLifeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-check': typeof AiCheckRoute
+  '/blog': typeof BlogRoute
+  '/book': typeof BookRoute
+  '/contact': typeof ContactRoute
+  '/fleet': typeof FleetRoute
+  '/reviews': typeof ReviewsRoute
+  '/services': typeof ServicesRoute
+  '/shop': typeof ShopRoute
+  '/tyre-life': typeof TyreLifeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai-check': typeof AiCheckRoute
+  '/blog': typeof BlogRoute
+  '/book': typeof BookRoute
+  '/contact': typeof ContactRoute
+  '/fleet': typeof FleetRoute
+  '/reviews': typeof ReviewsRoute
+  '/services': typeof ServicesRoute
+  '/shop': typeof ShopRoute
+  '/tyre-life': typeof TyreLifeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/ai-check'
+    | '/blog'
+    | '/book'
+    | '/contact'
+    | '/fleet'
+    | '/reviews'
+    | '/services'
+    | '/shop'
+    | '/tyre-life'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/ai-check'
+    | '/blog'
+    | '/book'
+    | '/contact'
+    | '/fleet'
+    | '/reviews'
+    | '/services'
+    | '/shop'
+    | '/tyre-life'
+  id:
+    | '__root__'
+    | '/'
+    | '/ai-check'
+    | '/blog'
+    | '/book'
+    | '/contact'
+    | '/fleet'
+    | '/reviews'
+    | '/services'
+    | '/shop'
+    | '/tyre-life'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiCheckRoute: typeof AiCheckRoute
+  BlogRoute: typeof BlogRoute
+  BookRoute: typeof BookRoute
+  ContactRoute: typeof ContactRoute
+  FleetRoute: typeof FleetRoute
+  ReviewsRoute: typeof ReviewsRoute
+  ServicesRoute: typeof ServicesRoute
+  ShopRoute: typeof ShopRoute
+  TyreLifeRoute: typeof TyreLifeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tyre-life': {
+      id: '/tyre-life'
+      path: '/tyre-life'
+      fullPath: '/tyre-life'
+      preLoaderRoute: typeof TyreLifeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop': {
+      id: '/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reviews': {
+      id: '/reviews'
+      path: '/reviews'
+      fullPath: '/reviews'
+      preLoaderRoute: typeof ReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fleet': {
+      id: '/fleet'
+      path: '/fleet'
+      fullPath: '/fleet'
+      preLoaderRoute: typeof FleetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/book': {
+      id: '/book'
+      path: '/book'
+      fullPath: '/book'
+      preLoaderRoute: typeof BookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-check': {
+      id: '/ai-check'
+      path: '/ai-check'
+      fullPath: '/ai-check'
+      preLoaderRoute: typeof AiCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +237,15 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiCheckRoute: AiCheckRoute,
+  BlogRoute: BlogRoute,
+  BookRoute: BookRoute,
+  ContactRoute: ContactRoute,
+  FleetRoute: FleetRoute,
+  ReviewsRoute: ReviewsRoute,
+  ServicesRoute: ServicesRoute,
+  ShopRoute: ShopRoute,
+  TyreLifeRoute: TyreLifeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

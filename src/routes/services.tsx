@@ -20,15 +20,15 @@ export const Route = createFileRoute("/services")({
 });
 
 const services = [
-  { icon: Disc3, title: "3D Wheel Alignment", desc: "Computerised laser alignment for perfect handling, safer cornering and longer tyre life.", price: "from ₹699" },
-  { icon: Gauge, title: "Wheel Balancing", desc: "Eliminate vibration, uneven wear and steering wobble at high speeds.", price: "from ₹399" },
-  { icon: Wind, title: "Nitrogen Air Filling", desc: "Stable pressure, cooler tyres and improved mileage. Free with alignment.", price: "from ₹199" },
-  { icon: Wrench, title: "Puncture Repair", desc: "Fast tubeless and tube puncture repair using premium patches.", price: "from ₹150" },
-  { icon: Cog, title: "Tyre Change & Replacement", desc: "Genuine tyres from MRF, Apollo, CEAT, Michelin, Bridgestone & more.", price: "Best market price" },
-  { icon: Droplets, title: "Valve Replacement", desc: "Original valves to prevent slow leaks and pressure loss.", price: "from ₹99" },
-  { icon: Bike, title: "Bike Tubes", desc: "Quality tubes for all motorcycle and scooter brands.", price: "from ₹250" },
-  { icon: Layers, title: "Alloy Wheel Services", desc: "Repair, polishing, refurbishment and custom alloy installations.", price: "On request" },
-  { icon: AlertTriangle, title: "Emergency Puncture Support", desc: "On-call puncture support within 5 km — call us anytime.", price: "24/7" },
+  { icon: Disc3, title: "3D Wheel Alignment", desc: "Computerised laser alignment for perfect handling, safer cornering and longer tyre life." },
+  { icon: Gauge, title: "Wheel Balancing", desc: "Eliminate vibration, uneven wear and steering wobble at high speeds." },
+  { icon: Wind, title: "Nitrogen Air Filling", desc: "Stable pressure, cooler tyres and improved mileage. Free with alignment." },
+  { icon: Wrench, title: "Puncture Repair", desc: "Fast tubeless and tube puncture repair using premium patches." },
+  { icon: Cog, title: "Tyre Change & Replacement", desc: "Genuine tyres from MRF, Apollo, CEAT, Michelin, Bridgestone & more." },
+  { icon: Droplets, title: "Valve Replacement", desc: "Original valves to prevent slow leaks and pressure loss." },
+  { icon: Bike, title: "Bike Tubes", desc: "Quality tubes for all motorcycle and scooter brands." },
+  { icon: Layers, title: "Alloy Wheel Services", desc: "Repair, polishing, refurbishment and custom alloy installations." },
+  { icon: AlertTriangle, title: "Emergency Puncture Support", desc: "On-call puncture support within 5 km — call us anytime." },
 ];
 
 function ServicesPage() {
@@ -59,7 +59,6 @@ function ServicesPage() {
                 <div className="w-12 h-12 rounded-xl bg-gradient-primary/15 border border-primary/30 inline-flex items-center justify-center">
                   <s.icon className="w-6 h-6 text-primary" />
                 </div>
-                <span className="text-xs font-semibold text-gold">{s.price}</span>
               </div>
               <h3 className="mt-5 text-lg font-bold">{s.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{s.desc}</p>

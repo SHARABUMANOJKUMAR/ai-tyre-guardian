@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const LOGO_URL =
-  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780635037/TYre_Shop_b8fvec.png";
+  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780767447/ChatGPT_Image_Jun_6_2026_11_07_08_PM_y0q8kr.png";
 
 const links = [
   { to: "/", label: "Home" },
@@ -38,9 +38,6 @@ export function Header() {
             alt="Manoj Wheels logo"
             className="h-10 lg:h-12 w-auto object-contain drop-shadow"
           />
-          <span className="font-display font-bold text-lg sm:text-xl tracking-tight hidden sm:inline">
-            Manoj <span className="text-gradient-primary">Wheels</span>
-          </span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-7">

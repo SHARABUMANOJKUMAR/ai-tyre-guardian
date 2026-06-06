@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Phone, MapPin, Clock, Mail, Instagram, Facebook, Youtube } from "lucide-react";
 
 const LOGO_URL =
-  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780635037/TYre_Shop_b8fvec.png";
+  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780767447/ChatGPT_Image_Jun_6_2026_11_07_08_PM_y0q8kr.png";
 
 export function Footer() {
   return (
@@ -11,9 +11,6 @@ export function Footer() {
         <div>
           <Link to="/" className="flex items-center gap-2.5 mb-4">
             <img src={LOGO_URL} alt="Manoj Wheels logo" className="h-12 w-auto object-contain" />
-            <span className="font-display font-bold text-lg">
-              Manoj <span className="text-gradient-primary">Wheels</span>
-            </span>
           </Link>
           <p className="text-sm text-muted-foreground leading-relaxed">
             India's smartest AI-powered tyre care center. Trusted by thousands of

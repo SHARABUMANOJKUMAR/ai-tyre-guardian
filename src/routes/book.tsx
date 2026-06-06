@@ -104,7 +104,7 @@ function BookPage() {
               {submitting ? "Booking…" : "Confirm Booking"}
             </Button>
             <Button asChild type="button" variant="outline" size="lg">
-              <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer">Book on WhatsApp</a>
+              <a href="https://wa.me/918897230858?text=Hi%20Manoj%20Wheels%2C%20I%20want%20to%20book%20a%20service" target="_blank" rel="noopener noreferrer">Book on WhatsApp</a>
             </Button>
           </div>
         </form>

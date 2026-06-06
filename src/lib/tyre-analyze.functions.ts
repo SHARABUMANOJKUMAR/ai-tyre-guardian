@@ -1,0 +1,109 @@
+import { createServerFn } from "@tanstack/react-start";
+
+export type TyreAnalysis = {
+  isTyre: boolean;
+  score: number;
+  tread: number;
+  cracks: "None" | "Minor" | "Moderate" | "Severe";
+  remainingKm: number;
+  confidence: number;
+  recommendation: "Safe to Use" | "Monitor Soon" | "Replace Immediately";
+  notes: string;
+  observations: string[];
+};
+
+const PROMPT = `You are an expert automotive tyre inspector. Carefully analyse the provided photo of a tyre and produce an HONEST, conservative safety report.
+
+Return ONLY valid JSON with this exact shape (no markdown, no commentary):
+{
+  "isTyre": boolean,                       // false if the image is not clearly a tyre/wheel
+  "score": number,                         // overall health 0-100 (100 = brand new)
+  "tread": number,                         // estimated tread WEAR percentage 0-100 (0 = full tread, 100 = bald)
+  "cracks": "None" | "Minor" | "Moderate" | "Severe",
+  "remainingKm": number,                   // realistic remaining life in km (0 - 60000)
+  "confidence": number,                    // your confidence 0-100
+  "recommendation": "Safe to Use" | "Monitor Soon" | "Replace Immediately",
+  "notes": string,                         // one short customer-friendly sentence
+  "observations": string[]                 // 2-4 short factual observations from the photo
+}
+
+Rules:
+- Be truthful. If the photo is blurry, dark, or not a tyre, set isTyre=false, confidence low, score 0 and explain in notes.
+- If tread is heavily worn, sidewall cracks visible, or bulges present, recommend "Replace Immediately".
+- If moderate wear, recommend "Monitor Soon".
+- Base remainingKm on visible tread depth; bald/cracked = near 0 km.
+- Do NOT invent details that are not visible. Stay conservative on safety.`;
+
+export const analyzeTyre = createServerFn({ method: "POST" })
+  .inputValidator((d: { imageBase64: string; mime: string }) => {
+    if (!d?.imageBase64 || typeof d.imageBase64 !== "string") {
+      throw new Error("Missing image data");
+    }
+    if (d.imageBase64.length > 8_000_000) {
+      throw new Error("Image too large (max ~6MB)");
+    }
+    return d;
+  })
+  .handler(async ({ data }): Promise<TyreAnalysis> => {
+    const apiKey = process.env.Gimini_API_Key;
+    if (!apiKey) {
+      throw new Error("Server is missing Gemini API key configuration.");
+    }
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: PROMPT },
+              { inline_data: { mime_type: data.mime || "image/jpeg", data: data.imageBase64 } },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.2,
+          responseMimeType: "application/json",
+        },
+      }),
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      console.error("Gemini API error:", resp.status, errText);
+      throw new Error(`Gemini API error (${resp.status}). Please try again.`);
+    }
+
+    const json = (await resp.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+
+    const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error("Empty response from AI model.");
+
+    let parsed: TyreAnalysis;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("AI response was not valid JSON.");
+      parsed = JSON.parse(match[0]);
+    }
+
+    // Defensive clamping
+    parsed.score = clamp(Number(parsed.score) || 0, 0, 100);
+    parsed.tread = clamp(Number(parsed.tread) || 0, 0, 100);
+    parsed.remainingKm = clamp(Number(parsed.remainingKm) || 0, 0, 60000);
+    parsed.confidence = clamp(Number(parsed.confidence) || 0, 0, 100);
+    if (!Array.isArray(parsed.observations)) parsed.observations = [];
+
+    return parsed;
+  });
+
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, Math.round(n)));
+}

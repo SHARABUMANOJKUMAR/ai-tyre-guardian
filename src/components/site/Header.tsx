@@ -1,16 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X, Gauge } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+const LOGO_URL =
+  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780635037/TYre_Shop_b8fvec.png";
 
 const links = [
   { to: "/", label: "Home" },
   { to: "/services", label: "Services" },
   { to: "/ai-check", label: "AI Tyre Check" },
-  { to: "/shop", label: "Shop" },
-  { to: "/reviews", label: "Reviews" },
-  { to: "/fleet", label: "Fleet" },
-  { to: "/blog", label: "Blog" },
+  { to: "/tyre-life", label: "Tyre Life" },
   { to: "/contact", label: "Contact" },
 ] as const;
 
@@ -32,11 +32,13 @@ export function Header() {
       }`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 lg:h-20">
-        <Link to="/" className="flex items-center gap-2 group">
-          <span className="relative inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-primary shadow-glow">
-            <Gauge className="w-5 h-5 text-primary-foreground" />
-          </span>
-          <span className="font-display font-bold text-lg sm:text-xl tracking-tight">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <img
+            src={LOGO_URL}
+            alt="Manoj Wheels logo"
+            className="h-10 lg:h-12 w-auto object-contain drop-shadow"
+          />
+          <span className="font-display font-bold text-lg sm:text-xl tracking-tight hidden sm:inline">
             Manoj <span className="text-gradient-primary">Wheels</span>
           </span>
         </Link>

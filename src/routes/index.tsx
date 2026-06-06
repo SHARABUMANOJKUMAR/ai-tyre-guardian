@@ -77,7 +77,7 @@ function HomePage() {
                 <Link to="/book"><Calendar className="w-5 h-5" /> Book Service Now</Link>
               </Button>
               <Button asChild variant="outline" size="xl" className="border-[oklch(0.72_0.18_145)] text-[oklch(0.85_0.18_145)] hover:bg-[oklch(0.72_0.18_145)] hover:text-white">
-                <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer">
+                <a href="https://wa.me/918897230858" target="_blank" rel="noreferrer">
                   <MessageCircle className="w-5 h-5" /> WhatsApp
                 </a>
               </Button>
@@ -205,32 +205,6 @@ function HomePage() {
         </div>
       </section>
 
-      {/* BEFORE / AFTER + offers */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-        <SectionHeader
-          eyebrow="Special Offers"
-          title={<>Premium care at <span className="text-gradient-primary">honest prices</span></>}
-        />
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { title: "Free Nitrogen Filling", desc: "On every wheel alignment booking this month.", tag: "Limited" },
-            { title: "20% Off Wheel Alignment", desc: "First-time customers get 20% off premium 3D alignment.", tag: "New" },
-            { title: "Monsoon Tyre Check", desc: "Complimentary tyre & tread inspection — book online.", tag: "Free" },
-          ].map((o) => (
-            <Card key={o.title} className="p-6 bg-gradient-to-br from-card to-secondary/40 border-gold/20 hover-lift">
-              <div className="flex items-center justify-between">
-                <Trophy className="w-7 h-7 text-gold" />
-                <span className="text-xs px-2 py-1 rounded-full bg-gold/15 text-gold font-semibold">{o.tag}</span>
-              </div>
-              <h3 className="mt-4 text-xl font-bold">{o.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{o.desc}</p>
-              <Button asChild variant="gold" size="sm" className="mt-5">
-                <Link to="/book">Claim Offer</Link>
-              </Button>
-            </Card>
-          ))}
-        </div>
-      </section>
 
       {/* WHO WE SERVE */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
@@ -258,7 +232,7 @@ function HomePage() {
               ))}
             </div>
             <Button asChild variant="hero" className="mt-8" size="lg">
-              <Link to="/fleet">Explore Fleet Plans <ArrowRight className="w-4 h-4" /></Link>
+              <Link to="/book">Book a Service <ArrowRight className="w-4 h-4" /></Link>
             </Button>
           </div>
         </div>
@@ -287,7 +261,7 @@ function HomePage() {
           ))}
         </div>
         <div className="text-center mt-8">
-          <Button asChild variant="outline" size="lg"><Link to="/reviews">Read all reviews</Link></Button>
+          <Button asChild variant="outline" size="lg"><Link to="/contact">Get in touch</Link></Button>
         </div>
       </section>
 

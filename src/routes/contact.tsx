@@ -80,7 +80,7 @@ function ContactPage() {
       setSubmitting(false);
       setDone(true);
       toast.success("Message ready — opening WhatsApp");
-      window.open(url, "_blank", "noopener,noreferrer");
+      openExternal(url);
     }, 400);
   }
 
@@ -103,9 +103,9 @@ function ContactPage() {
           <h3 className="mt-4 font-bold">WhatsApp</h3>
           <p className="mt-1 text-sm text-muted-foreground">Quick replies, photos &amp; instant booking.</p>
           <Button asChild variant="hero" size="sm" className="mt-4">
-            <a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer">
+            <button type="button" onClick={() => openExternal(`https://wa.me/${WHATSAPP}`)}>
               <WhatsAppIcon className="w-4 h-4" /> Chat Now
-            </a>
+            </button>
           </Button>
         </Card>
         <Card className="p-6 bg-card/60 hover-lift">
@@ -186,13 +186,12 @@ function ContactPage() {
               India
             </p>
             <Button asChild variant="outline" size="sm" className="mt-4">
-              <a
-                href="https://maps.app.goo.gl/JhCgSCwE3CbA842u7"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => openExternal("https://maps.app.goo.gl/JhCgSCwE3CbA842u7")}
               >
                 <MapPin className="w-4 h-4" /> Get Directions
-              </a>
+              </button>
             </Button>
           </Card>
           <Card className="p-0 overflow-hidden bg-card/60">

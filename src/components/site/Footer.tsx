@@ -11,9 +11,6 @@ export function Footer() {
         <div>
           <Link to="/" className="flex items-center gap-2.5 mb-4">
             <img src={LOGO_URL} alt="Manoj Wheels logo" className="h-12 w-auto object-contain" />
-            <span className="font-display font-bold text-lg">
-              Manoj <span className="text-gradient-primary">Wheels</span>
-            </span>
           </Link>
           <p className="text-sm text-muted-foreground leading-relaxed">
             India's smartest AI-powered tyre care center. Trusted by thousands of

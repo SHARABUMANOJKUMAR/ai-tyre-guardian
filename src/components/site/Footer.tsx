@@ -10,7 +10,7 @@ export function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-14 grid gap-10 md:grid-cols-2 lg:grid-cols-4">
         <div>
           <Link to="/" className="flex items-center gap-2.5 mb-4">
-            <img src={LOGO_URL} alt="Manoj Wheels logo" className="h-12 w-auto object-contain" />
+            <img src={LOGO_URL} alt="Manoj Wheels logo" className="h-12 w-auto object-contain mix-blend-screen" style={{ background: "transparent" }} />
           </Link>
           <p className="text-sm text-muted-foreground leading-relaxed">
             India's smartest AI-powered tyre care center. Trusted by thousands of

@@ -36,8 +36,10 @@ export function Header() {
           <img
             src={LOGO_URL}
             alt="Manoj Wheels logo"
-            className="h-10 lg:h-12 w-auto object-contain drop-shadow"
+            className="h-10 lg:h-12 w-auto object-contain drop-shadow mix-blend-screen"
+            style={{ background: "transparent" }}
           />
+
         </Link>
 
         <nav className="hidden lg:flex items-center gap-7">

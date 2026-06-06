@@ -59,7 +59,6 @@ function ServicesPage() {
                 <div className="w-12 h-12 rounded-xl bg-gradient-primary/15 border border-primary/30 inline-flex items-center justify-center">
                   <s.icon className="w-6 h-6 text-primary" />
                 </div>
-                <span className="text-xs font-semibold text-gold">{s.price}</span>
               </div>
               <h3 className="mt-5 text-lg font-bold">{s.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{s.desc}</p>

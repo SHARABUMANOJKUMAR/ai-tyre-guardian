@@ -186,9 +186,9 @@ function ContactPage() {
             </p>
             <Button asChild variant="outline" size="sm" className="mt-4">
               <a
-                href="https://www.google.com/maps/place/Manoj+puncture+shop/@14.4131275,78.226083,17z/data=!4m6!3m5!1s0x3bb3eb67bc79bb71:0xa20096ea7a338815!8m2!3d14.4131275!4d78.226083!16s%2Fg%2F11qnylmqrp"
+                href="https://maps.app.goo.gl/JhCgSCwE3CbA842u7"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
               >
                 <MapPin className="w-4 h-4" /> Get Directions
               </a>
@@ -196,8 +196,8 @@ function ContactPage() {
           </Card>
           <Card className="p-0 overflow-hidden bg-card/60">
             <iframe
-              title="Manoj Wheels location"
-              src="https://www.google.com/maps?q=Manoj+puncture+shop,+14.4131275,78.226083&z=17&output=embed"
+              title="Manoj Puncture Shop location"
+              src="https://www.google.com/maps?q=Manoj+puncture+shop+Kadapa&z=17&output=embed"
               width="100%"
               height="100%"
               style={{ minHeight: 360, border: 0 }}

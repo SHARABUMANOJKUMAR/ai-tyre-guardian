@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Phone, MapPin, Clock, Mail, Send, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { openExternal } from "@/lib/external-link";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({

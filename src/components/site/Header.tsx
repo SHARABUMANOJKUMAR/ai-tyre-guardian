@@ -38,9 +38,6 @@ export function Header() {
             alt="Manoj Wheels logo"
             className="h-10 lg:h-12 w-auto object-contain drop-shadow"
           />
-          <span className="font-display font-bold text-lg sm:text-xl tracking-tight hidden sm:inline">
-            Manoj <span className="text-gradient-primary">Wheels</span>
-          </span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-7">

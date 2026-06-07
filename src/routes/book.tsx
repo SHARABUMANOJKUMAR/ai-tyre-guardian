@@ -105,6 +105,7 @@ function BookPage() {
       <Card className="mt-10 p-6 sm:p-10 bg-card/60 max-w-3xl mx-auto">
         <form onSubmit={onSubmit} className="grid sm:grid-cols-2 gap-5">
           <Field label="Full Name" name="name" placeholder="Rahul Sharma" error={errors.name} />
+          <Field label="Email" name="email" type="email" placeholder="you@example.com" error={errors.email} />
           <Field label="Phone Number" name="phone" type="tel" placeholder="+91 98765 43210" error={errors.phone} />
 
           <SelectField label="Vehicle Type" name="vehicle" error={errors.vehicle}

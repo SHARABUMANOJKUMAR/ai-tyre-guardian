@@ -19,20 +19,15 @@ import {
 export const Route = createFileRoute("/tools/")({
   head: () => ({
     meta: [
-      { title: "Smart Tyre & Vehicle Tools Hub | Manoj Wheels" },
-      {
-        name: "description",
-        content:
-          "AI-powered tyre tools — alignment checker, life predictor, seasonal health, road-trip safety, AI service advisor and more. PDF, WhatsApp & email sharing.",
-      },
-      { property: "og:title", content: "Manoj Wheels — Smart Tools Hub" },
-      {
-        property: "og:description",
-        content:
-          "10 smart tools for drivers — AI tyre analyzer, alignment, life predictor, weather-aware health and more.",
-      },
+      { title: "Free Tyre Calculators & AI Tyre Analysis Tools | Manoj Wheels" },
+      { name: "description", content: "Free tyre calculators and AI tyre analysis tools — tyre pressure, size, mileage, life predictor, wheel alignment checker and AI service advisor." },
+      { property: "og:title", content: "Free Tyre Calculators & AI Tyre Analysis Tools" },
+      { property: "og:description", content: "10 smart tools for drivers — AI tyre analyzer, alignment, life predictor, weather-aware health and more." },
+      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/tools" },
     ],
+    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/tools" }],
   }),
+
   component: ToolsHub,
 });
 

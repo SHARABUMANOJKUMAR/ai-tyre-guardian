@@ -11,7 +11,8 @@ import {
   type ToolReportInput,
 } from "@/lib/tool-report-pdf";
 
-const WHATSAPP = "918897230858";
+// Default fallback (workshop number) when user hasn't typed one
+const DEFAULT_WHATSAPP = "918897230858";
 
 type ToolType =
   | "tyre-mileage"

@@ -13,6 +13,7 @@ import {
 import { analyzeTyre, type TyreAnalysis } from "@/lib/tyre-analyze.functions";
 import { generateTyreReportPDF } from "@/lib/tyre-report-pdf";
 import { openExternal } from "@/lib/external-link";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { saveReport, uploadReportPdf, getReportSignedUrl } from "@/lib/reports.functions";
 import { emailReportPdf } from "@/lib/email-pdf.functions";
 import { useAuth } from "@/hooks/use-auth";

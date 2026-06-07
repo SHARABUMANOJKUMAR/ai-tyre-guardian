@@ -126,7 +126,7 @@ export function generateToolReportPDF(
     doc.setTextColor(20, 20, 20);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
-    doc.text(title, M, y);
+    doc.text(s(title), M, y);
     y += 14;
     doc.setDrawColor(230, 230, 230);
     doc.setLineWidth(0.5);
@@ -140,10 +140,10 @@ export function generateToolReportPDF(
         y = 60;
       }
       doc.setTextColor(110, 110, 110);
-      doc.text(r.label, M, y);
+      doc.text(s(r.label), M, y);
       doc.setTextColor(20, 20, 20);
       doc.setFont("helvetica", "bold");
-      doc.text(r.value, W - M, y, { align: "right" });
+      doc.text(s(r.value), W - M, y, { align: "right" });
       doc.setFont("helvetica", "normal");
       y += 18;
     });
@@ -167,7 +167,7 @@ export function generateToolReportPDF(
     doc.setFontSize(11);
     doc.setTextColor(60, 60, 60);
     input.notes.forEach((n) => {
-      const lines = doc.splitTextToSize(`• ${n}`, W - M * 2);
+      const lines = doc.splitTextToSize(s(`- ${n}`), W - M * 2);
       if (y + lines.length * 14 > 780) {
         doc.addPage();
         y = 60;
@@ -185,7 +185,7 @@ export function generateToolReportPDF(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(110, 110, 110);
-  doc.text(BRAND.address, M, footerY + 14);
+  doc.text(s(BRAND.address), M, footerY + 14);
   doc.text("manojwheels.com", W - M, footerY + 14, { align: "right" });
 
   const slug =

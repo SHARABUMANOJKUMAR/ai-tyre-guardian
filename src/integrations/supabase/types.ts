@@ -52,6 +52,68 @@ export type Database = {
           },
         ]
       }
+      maintenance_reminders: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          due_date: string | null
+          due_odometer_km: number | null
+          id: string
+          interval_km: number | null
+          interval_months: number | null
+          last_notified_at: string | null
+          notes: string | null
+          service_type: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          vehicle_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          due_odometer_km?: number | null
+          id?: string
+          interval_km?: number | null
+          interval_months?: number | null
+          last_notified_at?: string | null
+          notes?: string | null
+          service_type: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          vehicle_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          due_odometer_km?: number | null
+          id?: string
+          interval_km?: number | null
+          interval_months?: number | null
+          last_notified_at?: string | null
+          notes?: string | null
+          service_type?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_reminders_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -148,6 +210,104 @@ export type Database = {
           title?: string | null
           tread?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_health_logs: {
+        Row: {
+          cost: number | null
+          created_at: string
+          description: string | null
+          entry_type: string
+          id: string
+          odometer_km: number | null
+          service_date: string
+          title: string
+          updated_at: string
+          user_id: string
+          vehicle_id: string
+        }
+        Insert: {
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          entry_type: string
+          id?: string
+          odometer_km?: number | null
+          service_date?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          vehicle_id: string
+        }
+        Update: {
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          entry_type?: string
+          id?: string
+          odometer_km?: number | null
+          service_date?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_health_logs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          created_at: string
+          current_odometer_km: number
+          fuel_type: string | null
+          id: string
+          make: string
+          model: string
+          nickname: string | null
+          notes: string | null
+          registration: string | null
+          updated_at: string
+          user_id: string
+          vehicle_type: string
+          year: number | null
+        }
+        Insert: {
+          created_at?: string
+          current_odometer_km?: number
+          fuel_type?: string | null
+          id?: string
+          make: string
+          model: string
+          nickname?: string | null
+          notes?: string | null
+          registration?: string | null
+          updated_at?: string
+          user_id: string
+          vehicle_type?: string
+          year?: number | null
+        }
+        Update: {
+          created_at?: string
+          current_odometer_km?: number
+          fuel_type?: string | null
+          id?: string
+          make?: string
+          model?: string
+          nickname?: string | null
+          notes?: string | null
+          registration?: string | null
+          updated_at?: string
+          user_id?: string
+          vehicle_type?: string
+          year?: number | null
         }
         Relationships: []
       }

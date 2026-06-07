@@ -34,7 +34,9 @@ import { Route as ToolsAiTyreComparisonRouteImport } from './routes/tools.ai-tyr
 import { Route as ToolsAiTyreBrandRecommenderRouteImport } from './routes/tools.ai-tyre-brand-recommender'
 import { Route as ToolsAiServiceAdvisorRouteImport } from './routes/tools.ai-service-advisor'
 import { Route as ToolsSplatRouteImport } from './routes/tools.$'
+import { Route as AuthenticatedGarageRouteImport } from './routes/_authenticated/garage'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as ApiPublicHooksSendMaintenanceRemindersRouteImport } from './routes/api/public/hooks/send-maintenance-reminders'
 
 const TyreLifeRoute = TyreLifeRouteImport.update({
   id: '/tyre-life',
@@ -168,11 +170,22 @@ const ToolsSplatRoute = ToolsSplatRouteImport.update({
   path: '/tools/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedGarageRoute = AuthenticatedGarageRouteImport.update({
+  id: '/garage',
+  path: '/garage',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicHooksSendMaintenanceRemindersRoute =
+  ApiPublicHooksSendMaintenanceRemindersRouteImport.update({
+    id: '/api/public/hooks/send-maintenance-reminders',
+    path: '/api/public/hooks/send-maintenance-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -184,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/ai-tyre-brand-recommender': typeof ToolsAiTyreBrandRecommenderRoute
@@ -200,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/tools/vehicle-running-cost-calculator': typeof ToolsVehicleRunningCostCalculatorRoute
   '/tools/wheel-alignment-checker': typeof ToolsWheelAlignmentCheckerRoute
   '/tools/': typeof ToolsIndexRoute
+  '/api/public/hooks/send-maintenance-reminders': typeof ApiPublicHooksSendMaintenanceRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -211,6 +226,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/ai-tyre-brand-recommender': typeof ToolsAiTyreBrandRecommenderRoute
@@ -227,6 +243,7 @@ export interface FileRoutesByTo {
   '/tools/vehicle-running-cost-calculator': typeof ToolsVehicleRunningCostCalculatorRoute
   '/tools/wheel-alignment-checker': typeof ToolsWheelAlignmentCheckerRoute
   '/tools': typeof ToolsIndexRoute
+  '/api/public/hooks/send-maintenance-reminders': typeof ApiPublicHooksSendMaintenanceRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -240,6 +257,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/ai-tyre-brand-recommender': typeof ToolsAiTyreBrandRecommenderRoute
@@ -256,6 +274,7 @@ export interface FileRoutesById {
   '/tools/vehicle-running-cost-calculator': typeof ToolsVehicleRunningCostCalculatorRoute
   '/tools/wheel-alignment-checker': typeof ToolsWheelAlignmentCheckerRoute
   '/tools/': typeof ToolsIndexRoute
+  '/api/public/hooks/send-maintenance-reminders': typeof ApiPublicHooksSendMaintenanceRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -269,6 +288,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tyre-life'
     | '/dashboard'
+    | '/garage'
     | '/tools/$'
     | '/tools/ai-service-advisor'
     | '/tools/ai-tyre-brand-recommender'
@@ -285,6 +305,7 @@ export interface FileRouteTypes {
     | '/tools/vehicle-running-cost-calculator'
     | '/tools/wheel-alignment-checker'
     | '/tools/'
+    | '/api/public/hooks/send-maintenance-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -296,6 +317,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tyre-life'
     | '/dashboard'
+    | '/garage'
     | '/tools/$'
     | '/tools/ai-service-advisor'
     | '/tools/ai-tyre-brand-recommender'
@@ -312,6 +334,7 @@ export interface FileRouteTypes {
     | '/tools/vehicle-running-cost-calculator'
     | '/tools/wheel-alignment-checker'
     | '/tools'
+    | '/api/public/hooks/send-maintenance-reminders'
   id:
     | '__root__'
     | '/'
@@ -324,6 +347,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tyre-life'
     | '/_authenticated/dashboard'
+    | '/_authenticated/garage'
     | '/tools/$'
     | '/tools/ai-service-advisor'
     | '/tools/ai-tyre-brand-recommender'
@@ -340,6 +364,7 @@ export interface FileRouteTypes {
     | '/tools/vehicle-running-cost-calculator'
     | '/tools/wheel-alignment-checker'
     | '/tools/'
+    | '/api/public/hooks/send-maintenance-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -368,6 +393,7 @@ export interface RootRouteChildren {
   ToolsVehicleRunningCostCalculatorRoute: typeof ToolsVehicleRunningCostCalculatorRoute
   ToolsWheelAlignmentCheckerRoute: typeof ToolsWheelAlignmentCheckerRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
+  ApiPublicHooksSendMaintenanceRemindersRoute: typeof ApiPublicHooksSendMaintenanceRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -547,6 +573,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/garage': {
+      id: '/_authenticated/garage'
+      path: '/garage'
+      fullPath: '/garage'
+      preLoaderRoute: typeof AuthenticatedGarageRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -554,15 +587,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/send-maintenance-reminders': {
+      id: '/api/public/hooks/send-maintenance-reminders'
+      path: '/api/public/hooks/send-maintenance-reminders'
+      fullPath: '/api/public/hooks/send-maintenance-reminders'
+      preLoaderRoute: typeof ApiPublicHooksSendMaintenanceRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedGarageRoute: typeof AuthenticatedGarageRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedGarageRoute: AuthenticatedGarageRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -595,6 +637,8 @@ const rootRouteChildren: RootRouteChildren = {
     ToolsVehicleRunningCostCalculatorRoute,
   ToolsWheelAlignmentCheckerRoute: ToolsWheelAlignmentCheckerRoute,
   ToolsIndexRoute: ToolsIndexRoute,
+  ApiPublicHooksSendMaintenanceRemindersRoute:
+    ApiPublicHooksSendMaintenanceRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

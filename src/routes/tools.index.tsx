@@ -18,7 +18,6 @@ import {
   AlertTriangle,
   Trophy,
   GitCompareArrows,
-  Garage as _Garage,
   Wrench,
 } from "lucide-react";
 
@@ -139,6 +138,12 @@ const TOOLS: ToolCardProps[] = [
     to: "/tools/emergency-tyre-assistant",
     icon: <AlertTriangle className="w-6 h-6" />,
     tag: "AI",
+  {
+    title: "My Garage — Vehicles & Reminders",
+    desc: "Track vehicles, maintenance reminders (with email alerts) and full service history.",
+    to: "/garage",
+    icon: <Wrench className="w-6 h-6" />,
+    tag: "New",
   },
 ];
 
@@ -153,7 +158,7 @@ function ToolsHub() {
             <Sparkles className="w-3.5 h-3.5 text-gold" /> Manoj Wheels Tools
           </span>
           <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
-            One hub. <span className="text-gradient-primary">Fourteen smart tools.</span>
+            One hub. <span className="text-gradient-primary">Fifteen smart tools.</span>
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">
             Free calculators and the AI tyre analyzer — accurate, mobile-ready, with

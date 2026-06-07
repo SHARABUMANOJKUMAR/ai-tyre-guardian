@@ -1,4 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { deriveUserId, logLogin, logSignup } from "@/lib/apps-script-logger";
 import {
   Outlet,
   Link,

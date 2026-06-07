@@ -10,6 +10,8 @@ import {
 import heroImg from "@/assets/hero-tyre.jpg";
 import alignmentImg from "@/assets/alignment.jpg";
 import tyreImg from "@/assets/tyre-closeup.jpg";
+import { openExternal } from "@/lib/external-link";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/")({
   head: () => ({

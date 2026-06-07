@@ -39,8 +39,8 @@ export function UserMenu() {
         <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild><Link to="/dashboard"><LayoutDashboard className="w-4 h-4 mr-2" />Dashboard</Link></DropdownMenuItem>
-        <DropdownMenuItem asChild><Link to="/dashboard" search={{ tab: "reports" } as never}><FileText className="w-4 h-4 mr-2" />My Reports</Link></DropdownMenuItem>
-        <DropdownMenuItem asChild><Link to="/dashboard" search={{ tab: "profile" } as never}><UserIcon className="w-4 h-4 mr-2" />Profile</Link></DropdownMenuItem>
+        <DropdownMenuItem asChild><Link to="/dashboard"><FileText className="w-4 h-4 mr-2" />My Reports</Link></DropdownMenuItem>
+        <DropdownMenuItem asChild><Link to="/dashboard"><UserIcon className="w-4 h-4 mr-2" />Profile</Link></DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={async () => { await signOut(); navigate({ to: "/" }); }}>
           <LogOut className="w-4 h-4 mr-2" />Sign Out

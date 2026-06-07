@@ -14,7 +14,7 @@ import { Wrench } from "lucide-react";
 import { Field, Grid2, Headline, Stat, ToolPage } from "@/components/site/ToolLayout";
 import type { SaveToolPayload } from "@/hooks/use-tool-reporter";
 
-export const Route = createFileRoute("/tools/service-cost")({
+export const Route = createFileRoute("/tools/service-cost-estimator")({
   head: () => ({
     meta: [
       { title: "Tyre Service Cost Estimator (India) | Manoj Wheels" },

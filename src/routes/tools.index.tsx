@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export const Route = createFileRoute("/tools")({
+export const Route = createFileRoute("/tools/")({
   head: () => ({
     meta: [
       { title: "Tyre & Vehicle Tools Hub | Manoj Wheels" },
@@ -51,31 +51,31 @@ const TOOLS: ToolCardProps[] = [
   {
     title: "Tyre Mileage Calculator",
     desc: "Estimate remaining tyre life in km based on tread depth and driving style.",
-    to: "/tools/mileage",
+    to: "/tools/tyre-mileage-calculator",
     icon: <Gauge className="w-6 h-6" />,
   },
   {
     title: "Tyre Size Calculator",
     desc: "Compare tyre sizes, get overall diameter, sidewall height and speedo error.",
-    to: "/tools/size",
+    to: "/tools/tyre-size-calculator",
     icon: <Ruler className="w-6 h-6" />,
   },
   {
     title: "Tyre Pressure Calculator",
     desc: "Get recommended PSI based on vehicle type, load and driving conditions.",
-    to: "/tools/pressure",
+    to: "/tools/tyre-pressure-calculator",
     icon: <Wind className="w-6 h-6" />,
   },
   {
     title: "Fuel Savings Calculator",
     desc: "See how much you save monthly and yearly by switching mileage or fuel price.",
-    to: "/tools/fuel",
+    to: "/tools/fuel-savings-calculator",
     icon: <Fuel className="w-6 h-6" />,
   },
   {
     title: "Service Cost Estimator",
     desc: "Estimate the cost of alignment, balancing, puncture repair and full service.",
-    to: "/tools/service-cost",
+    to: "/tools/service-cost-estimator",
     icon: <Wrench className="w-6 h-6" />,
   },
 ];

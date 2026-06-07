@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TyreLifeRouteImport } from './routes/tyre-life'
-import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BookRouteImport } from './routes/book'
@@ -18,21 +17,17 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AiCheckRouteImport } from './routes/ai-check'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ToolsSizeRouteImport } from './routes/tools.size'
-import { Route as ToolsServiceCostRouteImport } from './routes/tools.service-cost'
-import { Route as ToolsPressureRouteImport } from './routes/tools.pressure'
-import { Route as ToolsMileageRouteImport } from './routes/tools.mileage'
-import { Route as ToolsFuelRouteImport } from './routes/tools.fuel'
+import { Route as ToolsIndexRouteImport } from './routes/tools.index'
+import { Route as ToolsTyreSizeCalculatorRouteImport } from './routes/tools.tyre-size-calculator'
+import { Route as ToolsTyrePressureCalculatorRouteImport } from './routes/tools.tyre-pressure-calculator'
+import { Route as ToolsTyreMileageCalculatorRouteImport } from './routes/tools.tyre-mileage-calculator'
+import { Route as ToolsServiceCostEstimatorRouteImport } from './routes/tools.service-cost-estimator'
+import { Route as ToolsFuelSavingsCalculatorRouteImport } from './routes/tools.fuel-savings-calculator'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 
 const TyreLifeRoute = TyreLifeRouteImport.update({
   id: '/tyre-life',
   path: '/tyre-life',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsRoute = ToolsRouteImport.update({
-  id: '/tools',
-  path: '/tools',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesRoute = ServicesRouteImport.update({
@@ -69,31 +64,40 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsSizeRoute = ToolsSizeRouteImport.update({
-  id: '/size',
-  path: '/size',
-  getParentRoute: () => ToolsRoute,
+const ToolsIndexRoute = ToolsIndexRouteImport.update({
+  id: '/tools/',
+  path: '/tools/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsServiceCostRoute = ToolsServiceCostRouteImport.update({
-  id: '/service-cost',
-  path: '/service-cost',
-  getParentRoute: () => ToolsRoute,
+const ToolsTyreSizeCalculatorRoute = ToolsTyreSizeCalculatorRouteImport.update({
+  id: '/tools/tyre-size-calculator',
+  path: '/tools/tyre-size-calculator',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsPressureRoute = ToolsPressureRouteImport.update({
-  id: '/pressure',
-  path: '/pressure',
-  getParentRoute: () => ToolsRoute,
-} as any)
-const ToolsMileageRoute = ToolsMileageRouteImport.update({
-  id: '/mileage',
-  path: '/mileage',
-  getParentRoute: () => ToolsRoute,
-} as any)
-const ToolsFuelRoute = ToolsFuelRouteImport.update({
-  id: '/fuel',
-  path: '/fuel',
-  getParentRoute: () => ToolsRoute,
-} as any)
+const ToolsTyrePressureCalculatorRoute =
+  ToolsTyrePressureCalculatorRouteImport.update({
+    id: '/tools/tyre-pressure-calculator',
+    path: '/tools/tyre-pressure-calculator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsTyreMileageCalculatorRoute =
+  ToolsTyreMileageCalculatorRouteImport.update({
+    id: '/tools/tyre-mileage-calculator',
+    path: '/tools/tyre-mileage-calculator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsServiceCostEstimatorRoute =
+  ToolsServiceCostEstimatorRouteImport.update({
+    id: '/tools/service-cost-estimator',
+    path: '/tools/service-cost-estimator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsFuelSavingsCalculatorRoute =
+  ToolsFuelSavingsCalculatorRouteImport.update({
+    id: '/tools/fuel-savings-calculator',
+    path: '/tools/fuel-savings-calculator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -107,14 +111,14 @@ export interface FileRoutesByFullPath {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
-  '/tools': typeof ToolsRouteWithChildren
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/tools/fuel': typeof ToolsFuelRoute
-  '/tools/mileage': typeof ToolsMileageRoute
-  '/tools/pressure': typeof ToolsPressureRoute
-  '/tools/service-cost': typeof ToolsServiceCostRoute
-  '/tools/size': typeof ToolsSizeRoute
+  '/tools/fuel-savings-calculator': typeof ToolsFuelSavingsCalculatorRoute
+  '/tools/service-cost-estimator': typeof ToolsServiceCostEstimatorRoute
+  '/tools/tyre-mileage-calculator': typeof ToolsTyreMileageCalculatorRoute
+  '/tools/tyre-pressure-calculator': typeof ToolsTyrePressureCalculatorRoute
+  '/tools/tyre-size-calculator': typeof ToolsTyreSizeCalculatorRoute
+  '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,14 +127,14 @@ export interface FileRoutesByTo {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
-  '/tools': typeof ToolsRouteWithChildren
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/tools/fuel': typeof ToolsFuelRoute
-  '/tools/mileage': typeof ToolsMileageRoute
-  '/tools/pressure': typeof ToolsPressureRoute
-  '/tools/service-cost': typeof ToolsServiceCostRoute
-  '/tools/size': typeof ToolsSizeRoute
+  '/tools/fuel-savings-calculator': typeof ToolsFuelSavingsCalculatorRoute
+  '/tools/service-cost-estimator': typeof ToolsServiceCostEstimatorRoute
+  '/tools/tyre-mileage-calculator': typeof ToolsTyreMileageCalculatorRoute
+  '/tools/tyre-pressure-calculator': typeof ToolsTyrePressureCalculatorRoute
+  '/tools/tyre-size-calculator': typeof ToolsTyreSizeCalculatorRoute
+  '/tools': typeof ToolsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -141,14 +145,14 @@ export interface FileRoutesById {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
-  '/tools': typeof ToolsRouteWithChildren
   '/tyre-life': typeof TyreLifeRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/tools/fuel': typeof ToolsFuelRoute
-  '/tools/mileage': typeof ToolsMileageRoute
-  '/tools/pressure': typeof ToolsPressureRoute
-  '/tools/service-cost': typeof ToolsServiceCostRoute
-  '/tools/size': typeof ToolsSizeRoute
+  '/tools/fuel-savings-calculator': typeof ToolsFuelSavingsCalculatorRoute
+  '/tools/service-cost-estimator': typeof ToolsServiceCostEstimatorRoute
+  '/tools/tyre-mileage-calculator': typeof ToolsTyreMileageCalculatorRoute
+  '/tools/tyre-pressure-calculator': typeof ToolsTyrePressureCalculatorRoute
+  '/tools/tyre-size-calculator': typeof ToolsTyreSizeCalculatorRoute
+  '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -159,14 +163,14 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/services'
-    | '/tools'
     | '/tyre-life'
     | '/dashboard'
-    | '/tools/fuel'
-    | '/tools/mileage'
-    | '/tools/pressure'
-    | '/tools/service-cost'
-    | '/tools/size'
+    | '/tools/fuel-savings-calculator'
+    | '/tools/service-cost-estimator'
+    | '/tools/tyre-mileage-calculator'
+    | '/tools/tyre-pressure-calculator'
+    | '/tools/tyre-size-calculator'
+    | '/tools/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -175,14 +179,14 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/services'
-    | '/tools'
     | '/tyre-life'
     | '/dashboard'
-    | '/tools/fuel'
-    | '/tools/mileage'
-    | '/tools/pressure'
-    | '/tools/service-cost'
-    | '/tools/size'
+    | '/tools/fuel-savings-calculator'
+    | '/tools/service-cost-estimator'
+    | '/tools/tyre-mileage-calculator'
+    | '/tools/tyre-pressure-calculator'
+    | '/tools/tyre-size-calculator'
+    | '/tools'
   id:
     | '__root__'
     | '/'
@@ -192,14 +196,14 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/services'
-    | '/tools'
     | '/tyre-life'
     | '/_authenticated/dashboard'
-    | '/tools/fuel'
-    | '/tools/mileage'
-    | '/tools/pressure'
-    | '/tools/service-cost'
-    | '/tools/size'
+    | '/tools/fuel-savings-calculator'
+    | '/tools/service-cost-estimator'
+    | '/tools/tyre-mileage-calculator'
+    | '/tools/tyre-pressure-calculator'
+    | '/tools/tyre-size-calculator'
+    | '/tools/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,8 +214,13 @@ export interface RootRouteChildren {
   BookRoute: typeof BookRoute
   ContactRoute: typeof ContactRoute
   ServicesRoute: typeof ServicesRoute
-  ToolsRoute: typeof ToolsRouteWithChildren
   TyreLifeRoute: typeof TyreLifeRoute
+  ToolsFuelSavingsCalculatorRoute: typeof ToolsFuelSavingsCalculatorRoute
+  ToolsServiceCostEstimatorRoute: typeof ToolsServiceCostEstimatorRoute
+  ToolsTyreMileageCalculatorRoute: typeof ToolsTyreMileageCalculatorRoute
+  ToolsTyrePressureCalculatorRoute: typeof ToolsTyrePressureCalculatorRoute
+  ToolsTyreSizeCalculatorRoute: typeof ToolsTyreSizeCalculatorRoute
+  ToolsIndexRoute: typeof ToolsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -221,13 +230,6 @@ declare module '@tanstack/react-router' {
       path: '/tyre-life'
       fullPath: '/tyre-life'
       preLoaderRoute: typeof TyreLifeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools': {
-      id: '/tools'
-      path: '/tools'
-      fullPath: '/tools'
-      preLoaderRoute: typeof ToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services': {
@@ -279,40 +281,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/size': {
-      id: '/tools/size'
-      path: '/size'
-      fullPath: '/tools/size'
-      preLoaderRoute: typeof ToolsSizeRouteImport
-      parentRoute: typeof ToolsRoute
+    '/tools/': {
+      id: '/tools/'
+      path: '/tools'
+      fullPath: '/tools/'
+      preLoaderRoute: typeof ToolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/tools/service-cost': {
-      id: '/tools/service-cost'
-      path: '/service-cost'
-      fullPath: '/tools/service-cost'
-      preLoaderRoute: typeof ToolsServiceCostRouteImport
-      parentRoute: typeof ToolsRoute
+    '/tools/tyre-size-calculator': {
+      id: '/tools/tyre-size-calculator'
+      path: '/tools/tyre-size-calculator'
+      fullPath: '/tools/tyre-size-calculator'
+      preLoaderRoute: typeof ToolsTyreSizeCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/tools/pressure': {
-      id: '/tools/pressure'
-      path: '/pressure'
-      fullPath: '/tools/pressure'
-      preLoaderRoute: typeof ToolsPressureRouteImport
-      parentRoute: typeof ToolsRoute
+    '/tools/tyre-pressure-calculator': {
+      id: '/tools/tyre-pressure-calculator'
+      path: '/tools/tyre-pressure-calculator'
+      fullPath: '/tools/tyre-pressure-calculator'
+      preLoaderRoute: typeof ToolsTyrePressureCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/tools/mileage': {
-      id: '/tools/mileage'
-      path: '/mileage'
-      fullPath: '/tools/mileage'
-      preLoaderRoute: typeof ToolsMileageRouteImport
-      parentRoute: typeof ToolsRoute
+    '/tools/tyre-mileage-calculator': {
+      id: '/tools/tyre-mileage-calculator'
+      path: '/tools/tyre-mileage-calculator'
+      fullPath: '/tools/tyre-mileage-calculator'
+      preLoaderRoute: typeof ToolsTyreMileageCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/tools/fuel': {
-      id: '/tools/fuel'
-      path: '/fuel'
-      fullPath: '/tools/fuel'
-      preLoaderRoute: typeof ToolsFuelRouteImport
-      parentRoute: typeof ToolsRoute
+    '/tools/service-cost-estimator': {
+      id: '/tools/service-cost-estimator'
+      path: '/tools/service-cost-estimator'
+      fullPath: '/tools/service-cost-estimator'
+      preLoaderRoute: typeof ToolsServiceCostEstimatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/fuel-savings-calculator': {
+      id: '/tools/fuel-savings-calculator'
+      path: '/tools/fuel-savings-calculator'
+      fullPath: '/tools/fuel-savings-calculator'
+      preLoaderRoute: typeof ToolsFuelSavingsCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
@@ -335,24 +344,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface ToolsRouteChildren {
-  ToolsFuelRoute: typeof ToolsFuelRoute
-  ToolsMileageRoute: typeof ToolsMileageRoute
-  ToolsPressureRoute: typeof ToolsPressureRoute
-  ToolsServiceCostRoute: typeof ToolsServiceCostRoute
-  ToolsSizeRoute: typeof ToolsSizeRoute
-}
-
-const ToolsRouteChildren: ToolsRouteChildren = {
-  ToolsFuelRoute: ToolsFuelRoute,
-  ToolsMileageRoute: ToolsMileageRoute,
-  ToolsPressureRoute: ToolsPressureRoute,
-  ToolsServiceCostRoute: ToolsServiceCostRoute,
-  ToolsSizeRoute: ToolsSizeRoute,
-}
-
-const ToolsRouteWithChildren = ToolsRoute._addFileChildren(ToolsRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -361,9 +352,24 @@ const rootRouteChildren: RootRouteChildren = {
   BookRoute: BookRoute,
   ContactRoute: ContactRoute,
   ServicesRoute: ServicesRoute,
-  ToolsRoute: ToolsRouteWithChildren,
   TyreLifeRoute: TyreLifeRoute,
+  ToolsFuelSavingsCalculatorRoute: ToolsFuelSavingsCalculatorRoute,
+  ToolsServiceCostEstimatorRoute: ToolsServiceCostEstimatorRoute,
+  ToolsTyreMileageCalculatorRoute: ToolsTyreMileageCalculatorRoute,
+  ToolsTyrePressureCalculatorRoute: ToolsTyrePressureCalculatorRoute,
+  ToolsTyreSizeCalculatorRoute: ToolsTyreSizeCalculatorRoute,
+  ToolsIndexRoute: ToolsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

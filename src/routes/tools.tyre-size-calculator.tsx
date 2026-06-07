@@ -5,7 +5,7 @@ import { Ruler } from "lucide-react";
 import { Field, Grid2, Headline, Stat, ToolPage } from "@/components/site/ToolLayout";
 import type { SaveToolPayload } from "@/hooks/use-tool-reporter";
 
-export const Route = createFileRoute("/tools/size")({
+export const Route = createFileRoute("/tools/tyre-size-calculator")({
   head: () => ({
     meta: [
       { title: "Tyre Size Calculator & Comparison | Manoj Wheels" },

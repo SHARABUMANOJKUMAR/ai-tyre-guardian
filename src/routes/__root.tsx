@@ -72,8 +72,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Manoj Wheels — AI-Powered Tyre & Wheel Care Center" },
       { name: "twitter:description", content: "India's smartest AI-powered tyre care center. 3D wheel alignment, balancing, nitrogen filling, puncture repair & premium tyres. Book online." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/k08WdrNmcUSfeEvN0WgEsixUk593/social-images/social-1778417961860-ChatGPT_Image_May_10,_2026,_06_29_01_PM.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/k08WdrNmcUSfeEvN0WgEsixUk593/social-images/social-1778417961860-ChatGPT_Image_May_10,_2026,_06_29_01_PM.webp" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/k08WdrNmcUSfeEvN0WgEsixUk593/social-images/social-1780808814899-MAnoj_Wheels_Logo_99.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/k08WdrNmcUSfeEvN0WgEsixUk593/social-images/social-1780808814899-MAnoj_Wheels_Logo_99.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

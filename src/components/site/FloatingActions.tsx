@@ -1,5 +1,6 @@
 import { Phone } from "lucide-react";
 import { openExternal } from "@/lib/external-link";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -9,9 +10,6 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
-const WHATSAPP_URL =
-  "https://wa.me/918897230858?text=Hi%20Manoj%20Wheels%2C%20I%20need%20tyre%20service";
-
 export function FloatingActions() {
   return (
     <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-3">
@@ -19,7 +17,7 @@ export function FloatingActions() {
         type="button"
         onClick={(e) => {
           e.preventDefault();
-          openExternal(WHATSAPP_URL);
+          openExternal(buildWhatsAppUrl("918897230858", "Hi Manoj Wheels, I need tyre service"));
         }}
         aria-label="Chat on WhatsApp"
         className="w-14 h-14 rounded-full bg-[oklch(0.72_0.18_145)] text-white shadow-elegant inline-flex items-center justify-center hover:scale-110 transition-transform"

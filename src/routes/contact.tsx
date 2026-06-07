@@ -9,6 +9,7 @@ import { Phone, MapPin, Clock, Mail, Send, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { openExternal } from "@/lib/external-link";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -93,7 +94,7 @@ function ContactPage() {
         `Hello Manoj Wheels,\nName: ${parsed.data.name}\nPhone: ${parsed.data.phone}\n` +
         (parsed.data.email ? `Email: ${parsed.data.email}\n` : "") +
         `Subject: ${parsed.data.subject}\n\n${parsed.data.message}`;
-      openExternal(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`);
+      openExternal(buildWhatsAppUrl(WHATSAPP, text));
     } finally {
       setSubmitting(false);
     }
@@ -118,7 +119,7 @@ function ContactPage() {
           <h3 className="mt-4 font-bold">WhatsApp</h3>
           <p className="mt-1 text-sm text-muted-foreground">Quick replies, photos &amp; instant booking.</p>
           <Button asChild variant="hero" size="sm" className="mt-4">
-            <button type="button" onClick={() => openExternal(`https://wa.me/${WHATSAPP}`)}>
+            <button type="button" onClick={() => openExternal(buildWhatsAppUrl(WHATSAPP))}>
               <WhatsAppIcon className="w-4 h-4" /> Chat Now
             </button>
           </Button>

@@ -5,8 +5,9 @@
 const APPS_SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbzn76eyVW-Z5ShvmIGhn9mKeJo2aIj8o8stsEiKgBYdhDsstAQ0P_9wN5bohqCcHGAPfw/exec";
 
-export function generateUserId() {
-  return `MWUSR${Date.now()}${Math.floor(Math.random() * 1000)}`;
+// Deterministic per-Supabase-user ID so signup and login share the same value.
+export function deriveUserId(supabaseUserId: string) {
+  return `MWUSR${supabaseUserId.replace(/-/g, "").slice(0, 16).toUpperCase()}`;
 }
 
 function getDeviceInfo() {

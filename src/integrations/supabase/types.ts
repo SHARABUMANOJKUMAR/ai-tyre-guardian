@@ -88,15 +88,18 @@ export type Database = {
           email: string
           id: string
           image_path: string | null
-          is_tyre: boolean
+          is_tyre: boolean | null
           notes: string | null
           observations: Json | null
+          payload: Json | null
           pdf_path: string | null
           pdf_url: string | null
           recommendation: string | null
           remaining_km: number | null
           report_type: string
           score: number
+          summary: string | null
+          title: string | null
           tread: number | null
           user_id: string
         }
@@ -108,15 +111,18 @@ export type Database = {
           email: string
           id?: string
           image_path?: string | null
-          is_tyre?: boolean
+          is_tyre?: boolean | null
           notes?: string | null
           observations?: Json | null
+          payload?: Json | null
           pdf_path?: string | null
           pdf_url?: string | null
           recommendation?: string | null
           remaining_km?: number | null
           report_type?: string
           score?: number
+          summary?: string | null
+          title?: string | null
           tread?: number | null
           user_id: string
         }
@@ -128,15 +134,18 @@ export type Database = {
           email?: string
           id?: string
           image_path?: string | null
-          is_tyre?: boolean
+          is_tyre?: boolean | null
           notes?: string | null
           observations?: Json | null
+          payload?: Json | null
           pdf_path?: string | null
           pdf_url?: string | null
           recommendation?: string | null
           remaining_km?: number | null
           report_type?: string
           score?: number
+          summary?: string | null
+          title?: string | null
           tread?: number | null
           user_id?: string
         }

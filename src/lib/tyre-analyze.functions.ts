@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
+import { getRequest, getRequestIP } from "@tanstack/react-start/server";
 
 const ALLOWED_MIMES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
@@ -73,17 +73,16 @@ export const analyzeTyre = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }): Promise<TyreAnalysis> => {
     try {
-      const req = getRequest();
       const ip =
-        req.headers.get("cf-connecting-ip") ||
-        req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+        getRequestIP({ xForwardedFor: true }) ||
+        getRequest().headers.get("cf-connecting-ip") ||
         "unknown";
       if (!checkRateLimit(ip)) {
         throw new Error("Too many requests. Please wait a minute and try again.");
       }
     } catch (e) {
       if (e instanceof Error && e.message.startsWith("Too many")) throw e;
-      // If getRequest is unavailable for any reason, proceed without throttle.
+      // If request context is unavailable, proceed without throttle.
     }
 
     const apiKey = process.env.Gimini_API_Key;

@@ -119,7 +119,7 @@ function ContactPage() {
           <h3 className="mt-4 font-bold">WhatsApp</h3>
           <p className="mt-1 text-sm text-muted-foreground">Quick replies, photos &amp; instant booking.</p>
           <Button asChild variant="hero" size="sm" className="mt-4">
-            <button type="button" onClick={() => openExternal(`https://wa.me/${WHATSAPP}`)}>
+            <button type="button" onClick={() => openExternal(buildWhatsAppUrl(WHATSAPP))}>
               <WhatsAppIcon className="w-4 h-4" /> Chat Now
             </button>
           </Button>

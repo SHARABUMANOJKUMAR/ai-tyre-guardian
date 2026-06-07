@@ -13,6 +13,7 @@ const ToolReportSchema = z.object({
     "seasonal-tyre",
     "road-trip",
     "ai-advisor",
+    "service-cost",
   ]),
   title: z.string().min(1).max(120),
   summary: z.string().max(500).default(""),

@@ -22,7 +22,8 @@ type ToolType =
   | "tyre-life"
   | "seasonal-tyre"
   | "road-trip"
-  | "ai-advisor";
+  | "ai-advisor"
+  | "service-cost";
 
 export interface SaveToolPayload {
   reportType: ToolType;

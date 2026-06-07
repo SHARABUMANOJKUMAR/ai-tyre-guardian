@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Compass } from "lucide-react";
-import { Field, Headline, Stat, Grid2, ToolPage } from "@/components/site/ToolLayout";
+import { Headline, Stat, Grid2, ToolPage } from "@/components/site/ToolLayout";
 import { AiExplainBlock } from "@/components/site/AiExplainBlock";
 import type { SaveToolPayload } from "@/hooks/use-tool-reporter";
 

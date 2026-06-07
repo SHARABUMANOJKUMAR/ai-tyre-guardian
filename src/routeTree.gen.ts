@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TyreLifeRouteImport } from './routes/tyre-life'
+import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BookRouteImport } from './routes/book'
@@ -22,6 +23,11 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 const TyreLifeRoute = TyreLifeRouteImport.update({
   id: '/tyre-life',
   path: '/tyre-life',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsRoute = ToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesRoute = ServicesRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
+  '/tools': typeof ToolsRoute
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
 }
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
+  '/tools': typeof ToolsRoute
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
 }
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
+  '/tools': typeof ToolsRoute
   '/tyre-life': typeof TyreLifeRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
 }
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/services'
+    | '/tools'
     | '/tyre-life'
     | '/dashboard'
   fileRoutesByTo: FileRoutesByTo
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/services'
+    | '/tools'
     | '/tyre-life'
     | '/dashboard'
   id:
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/services'
+    | '/tools'
     | '/tyre-life'
     | '/_authenticated/dashboard'
   fileRoutesById: FileRoutesById
@@ -138,6 +150,7 @@ export interface RootRouteChildren {
   BookRoute: typeof BookRoute
   ContactRoute: typeof ContactRoute
   ServicesRoute: typeof ServicesRoute
+  ToolsRoute: typeof ToolsRoute
   TyreLifeRoute: typeof TyreLifeRoute
 }
 
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/tyre-life'
       fullPath: '/tyre-life'
       preLoaderRoute: typeof TyreLifeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools': {
+      id: '/tools'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof ToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services': {
@@ -228,8 +248,19 @@ const rootRouteChildren: RootRouteChildren = {
   BookRoute: BookRoute,
   ContactRoute: ContactRoute,
   ServicesRoute: ServicesRoute,
+  ToolsRoute: ToolsRoute,
   TyreLifeRoute: TyreLifeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

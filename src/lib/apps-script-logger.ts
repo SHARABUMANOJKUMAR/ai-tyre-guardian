@@ -3,7 +3,7 @@
 // Supabase remains the source of truth for authentication.
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzn76eyVW-Z5ShvmIGhn9mKeJo2aIj8o8stsEiKgBYdhDsstAQ0P_9wN5bohqCcHGAPfw/exec";
+  "https://script.google.com/macros/s/AKfycbxjsIonJCe2yPVLZoUkMJSlvpSnRncsRO2VMP0dPbTLyOTmXAluokFFbj6RQJLeAZTNvA/exec";
 
 // Deterministic per-Supabase-user ID so signup and login share the same value.
 export function deriveUserId(supabaseUserId: string) {

@@ -20,8 +20,12 @@ export const Route = createFileRoute("/book")({
   component: BookPage,
 });
 
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbyYDQDaOrFQcHzyuQEXosGlnZi-elAJtR3PVj2k4p7uZUZCzL6qoHRadgKjfjW3D5gacw/exec";
+
 const schema = z.object({
   name: z.string().trim().min(2, "Please enter your full name").max(80),
+  email: z.string().trim().email("Enter a valid email").max(120),
   phone: z.string().trim().regex(/^[+\d\s-]{7,15}$/, "Enter a valid phone number"),
   vehicle: z.string().min(1, "Select your vehicle type"),
   service: z.string().min(1, "Select a service"),
@@ -35,7 +39,7 @@ function BookPage() {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const parsed = schema.safeParse(Object.fromEntries(fd));
@@ -48,11 +52,33 @@ function BookPage() {
     }
     setErrors({});
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+
+    const payload = {
+      fullName: parsed.data.name,
+      email: parsed.data.email,
+      phoneNumber: parsed.data.phone,
+      vehicleType: parsed.data.vehicle,
+      serviceNeeded: parsed.data.service,
+      preferredDate: parsed.data.date,
+      preferredTime: parsed.data.time,
+      additionalNotes: parsed.data.notes ?? "",
+    };
+
+    try {
+      // Use text/plain to avoid CORS preflight against Google Apps Script
+      await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+      });
       setDone(true);
       toast.success("Booking confirmed! We'll WhatsApp you shortly.");
-    }, 900);
+    } catch {
+      toast.error("Could not submit. Please try WhatsApp instead.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (done) {
@@ -79,6 +105,7 @@ function BookPage() {
       <Card className="mt-10 p-6 sm:p-10 bg-card/60 max-w-3xl mx-auto">
         <form onSubmit={onSubmit} className="grid sm:grid-cols-2 gap-5">
           <Field label="Full Name" name="name" placeholder="Rahul Sharma" error={errors.name} />
+          <Field label="Email" name="email" type="email" placeholder="you@example.com" error={errors.email} />
           <Field label="Phone Number" name="phone" type="tel" placeholder="+91 98765 43210" error={errors.phone} />
 
           <SelectField label="Vehicle Type" name="vehicle" error={errors.vehicle}

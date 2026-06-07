@@ -1,12 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Upload, ScanLine, ShieldCheck, AlertTriangle, CheckCircle2, RefreshCcw, Sparkles, XCircle, Download } from "lucide-react";
+import {
+  Upload, ScanLine, ShieldCheck, AlertTriangle, CheckCircle2,
+  RefreshCcw, Sparkles, XCircle, Download, Share2, Mail, History, Trash2,
+} from "lucide-react";
 import { analyzeTyre, type TyreAnalysis } from "@/lib/tyre-analyze.functions";
 import { generateTyreReportPDF } from "@/lib/tyre-report-pdf";
+import { openExternal } from "@/lib/external-link";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/ai-check")({
   head: () => ({
@@ -20,14 +25,50 @@ export const Route = createFileRoute("/ai-check")({
   component: AiCheckPage,
 });
 
+const WHATSAPP = "918897230858";
+const EMAIL_TO = "manojwheels.official@gmail.com";
+const HISTORY_KEY = "mw_tyre_history_v1";
+const HISTORY_LIMIT = 5;
+
+type HistoryEntry = {
+  id: string;
+  createdAt: number;
+  result: TyreAnalysis;
+  image: string | null;
+};
+
+function loadHistory(): HistoryEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? (JSON.parse(raw) as HistoryEntry[]) : [];
+  } catch { return []; }
+}
+
+function saveHistory(entries: HistoryEntry[]) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, HISTORY_LIMIT))); } catch {}
+}
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 32" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M19.11 17.205c-.372 0-1.088 1.39-1.518 1.39a.63.63 0 0 1-.315-.1c-.802-.402-1.504-.817-2.163-1.447-.545-.516-1.146-1.29-1.46-1.963a.426.426 0 0 1-.073-.215c0-.33.99-.945.99-1.49 0-.143-.73-2.09-.832-2.335-.143-.372-.214-.487-.6-.487-.187 0-.36-.043-.53-.043-.302 0-.53.115-.746.315-.688.645-1.032 1.318-1.06 2.264v.114c-.015.99.472 1.977 1.017 2.78 1.23 1.82 2.506 3.41 4.554 4.34.616.287 2.035.888 2.722.888.817 0 2.15-.515 2.478-1.318.13-.33.158-.674.158-1.018 0-.515-1.92-1.49-2.55-1.677ZM16.046 0a15.952 15.952 0 0 0-13.804 23.86L.142 31.516a.41.41 0 0 0 .5.5l7.846-2.057A15.95 15.95 0 1 0 16.046 0Zm0 28.485c-2.376 0-4.69-.69-6.67-1.998l-.473-.315-4.842 1.272 1.288-4.713-.302-.473A12.953 12.953 0 0 1 16.046 3.043 12.95 12.95 0 0 1 28.97 15.97 12.95 12.95 0 0 1 16.046 28.486Z" />
+    </svg>
+  );
+}
+
 function AiCheckPage() {
   const [image, setImage] = useState<string | null>(null);
   const [mime, setMime] = useState<string>("image/jpeg");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TyreAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [lastPdf, setLastPdf] = useState<{ blob: Blob; filename: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const analyze = useServerFn(analyzeTyre);
+
+  useEffect(() => { setHistory(loadHistory()); }, []);
 
   function handleFile(file?: File) {
     if (!file) return;
@@ -37,6 +78,7 @@ function AiCheckPage() {
     }
     setError(null);
     setResult(null);
+    setLastPdf(null);
     setMime(file.type || "image/jpeg");
     const reader = new FileReader();
     reader.onload = () => setImage(reader.result as string);
@@ -47,12 +89,22 @@ function AiCheckPage() {
     if (!image) return;
     setLoading(true);
     setResult(null);
+    setLastPdf(null);
     setError(null);
     try {
-      // Strip "data:image/...;base64," prefix
       const base64 = image.includes(",") ? image.split(",")[1] : image;
       const res = await analyze({ data: { imageBase64: base64, mime } });
       setResult(res);
+      // Save to history
+      const entry: HistoryEntry = {
+        id: `MW-${Date.now().toString(36).toUpperCase()}`,
+        createdAt: Date.now(),
+        result: res,
+        image,
+      };
+      const next = [entry, ...history].slice(0, HISTORY_LIMIT);
+      setHistory(next);
+      saveHistory(next);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Analysis failed. Please try again.";
       setError(msg);
@@ -61,10 +113,78 @@ function AiCheckPage() {
     }
   }
 
+  function downloadReport(r: TyreAnalysis, img: string | null) {
+    const out = generateTyreReportPDF(r, img, { save: true });
+    setLastPdf({ blob: out.blob, filename: out.filename });
+    toast.success("Report downloaded");
+  }
+
+  async function shareReport() {
+    if (!result) return;
+    const out = lastPdf ?? (() => {
+      const o = generateTyreReportPDF(result, image, { save: false });
+      setLastPdf({ blob: o.blob, filename: o.filename });
+      return { blob: o.blob, filename: o.filename };
+    })();
+    const file = new File([out.blob], out.filename, { type: "application/pdf" });
+    const navAny = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+    if (navAny.canShare?.({ files: [file] })) {
+      try {
+        await navAny.share({
+          files: [file],
+          title: "My Tyre Diagnostic Report",
+          text: `Tyre Health Score: ${result.score}/100 — ${result.recommendation}`,
+        });
+        return;
+      } catch { /* user cancelled */ }
+    }
+    toast.message("Share not supported here. Download the PDF and attach it manually.");
+  }
+
+  function shareWhatsApp() {
+    if (!result) return;
+    if (!lastPdf) downloadReport(result, image);
+    const text = `Hello Manoj Wheels,\n\nMy AI Tyre Diagnostic Report\nScore: ${result.score}/100\nRecommendation: ${result.recommendation}\nTread Wear: ${result.tread}%\nEstimated Life Left: ${result.remainingKm.toLocaleString()} km\n\n(PDF report attached separately.)`;
+    openExternal(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`);
+    toast.message("WhatsApp opened — attach the downloaded PDF in chat.");
+  }
+
+  function shareEmail() {
+    if (!result) return;
+    if (!lastPdf) downloadReport(result, image);
+    const subject = `My Tyre Diagnostic Report — Score ${result.score}/100`;
+    const body =
+      `Hello Manoj Wheels,\n\n` +
+      `Please find my AI tyre diagnostic report attached.\n\n` +
+      `Health Score: ${result.score}/100\n` +
+      `Recommendation: ${result.recommendation}\n` +
+      `Tread Wear: ${result.tread}%\n` +
+      `Crack Detection: ${result.cracks}\n` +
+      `Estimated Life Left: ${result.remainingKm.toLocaleString()} km\n\n` +
+      `Notes: ${result.notes}\n`;
+    window.location.href = `mailto:${EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    toast.message("Email opened — attach the downloaded PDF before sending.");
+  }
+
   function reset() {
     setImage(null);
     setResult(null);
     setError(null);
+    setLastPdf(null);
+  }
+
+  function viewHistoryEntry(entry: HistoryEntry) {
+    setImage(entry.image);
+    setResult(entry.result);
+    setLastPdf(null);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function clearHistory() {
+    setHistory([]);
+    saveHistory([]);
+    toast.success("History cleared");
   }
 
   return (
@@ -129,7 +249,7 @@ function AiCheckPage() {
                 variant="outline"
                 size="lg"
                 disabled={!result || loading}
-                onClick={() => result && generateTyreReportPDF(result, image)}
+                onClick={() => result && downloadReport(result, image)}
               >
                 <Download className="w-4 h-4" /> Download Report
               </Button>
@@ -139,6 +259,26 @@ function AiCheckPage() {
                 </Button>
               )}
             </div>
+
+            {result && (
+              <div className="mt-5 rounded-xl border border-border bg-background/40 p-4">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Share / Send Report</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="hero" onClick={shareWhatsApp}>
+                    <WhatsAppIcon className="w-4 h-4" /> WhatsApp
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={shareEmail}>
+                    <Mail className="w-4 h-4" /> Email
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={shareReport}>
+                    <Share2 className="w-4 h-4" /> Share…
+                  </Button>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Tip: download the PDF first, then attach it in WhatsApp/Email. On mobile, "Share…" can attach it directly.
+                </p>
+              </div>
+            )}
 
             {error && (
               <div className="mt-4 flex items-start gap-2 rounded-lg border border-primary/40 bg-primary/10 p-3 text-sm">
@@ -238,6 +378,49 @@ function AiCheckPage() {
             )}
           </Card>
         </div>
+
+        {/* Report history */}
+        {history.length > 0 && (
+          <Card className="mt-12 p-6 sm:p-8 bg-card/60">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" /> Your Recent Reports
+              </h2>
+              <Button variant="ghost" size="sm" onClick={clearHistory}>
+                <Trash2 className="w-4 h-4" /> Clear
+              </Button>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">Last {HISTORY_LIMIT} tyre checks saved on this device.</p>
+
+            <ul className="mt-5 grid sm:grid-cols-2 gap-4">
+              {history.map((h) => (
+                <li key={h.id} className="rounded-xl border border-border bg-background/40 p-4 flex gap-4">
+                  {h.image ? (
+                    <img src={h.image} alt="Tyre" className="w-20 h-20 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div className="w-20 h-20 rounded-lg bg-muted shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-extrabold text-gradient-primary">{h.result.isTyre ? h.result.score : "—"}</span>
+                      <span className="text-xs text-muted-foreground">/ 100</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{h.result.recommendation}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {new Date(h.createdAt).toLocaleString()} · {h.id}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Button size="sm" variant="outline" onClick={() => viewHistoryEntry(h)}>View</Button>
+                      <Button size="sm" variant="hero" onClick={() => downloadReport(h.result, h.image)}>
+                        <Download className="w-3.5 h-3.5" /> PDF
+                      </Button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
 
         <div className="mt-12 grid sm:grid-cols-3 gap-4">
           {[

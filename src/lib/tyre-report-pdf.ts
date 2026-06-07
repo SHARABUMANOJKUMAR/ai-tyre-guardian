@@ -7,10 +7,15 @@ const BRAND = {
   phone: "+91 8897230858",
   whatsapp: "+91 8897230858",
   email: "manojwheels.official@gmail.com",
-  address: "Manoj Puncture Shop, Kadapa, Andhra Pradesh",
+  address: "Manoj Puncture Shop, Pulivendula, Andhra Pradesh",
 };
 
-export function generateTyreReportPDF(result: TyreAnalysis, imageDataUrl?: string | null) {
+export function generateTyreReportPDF(
+  result: TyreAnalysis,
+  imageDataUrl?: string | null,
+  options?: { save?: boolean }
+): { blob: Blob; filename: string; dataUrl: string } {
+  const save = options?.save !== false;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -173,5 +178,9 @@ export function generateTyreReportPDF(result: TyreAnalysis, imageDataUrl?: strin
   doc.text(BRAND.address, M, fy + 30);
   doc.text(`WhatsApp: ${BRAND.whatsapp}`, M, fy + 44);
 
-  doc.save(`Manoj-Wheels-Tyre-Report-${now.getTime()}.pdf`);
+  const filename = `Manoj-Wheels-Tyre-Report-${now.getTime()}.pdf`;
+  if (save) doc.save(filename);
+  const blob = doc.output("blob") as Blob;
+  const dataUrl = doc.output("datauristring") as string;
+  return { blob, filename, dataUrl };
 }

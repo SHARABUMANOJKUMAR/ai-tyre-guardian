@@ -2,5 +2,12 @@ User-agent: *
 Allow: /
 Disallow: /auth
 Disallow: /dashboard
+Disallow: /pdf-preview
 
-Sitemap: https://ai-tyre-vision.lovable.app/sitemap.xml
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+Sitemap: https://manojwheels.online/sitemap.xml

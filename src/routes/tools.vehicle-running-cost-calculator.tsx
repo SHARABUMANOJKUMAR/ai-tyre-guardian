@@ -13,9 +13,9 @@ export const Route = createFileRoute("/tools/vehicle-running-cost-calculator")({
       { name: "description", content: "Calculate total monthly & yearly vehicle running cost — fuel, tyres, insurance and maintenance. Free, India-rupee, instant PDF. Pulivendula." },
       { property: "og:title", content: "Vehicle Running Cost Calculator | Manoj Wheels" },
       { property: "og:description", content: "Monthly & yearly running cost — fuel + tyres + insurance + maintenance." },
-      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/tools/vehicle-running-cost-calculator" },
+      { property: "og:url", content: "https://manojwheels.online/tools/vehicle-running-cost-calculator" },
     ],
-    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/tools/vehicle-running-cost-calculator" }],
+    links: [{ rel: "canonical", href: "https://manojwheels.online/tools/vehicle-running-cost-calculator" }],
   }),
   component: RunningCostTool,
 });

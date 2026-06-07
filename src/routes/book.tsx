@@ -19,9 +19,9 @@ export const Route = createFileRoute("/book")({
       { name: "description", content: "Book wheel alignment, balancing, puncture repair & tyre services online in Pulivendula. Free pickup & drop within 5 km. Open 7 days." },
       { property: "og:title", content: "Book Tyre Service in Pulivendula | Manoj Wheels" },
       { property: "og:description", content: "Online booking for tyre care, wheel alignment, balancing & puncture repair." },
-      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/book" },
+      { property: "og:url", content: "https://manojwheels.online/book" },
     ],
-    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/book" }],
+    links: [{ rel: "canonical", href: "https://manojwheels.online/book" }],
   }),
   component: BookPage,
 });

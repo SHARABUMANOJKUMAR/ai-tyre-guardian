@@ -26,9 +26,9 @@ export const Route = createFileRoute("/ai-check")({
       { name: "description", content: "Free AI tyre health checker — upload a photo and get an instant tyre inspection with health score, tread wear estimate, crack detection and remaining life in km." },
       { property: "og:title", content: "AI Tyre Health Checker | Free Tyre Inspection Tool" },
       { property: "og:description", content: "Upload a tyre photo and get an instant AI-powered tyre inspection — health score, tread wear, crack detection." },
-      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/ai-check" },
+      { property: "og:url", content: "https://manojwheels.online/ai-check" },
     ],
-    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/ai-check" }],
+    links: [{ rel: "canonical", href: "https://manojwheels.online/ai-check" }],
   }),
   component: AiCheckPage,
 });

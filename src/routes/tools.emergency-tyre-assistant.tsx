@@ -15,9 +15,9 @@ export const Route = createFileRoute("/tools/emergency-tyre-assistant")({
       { name: "description", content: "Tyre burst, steering vibration, pulling, slow puncture — get immediate safety steps & severity guidance. AI guidance, never a replacement for inspection." },
       { property: "og:title", content: "Emergency Tyre Assistant | Manoj Wheels" },
       { property: "og:description", content: "Free emergency tyre guidance — immediate safety steps, severity level and recommended service." },
-      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/tools/emergency-tyre-assistant" },
+      { property: "og:url", content: "https://manojwheels.online/tools/emergency-tyre-assistant" },
     ],
-    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/tools/emergency-tyre-assistant" }],
+    links: [{ rel: "canonical", href: "https://manojwheels.online/tools/emergency-tyre-assistant" }],
   }),
   component: EmergencyTool,
 });

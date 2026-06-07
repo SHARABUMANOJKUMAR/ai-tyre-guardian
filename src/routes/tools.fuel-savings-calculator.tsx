@@ -5,7 +5,7 @@ import { Fuel } from "lucide-react";
 import { Field, Grid2, Headline, Stat, ToolPage } from "@/components/site/ToolLayout";
 import type { SaveToolPayload } from "@/hooks/use-tool-reporter";
 
-export const Route = createFileRoute("/tools/fuel")({
+export const Route = createFileRoute("/tools/fuel-savings-calculator")({
   head: () => ({
     meta: [
       { title: "Fuel Savings Calculator (km/l, ₹) | Manoj Wheels" },

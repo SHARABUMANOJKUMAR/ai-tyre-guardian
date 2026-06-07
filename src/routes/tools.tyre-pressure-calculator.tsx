@@ -12,7 +12,7 @@ import { Wind } from "lucide-react";
 import { Field, Grid2, Headline, Stat, ToolPage } from "@/components/site/ToolLayout";
 import type { SaveToolPayload } from "@/hooks/use-tool-reporter";
 
-export const Route = createFileRoute("/tools/pressure")({
+export const Route = createFileRoute("/tools/tyre-pressure-calculator")({
   head: () => ({
     meta: [
       { title: "Tyre Pressure Calculator (PSI / kPa / Bar) | Manoj Wheels" },

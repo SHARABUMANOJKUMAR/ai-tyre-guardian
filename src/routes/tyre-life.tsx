@@ -10,9 +10,13 @@ import { Calculator, ArrowRight } from "lucide-react";
 export const Route = createFileRoute("/tyre-life")({
   head: () => ({
     meta: [
-      { title: "Tyre Life Calculator — Estimate Replacement | Manoj Wheels" },
-      { name: "description", content: "Estimate your tyre's remaining life in kilometres and the suggested replacement date based on driving type and road conditions." },
+      { title: "Tyre Life Calculator — Free Tyre Replacement Estimator | Pulivendula" },
+      { name: "description", content: "Free tyre life predictor — estimate remaining kilometres and suggested replacement date based on driving style and road conditions. Manoj Wheels, Pulivendula." },
+      { property: "og:title", content: "Tyre Life Calculator | Manoj Wheels" },
+      { property: "og:description", content: "Estimate tyre remaining life in kilometres and replacement date." },
+      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/tyre-life" },
     ],
+    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/tyre-life" }],
   }),
   component: TyreLifePage,
 });

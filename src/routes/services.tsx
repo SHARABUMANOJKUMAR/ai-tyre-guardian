@@ -10,10 +10,76 @@ import {
 export const Route = createFileRoute("/services")({
   head: () => ({
     meta: [
-      { title: "Tyre Services — 3D Alignment, Balancing & More | Manoj Wheels" },
-      { name: "description", content: "Complete tyre & wheel care: 3D wheel alignment, balancing, nitrogen filling, puncture repair, tyre change, valve replacement, alloy services & 24/7 emergency support." },
-      { property: "og:title", content: "Tyre & Wheel Services | Manoj Wheels" },
-      { property: "og:description", content: "Premium tyre care services with AI-powered diagnostics." },
+      { title: "Tyre Shop in Pulivendula — 3D Wheel Alignment & Balancing | Manoj Wheels" },
+      { name: "description", content: "Best tyre shop in Pulivendula, YSR Kadapa. 3D wheel alignment, balancing, nitrogen filling, puncture repair, tyre change & alloy services. Open 7 days." },
+      { name: "keywords", content: "tyre shop in pulivendula, wheel alignment in pulivendula, wheel balancing in pulivendula, puncture repair in pulivendula, nitrogen air filling, tyre services pulivendula, YSR Kadapa tyre shop" },
+      { property: "og:title", content: "Tyre Shop in Pulivendula — Wheel Alignment & Balancing | Manoj Wheels" },
+      { property: "og:description", content: "Premium tyre care, 3D wheel alignment, balancing, puncture repair & AI tyre diagnostics in Pulivendula, YSR Kadapa." },
+      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/services" },
+    ],
+    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/services" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Service",
+              name: "3D Wheel Alignment in Pulivendula",
+              serviceType: "Wheel Alignment",
+              provider: { "@id": "https://ai-tyre-vision.lovable.app/#business" },
+              areaServed: ["Pulivendula", "YSR Kadapa District", "Andhra Pradesh"],
+            },
+            {
+              "@type": "Service",
+              name: "Wheel Balancing in Pulivendula",
+              serviceType: "Wheel Balancing",
+              provider: { "@id": "https://ai-tyre-vision.lovable.app/#business" },
+              areaServed: ["Pulivendula", "YSR Kadapa District", "Andhra Pradesh"],
+            },
+            {
+              "@type": "Service",
+              name: "Nitrogen Air Filling in Pulivendula",
+              serviceType: "Nitrogen Filling",
+              provider: { "@id": "https://ai-tyre-vision.lovable.app/#business" },
+              areaServed: ["Pulivendula", "YSR Kadapa District"],
+            },
+            {
+              "@type": "Service",
+              name: "Puncture Repair in Pulivendula",
+              serviceType: "Puncture Repair",
+              provider: { "@id": "https://ai-tyre-vision.lovable.app/#business" },
+              areaServed: ["Pulivendula", "YSR Kadapa District"],
+            },
+            {
+              "@type": "FAQPage",
+              mainEntity: [
+                {
+                  "@type": "Question",
+                  name: "Where is the best tyre shop in Pulivendula?",
+                  acceptedAnswer: { "@type": "Answer", text: "Manoj Wheels in Pulivendula, YSR Kadapa District offers 3D wheel alignment, balancing, puncture repair, nitrogen filling and AI tyre diagnostics — trusted by 25,000+ drivers." },
+                },
+                {
+                  "@type": "Question",
+                  name: "How often should I get wheel alignment?",
+                  acceptedAnswer: { "@type": "Answer", text: "Every 5,000 km or 6 months, whichever comes first. Earlier if the steering pulls, vibrates, or you've hit a deep pothole." },
+                },
+                {
+                  "@type": "Question",
+                  name: "How much does wheel balancing cost in Pulivendula?",
+                  acceptedAnswer: { "@type": "Answer", text: "Wheel balancing at Manoj Wheels in Pulivendula starts at ₹100 per wheel for hatchbacks and varies by vehicle. Call +91 88972 30858 for an exact quote." },
+                },
+                {
+                  "@type": "Question",
+                  name: "Do you fill nitrogen air for tyres?",
+                  acceptedAnswer: { "@type": "Answer", text: "Yes — Manoj Wheels offers nitrogen filling for cars, SUVs and commercial vehicles. Nitrogen keeps pressure stable, runs cooler and improves mileage." },
+                },
+              ],
+            },
+          ],
+        }),
+      },
     ],
   }),
   component: ServicesPage,

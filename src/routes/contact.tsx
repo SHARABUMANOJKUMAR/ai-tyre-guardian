@@ -14,9 +14,13 @@ import { openWhatsApp } from "@/lib/whatsapp";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact Manoj Wheels — Phone, WhatsApp, Email & Location" },
-      { name: "description", content: "Get in touch with Manoj Wheels for tyre and wheel services. Call +91 88972 30858, WhatsApp, email or visit our workshop. Open 7 days a week." },
+      { title: "Contact Manoj Wheels Pulivendula — Phone, WhatsApp, Address" },
+      { name: "description", content: "Tyre shop in Pulivendula, YSR Kadapa. Call +91 88972 30858, WhatsApp, email or visit our workshop. Open 7 days a week, 8 AM – 9 PM." },
+      { property: "og:title", content: "Contact Manoj Wheels — Pulivendula, YSR Kadapa" },
+      { property: "og:description", content: "Phone, WhatsApp, email and workshop location for Manoj Wheels in Pulivendula." },
+      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/contact" },
     ],
+    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/contact" }],
   }),
   component: ContactPage,
 });

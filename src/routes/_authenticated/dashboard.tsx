@@ -17,6 +17,7 @@ import {
 import { listReports, deleteReport, getReportSignedUrl } from "@/lib/reports.functions";
 import { emailReportPdf } from "@/lib/email-pdf.functions";
 import { openExternal } from "@/lib/external-link";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { supabase } from "@/integrations/supabase/client";
 
 const WHATSAPP = "918897230858";

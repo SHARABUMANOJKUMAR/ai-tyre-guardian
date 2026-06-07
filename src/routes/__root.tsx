@@ -184,10 +184,11 @@ function useAppsScriptAuthSync() {
       const authType: "Google" | "Email" = provider === "google" ? "Google" : "Email";
       const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
       if (isNew) {
-        await logSignup({
+        logSignup({
           userId,
           fullName: String(meta.full_name ?? meta.name ?? ""),
           email: user.email ?? "",
+          phoneNumber: String(meta.phone_number ?? meta.phone ?? ""),
           authType,
           emailVerified: user.email_confirmed_at ? "Yes" : "No",
           profileImage: String(meta.avatar_url ?? meta.picture ?? ""),

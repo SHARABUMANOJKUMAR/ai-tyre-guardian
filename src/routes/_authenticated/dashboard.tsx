@@ -201,8 +201,8 @@ function Dashboard() {
             <Card className="p-10 text-center bg-card/60">
               <FileText className="w-10 h-10 text-muted-foreground mx-auto" />
               <h3 className="mt-4 font-bold">No reports yet</h3>
-              <p className="text-sm text-muted-foreground mt-1">Generate your first AI tyre diagnostic.</p>
-              <Button asChild variant="hero" className="mt-4"><Link to="/ai-check">Start AI Check</Link></Button>
+              <p className="text-sm text-muted-foreground mt-1">Run any tool to generate your first report.</p>
+              <Button asChild variant="hero" className="mt-4"><Link to="/tools">Open Tools Hub</Link></Button>
             </Card>
           ) : (
             <ul className="grid gap-3">

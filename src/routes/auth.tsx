@@ -56,6 +56,7 @@ function AuthPage() {
     const email = String(fd.get("email") ?? "");
     const password = String(fd.get("password") ?? "");
     const name = String(fd.get("name") ?? "");
+    const phone = String(fd.get("phone") ?? "").trim();
 
     const ep = emailSchema.safeParse(email);
     const pp = passwordSchema.safeParse(password);
@@ -73,15 +74,16 @@ function AuthPage() {
           email, password,
           options: {
             emailRedirectTo: window.location.origin + "/dashboard",
-            data: { full_name: name },
+            data: { full_name: name, phone_number: phone },
           },
         });
         if (error) throw error;
         if (signUpData.user) {
-          const ok = await logSignup({
+          const ok = logSignup({
             userId: deriveUserId(signUpData.user.id),
             fullName: name,
             email,
+            phoneNumber: phone,
             authType: "Email",
             emailVerified: signUpData.user.email_confirmed_at ? "Yes" : "No",
             profileImage: "",

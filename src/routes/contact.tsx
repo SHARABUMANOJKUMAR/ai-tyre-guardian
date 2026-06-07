@@ -94,7 +94,7 @@ function ContactPage() {
         `Hello Manoj Wheels,\nName: ${parsed.data.name}\nPhone: ${parsed.data.phone}\n` +
         (parsed.data.email ? `Email: ${parsed.data.email}\n` : "") +
         `Subject: ${parsed.data.subject}\n\n${parsed.data.message}`;
-      openExternal(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`);
+      openExternal(buildWhatsAppUrl(WHATSAPP, text));
     } finally {
       setSubmitting(false);
     }

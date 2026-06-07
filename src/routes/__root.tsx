@@ -98,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@type": "AutoRepair",
           "@id": "https://ai-tyre-vision.lovable.app/#business",
           name: "Manoj Wheels",
-          image: "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780805003/MAnoj_Wheels_Logo_99_shtjjo.png",
+          image: "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png",
           url: "https://ai-tyre-vision.lovable.app",
           telephone: "+91-8897230858",
           email: "manojwheels.official@gmail.com",

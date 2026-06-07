@@ -22,6 +22,8 @@ export function ToolShareBar({ build, disabled }: Props) {
   const reporter = useToolReporter();
   const [showEmail, setShowEmail] = useState(false);
   const [emailVal, setEmailVal] = useState(user?.email ?? "");
+  const [showWa, setShowWa] = useState(false);
+  const [waVal, setWaVal] = useState("");
 
   return (
     <div className="rounded-xl border border-border bg-background/40 p-4">

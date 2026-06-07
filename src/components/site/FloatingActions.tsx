@@ -1,5 +1,6 @@
 import { Phone } from "lucide-react";
 import { openExternal } from "@/lib/external-link";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -8,9 +9,6 @@ function WhatsAppIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
-const WHATSAPP_URL =
-  "https://wa.me/918897230858?text=Hi%20Manoj%20Wheels%2C%20I%20need%20tyre%20service";
 
 export function FloatingActions() {
   return (

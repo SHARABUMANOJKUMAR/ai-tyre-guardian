@@ -14,7 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      email_sends: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          recipient: string
+          report_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          recipient: string
+          report_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          recipient?: string
+          report_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sends_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          analysis: Json | null
+          confidence: number | null
+          cracks: string | null
+          created_at: string
+          email: string
+          id: string
+          image_path: string | null
+          is_tyre: boolean
+          notes: string | null
+          observations: Json | null
+          pdf_path: string | null
+          pdf_url: string | null
+          recommendation: string | null
+          remaining_km: number | null
+          report_type: string
+          score: number
+          tread: number | null
+          user_id: string
+        }
+        Insert: {
+          analysis?: Json | null
+          confidence?: number | null
+          cracks?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          image_path?: string | null
+          is_tyre?: boolean
+          notes?: string | null
+          observations?: Json | null
+          pdf_path?: string | null
+          pdf_url?: string | null
+          recommendation?: string | null
+          remaining_km?: number | null
+          report_type?: string
+          score?: number
+          tread?: number | null
+          user_id: string
+        }
+        Update: {
+          analysis?: Json | null
+          confidence?: number | null
+          cracks?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          image_path?: string | null
+          is_tyre?: boolean
+          notes?: string | null
+          observations?: Json | null
+          pdf_path?: string | null
+          pdf_url?: string | null
+          recommendation?: string | null
+          remaining_km?: number | null
+          report_type?: string
+          score?: number
+          tread?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

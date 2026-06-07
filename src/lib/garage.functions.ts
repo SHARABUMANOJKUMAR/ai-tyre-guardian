@@ -151,7 +151,7 @@ const HealthLogInput = z.object({
   description: z.string().max(1000).optional().nullable(),
   odometer_km: z.number().int().min(0).max(2_000_000).optional().nullable(),
   cost: z.number().min(0).max(10_000_000).optional().nullable(),
-  service_date: z.string().optional().nullable(),
+  service_date: z.string().optional(),
 });
 
 export const listHealthLogs = createServerFn({ method: "GET" })

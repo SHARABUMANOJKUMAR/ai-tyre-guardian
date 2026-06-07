@@ -1,4 +1,28 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
+
+const ALLOWED_MIMES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+
+// Simple in-memory rate limit: max 5 requests per IP per minute.
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const rateBuckets = new Map<string, number[]>();
+
+function checkRateLimit(ip: string) {
+  const now = Date.now();
+  const arr = (rateBuckets.get(ip) ?? []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  if (arr.length >= RATE_LIMIT_MAX) return false;
+  arr.push(now);
+  rateBuckets.set(ip, arr);
+  // Light cleanup
+  if (rateBuckets.size > 1000) {
+    for (const [k, v] of rateBuckets) {
+      if (!v.some((t) => now - t < RATE_LIMIT_WINDOW_MS)) rateBuckets.delete(k);
+    }
+  }
+  return true;
+}
+
 
 export type TyreAnalysis = {
   isTyre: boolean;
@@ -42,9 +66,26 @@ export const analyzeTyre = createServerFn({ method: "POST" })
     if (d.imageBase64.length > 8_000_000) {
       throw new Error("Image too large (max ~6MB)");
     }
+    if (!d.mime || typeof d.mime !== "string" || !ALLOWED_MIMES.has(d.mime)) {
+      throw new Error("Unsupported image type. Use JPEG, PNG, WEBP, or GIF.");
+    }
     return d;
   })
   .handler(async ({ data }): Promise<TyreAnalysis> => {
+    try {
+      const req = getRequest();
+      const ip =
+        req.headers.get("cf-connecting-ip") ||
+        req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+        "unknown";
+      if (!checkRateLimit(ip)) {
+        throw new Error("Too many requests. Please wait a minute and try again.");
+      }
+    } catch (e) {
+      if (e instanceof Error && e.message.startsWith("Too many")) throw e;
+      // If getRequest is unavailable for any reason, proceed without throttle.
+    }
+
     const apiKey = process.env.Gimini_API_Key;
     if (!apiKey) {
       throw new Error("Server is missing Gemini API key configuration.");

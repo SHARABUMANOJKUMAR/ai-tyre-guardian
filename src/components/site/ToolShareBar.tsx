@@ -61,7 +61,7 @@ export function ToolShareBar({ build, disabled }: Props) {
           size="sm"
           variant="outline"
           disabled={disabled || !!reporter.busy}
-          onClick={() => reporter.shareToWhatsApp(build())}
+          onClick={() => setShowWa((v) => !v)}
         >
           {reporter.busy === "wa" ? (
             <Loader2 className="w-4 h-4 animate-spin" />

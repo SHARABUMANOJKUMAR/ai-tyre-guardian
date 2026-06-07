@@ -153,26 +153,86 @@ function AiCheckPage() {
   function shareWhatsApp() {
     if (!result) return;
     if (!lastPdf) downloadReport(result, image);
-    const text = `Hello Manoj Wheels,\n\nMy AI Tyre Diagnostic Report\nScore: ${result.score}/100\nRecommendation: ${result.recommendation}\nTread Wear: ${result.tread}%\nEstimated Life Left: ${result.remainingKm.toLocaleString()} km\n\n(PDF report attached separately.)`;
-    openExternal(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`);
-    toast.message("WhatsApp opened — attach the downloaded PDF in chat.");
-  }
-
-  function shareEmail() {
-    if (!result) return;
-    if (!lastPdf) downloadReport(result, image);
-    const subject = `My Tyre Diagnostic Report — Score ${result.score}/100`;
-    const body =
+    const when = formatReportDate(Date.now());
+    const text =
       `Hello Manoj Wheels,\n\n` +
-      `Please find my AI tyre diagnostic report attached.\n\n` +
+      `*My AI Tyre Diagnostic Report*\n` +
+      `Date: ${when}\n` +
       `Health Score: ${result.score}/100\n` +
       `Recommendation: ${result.recommendation}\n` +
       `Tread Wear: ${result.tread}%\n` +
       `Crack Detection: ${result.cracks}\n` +
       `Estimated Life Left: ${result.remainingKm.toLocaleString()} km\n\n` +
-      `Notes: ${result.notes}\n`;
-    window.location.href = `mailto:${EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    toast.message("Email opened — attach the downloaded PDF before sending.");
+      `Please find my full PDF report attached. I'd like your advice on next steps.\n\n` +
+      `(Contact: ${WHATSAPP_DISPLAY})`;
+    openExternal(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`);
+    toast.message("WhatsApp opened — attach the downloaded PDF in chat.");
+  }
+
+  async function shareEmail() {
+    if (!result) return;
+    const defaultTo = typeof window !== "undefined" ? (window.prompt("Send the PDF report to which email?", "") ?? "").trim() : "";
+    if (!defaultTo) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(defaultTo)) {
+      toast.error("That doesn't look like a valid email address.");
+      return;
+    }
+
+    // Make sure we have a PDF blob in memory (don't save to disk again).
+    let out = lastPdf;
+    if (!out) {
+      const o = generateTyreReportPDF(result, image, { save: false });
+      out = { blob: o.blob, filename: o.filename };
+      setLastPdf(out);
+    }
+
+    // Convert blob -> base64 (without the data: prefix)
+    const pdfBase64: string = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onerror = () => reject(r.error ?? new Error("Failed to read PDF"));
+      r.onload = () => {
+        const dataUrl = String(r.result ?? "");
+        const idx = dataUrl.indexOf(",");
+        resolve(idx >= 0 ? dataUrl.slice(idx + 1) : dataUrl);
+      };
+      r.readAsDataURL(out.blob);
+    });
+
+    const when = formatReportDate(Date.now());
+    const html =
+      `<div style="font-family:Arial,sans-serif;color:#111;line-height:1.55">` +
+      `<h2 style="color:#dc2626;margin:0 0 12px">Your AI Tyre Diagnostic Report</h2>` +
+      `<p>Hi,</p>` +
+      `<p>Your tyre diagnostic report from <strong>Manoj Wheels</strong> is attached as a PDF.</p>` +
+      `<table style="border-collapse:collapse;margin:12px 0">` +
+      `<tr><td style="padding:4px 8px;color:#666">Date</td><td style="padding:4px 8px"><strong>${when}</strong></td></tr>` +
+      `<tr><td style="padding:4px 8px;color:#666">Health Score</td><td style="padding:4px 8px"><strong>${result.score}/100</strong></td></tr>` +
+      `<tr><td style="padding:4px 8px;color:#666">Recommendation</td><td style="padding:4px 8px"><strong>${result.recommendation}</strong></td></tr>` +
+      `<tr><td style="padding:4px 8px;color:#666">Tread Wear</td><td style="padding:4px 8px">${result.tread}%</td></tr>` +
+      `<tr><td style="padding:4px 8px;color:#666">Crack Detection</td><td style="padding:4px 8px">${result.cracks}</td></tr>` +
+      `<tr><td style="padding:4px 8px;color:#666">Estimated Life Left</td><td style="padding:4px 8px">${result.remainingKm.toLocaleString()} km</td></tr>` +
+      `</table>` +
+      `<p style="color:#555">For an in-workshop inspection, reply to this email or WhatsApp us at ${WHATSAPP_DISPLAY}.</p>` +
+      `<p style="margin-top:24px;color:#999;font-size:12px">Manoj Wheels · Pulivendula, Andhra Pradesh</p>` +
+      `</div>`;
+
+    const sending = toast.loading("Sending your report by email…");
+    try {
+      const res = await sendTyreReportEmail({
+        data: {
+          to: defaultTo,
+          toName: "",
+          subject: `Your Tyre Diagnostic Report — Score ${result.score}/100 (${when})`,
+          html,
+          pdfBase64,
+          pdfFilename: out.filename,
+        },
+      });
+      toast.success(`Report sent to ${defaultTo}`, { id: sending, description: res.messageId ? `Ref: ${res.messageId}` : undefined });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Email failed to send";
+      toast.error("Couldn't send the email", { id: sending, description: msg });
+    }
   }
 
   function reset() {

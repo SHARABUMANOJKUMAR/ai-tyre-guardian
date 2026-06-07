@@ -127,10 +127,16 @@ function AuthPage() {
 
         <form onSubmit={onSubmit} className="space-y-4">
           {mode === "signup" && (
-            <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" name="name" placeholder="Your name" autoComplete="name" />
-            </div>
+            <>
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <Input id="name" name="name" placeholder="Your name" autoComplete="name" />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone Number (optional)</Label>
+                <Input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" autoComplete="tel" />
+              </div>
+            </>
           )}
           <div>
             <Label htmlFor="email">Email</Label>

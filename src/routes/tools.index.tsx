@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export const Route = createFileRoute("/tools")({
+export const Route = createFileRoute("/tools/")({
   head: () => ({
     meta: [
       { title: "Tyre & Vehicle Tools Hub | Manoj Wheels" },

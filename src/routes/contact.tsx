@@ -40,12 +40,15 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
+const CONTACT_SHEET_URL =
+  "https://script.google.com/macros/s/AKfycbyVEFVBpAdMrom7po4cz_ASzHxWT2myeancOrz39E-dBh5bsqtsDE6w2fyM6ZrWpDsPZw/exec";
+
 function ContactPage() {
   const [done, setDone] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const values = {
@@ -66,7 +69,29 @@ function ContactPage() {
     setErrors({});
     setSubmitting(true);
 
-    // Hand off to WhatsApp with a pre-filled professional message
+    // 1) Save the lead to the Google Sheet (Apps Script Web App).
+    //    Apps Script blocks CORS preflight, so we send a simple text/plain POST.
+    try {
+      await fetch(CONTACT_SHEET_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          fullName: parsed.data.name,
+          phoneNumber: parsed.data.phone,
+          email: parsed.data.email || "",
+          subject: parsed.data.subject,
+          message: parsed.data.message,
+          submittedAt: new Date().toISOString(),
+          source: "manoj-wheels-contact",
+        }),
+      });
+    } catch (err) {
+      // no-cors means we can't read errors, but log just in case
+      console.warn("Contact sheet sync warning:", err);
+    }
+
+    // 2) Hand off to WhatsApp with a pre-filled professional message
     const text =
       `Hello Manoj Wheels,\n\n` +
       `Name: ${parsed.data.name}\n` +
@@ -76,12 +101,10 @@ function ContactPage() {
       `${parsed.data.message}`;
     const url = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
 
-    setTimeout(() => {
-      setSubmitting(false);
-      setDone(true);
-      toast.success("Message ready — opening WhatsApp");
-      openExternal(url);
-    }, 400);
+    setSubmitting(false);
+    setDone(true);
+    toast.success("Message saved — opening WhatsApp");
+    openExternal(url);
   }
 
   return (

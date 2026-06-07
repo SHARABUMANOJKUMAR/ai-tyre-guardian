@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Upload, ScanLine, ShieldCheck, AlertTriangle, CheckCircle2, RefreshCcw, Sparkles, XCircle } from "lucide-react";
+import { Upload, ScanLine, ShieldCheck, AlertTriangle, CheckCircle2, RefreshCcw, Sparkles, XCircle, Download } from "lucide-react";
 import { analyzeTyre, type TyreAnalysis } from "@/lib/tyre-analyze.functions";
+import { generateTyreReportPDF } from "@/lib/tyre-report-pdf";
 
 export const Route = createFileRoute("/ai-check")({
   head: () => ({

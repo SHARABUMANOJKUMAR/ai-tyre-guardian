@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
+import { deriveUserId, logLogin, logSignup } from "@/lib/apps-script-logger";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({

@@ -88,7 +88,7 @@ export const Route = createFileRoute("/api/public/hooks/send-maintenance-reminde
               <h2 style="color:#dc2626;margin:0 0 8px">Manoj Wheels — Maintenance Reminders</h2>
               <p style="color:#555;margin:0 0 16px">Hi ${escapeHtml(prof.name || "there")}, you have ${userRows.length} maintenance item${userRows.length > 1 ? "s" : ""} due soon.</p>
               <table style="width:100%;border-collapse:collapse;background:#fafafa;border-radius:10px;overflow:hidden">${items}</table>
-              <p style="margin-top:18px"><a href="https://ai-tyre-vision.lovable.app/garage" style="background:#dc2626;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:700">Open My Garage</a></p>
+              <p style="margin-top:18px"><a href="https://manojwheels.online/garage" style="background:#dc2626;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:700">Open My Garage</a></p>
               <p style="font-size:12px;color:#888;margin-top:24px">Book service: Manoj Wheels, Pulivendula, YSR Kadapa District.</p>
             </div>`;
 

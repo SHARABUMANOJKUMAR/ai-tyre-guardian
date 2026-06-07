@@ -18,9 +18,9 @@ export const Route = createFileRoute("/contact")({
       { name: "description", content: "Tyre shop in Pulivendula, YSR Kadapa. Call +91 88972 30858, WhatsApp, email or visit our workshop. Open 7 days a week, 8 AM – 9 PM." },
       { property: "og:title", content: "Contact Manoj Wheels — Pulivendula, YSR Kadapa" },
       { property: "og:description", content: "Phone, WhatsApp, email and workshop location for Manoj Wheels in Pulivendula." },
-      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/contact" },
+      { property: "og:url", content: "https://manojwheels.online/contact" },
     ],
-    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/contact" }],
+    links: [{ rel: "canonical", href: "https://manojwheels.online/contact" }],
   }),
   component: ContactPage,
 });

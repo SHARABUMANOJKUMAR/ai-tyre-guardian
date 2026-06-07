@@ -15,9 +15,9 @@ export const Route = createFileRoute("/tools/ai-tyre-brand-recommender")({
       { name: "description", content: "Get the best tyre brand for your car, budget and road type — MRF, Apollo, CEAT, Michelin, Bridgestone, JK Tyre, Goodyear. Free in Pulivendula." },
       { property: "og:title", content: "AI Tyre Brand Recommender | Manoj Wheels" },
       { property: "og:description", content: "Compare 7 top tyre brands for your vehicle, budget and road type." },
-      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/tools/ai-tyre-brand-recommender" },
+      { property: "og:url", content: "https://manojwheels.online/tools/ai-tyre-brand-recommender" },
     ],
-    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/tools/ai-tyre-brand-recommender" }],
+    links: [{ rel: "canonical", href: "https://manojwheels.online/tools/ai-tyre-brand-recommender" }],
   }),
   component: BrandTool,
 });

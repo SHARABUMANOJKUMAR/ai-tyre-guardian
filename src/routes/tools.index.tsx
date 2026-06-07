@@ -28,9 +28,9 @@ export const Route = createFileRoute("/tools/")({
       { name: "description", content: "Free tyre calculators and AI tyre analysis tools — tyre pressure, size, mileage, life predictor, wheel alignment checker and AI service advisor." },
       { property: "og:title", content: "Free Tyre Calculators & AI Tyre Analysis Tools" },
       { property: "og:description", content: "10 smart tools for drivers — AI tyre analyzer, alignment, life predictor, weather-aware health and more." },
-      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/tools" },
+      { property: "og:url", content: "https://manojwheels.online/tools" },
     ],
-    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/tools" }],
+    links: [{ rel: "canonical", href: "https://manojwheels.online/tools" }],
   }),
 
   component: ToolsHub,

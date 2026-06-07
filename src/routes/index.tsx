@@ -20,9 +20,9 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Professional tyre care, wheel alignment, balancing, puncture repair and AI tyre diagnostics in Pulivendula. Free AI tyre health check & instant booking." },
       { property: "og:title", content: "AI Tyre Analyzer & Wheel Alignment Services | Manoj Wheels" },
       { property: "og:description", content: "Professional tyre care, wheel alignment, balancing, puncture repair and AI tyre diagnostics in Pulivendula." },
-      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/" },
+      { property: "og:url", content: "https://manojwheels.online/" },
     ],
-    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/" }],
+    links: [{ rel: "canonical", href: "https://manojwheels.online/" }],
 
   }),
   component: HomePage,

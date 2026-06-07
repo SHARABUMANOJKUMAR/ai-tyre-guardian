@@ -13,9 +13,9 @@ export const Route = createFileRoute("/tools/wheel-alignment-checker")({
       { name: "description", content: "Free wheel alignment checker — assess alignment risk from symptoms like pulling, vibration and uneven wear. Book 3D wheel alignment in Pulivendula." },
       { property: "og:title", content: "Wheel Alignment Services in Pulivendula" },
       { property: "og:description", content: "Free wheel alignment checker + professional 3D wheel alignment service in Pulivendula." },
-      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/tools/wheel-alignment-checker" },
+      { property: "og:url", content: "https://manojwheels.online/tools/wheel-alignment-checker" },
     ],
-    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/tools/wheel-alignment-checker" }],
+    links: [{ rel: "canonical", href: "https://manojwheels.online/tools/wheel-alignment-checker" }],
   }),
   component: WheelAlignmentTool,
 });

@@ -14,9 +14,9 @@ export const Route = createFileRoute("/tyre-life")({
       { name: "description", content: "Free tyre life predictor — estimate remaining kilometres and suggested replacement date based on driving style and road conditions. Manoj Wheels, Pulivendula." },
       { property: "og:title", content: "Tyre Life Calculator | Manoj Wheels" },
       { property: "og:description", content: "Estimate tyre remaining life in kilometres and replacement date." },
-      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/tyre-life" },
+      { property: "og:url", content: "https://manojwheels.online/tyre-life" },
     ],
-    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/tyre-life" }],
+    links: [{ rel: "canonical", href: "https://manojwheels.online/tyre-life" }],
   }),
   component: TyreLifePage,
 });

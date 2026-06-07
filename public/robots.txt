@@ -3,4 +3,4 @@ Allow: /
 Disallow: /auth
 Disallow: /dashboard
 
-Sitemap: https://ai-tyre-vision.lovable.app/sitemap.xml
+Sitemap: https://manojwheels.online/sitemap.xml

@@ -96,10 +96,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "AutoRepair",
-          "@id": "https://ai-tyre-vision.lovable.app/#business",
+          "@id": "https://manojwheels.online/#business",
           name: "Manoj Wheels",
           image: "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780805003/MAnoj_Wheels_Logo_99_shtjjo.png",
-          url: "https://ai-tyre-vision.lovable.app",
+          url: "https://manojwheels.online",
           telephone: "+91-8897230858",
           email: "manojwheels.official@gmail.com",
           priceRange: "₹₹",

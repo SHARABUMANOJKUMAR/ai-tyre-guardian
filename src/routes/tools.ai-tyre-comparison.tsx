@@ -14,9 +14,9 @@ export const Route = createFileRoute("/tools/ai-tyre-comparison")({
       { name: "description", content: "Compare two tyre brands side-by-side — price, durability, comfort, grip, expected life. MRF vs Apollo, Michelin vs Bridgestone and more." },
       { property: "og:title", content: "AI Tyre Comparison Tool | Manoj Wheels" },
       { property: "og:description", content: "Side-by-side comparison of two tyre brands with score, pros, cons and best use." },
-      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/tools/ai-tyre-comparison" },
+      { property: "og:url", content: "https://manojwheels.online/tools/ai-tyre-comparison" },
     ],
-    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/tools/ai-tyre-comparison" }],
+    links: [{ rel: "canonical", href: "https://manojwheels.online/tools/ai-tyre-comparison" }],
   }),
   component: ComparisonTool,
 });

@@ -122,7 +122,7 @@ export function ToolShareBar({ build, disabled }: Props) {
               inputMode="tel"
               value={waVal}
               onChange={(e) => setWaVal(e.target.value)}
-              placeholder="e.g. 919876543210"
+              placeholder="e.g. +917013550760"
             />
           </div>
           <Button
@@ -138,6 +138,11 @@ export function ToolShareBar({ build, disabled }: Props) {
             )}
             Send
           </Button>
+          {reporter.whatsAppStatus && (
+            <p className="basis-full text-[11px] text-muted-foreground">
+              {reporter.whatsAppStatus}
+            </p>
+          )}
         </div>
       )}
 

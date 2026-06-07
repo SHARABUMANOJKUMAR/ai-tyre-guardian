@@ -3,13 +3,25 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 const BUCKET = "tyre-reports";
+const VERIFIED_EMAIL_FROM = "manojwheels.official@gmail.com";
+const emailInputSchema = z.string().trim().toLowerCase().email().max(160);
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>'"]/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    '"': "&quot;",
+  })[char] ?? char);
+}
 
 export const emailReportPdf = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { reportId: string; toEmail: string }) =>
     z.object({
       reportId: z.string().uuid(),
-      toEmail: z.string().trim().email().max(160),
+      toEmail: emailInputSchema,
     }).parse(d)
   )
   .handler(async ({ data, context }) => {
@@ -49,9 +61,10 @@ export const emailReportPdf = createServerFn({ method: "POST" })
     }
 
     const filename = `Manoj-Wheels-Tyre-Report-${new Date(report.created_at).getTime()}.pdf`;
-    const senderEmail = process.env.EMAIL_FROM || "noreply@manojwheels.com";
+    const configuredSender = (process.env.EMAIL_FROM || VERIFIED_EMAIL_FROM).trim().toLowerCase();
+    const senderEmail = configuredSender === VERIFIED_EMAIL_FROM ? configuredSender : VERIFIED_EMAIL_FROM;
     const senderName = "Manoj Wheels";
-    const fromName = claims.email ?? "you";
+    const fromName = escapeHtml(claims.email ?? "you");
 
     const payload = {
       sender: { email: senderEmail, name: senderName },
@@ -86,10 +99,7 @@ export const emailReportPdf = createServerFn({ method: "POST" })
         status: "failed", error: errMsg.slice(0, 500),
       });
       // Common cause: sender domain not authenticated in Brevo
-      const hint = !process.env.EMAIL_FROM
-        ? " (set EMAIL_FROM to a sender verified in your Brevo account)"
-        : "";
-      throw new Error(`Email rejected by provider: ${errMsg}${hint}`);
+      throw new Error(`Email rejected by Brevo: ${errMsg}`);
     }
 
     console.log("[email-pdf] sent", { messageId: parsed.messageId, to: data.toEmail });

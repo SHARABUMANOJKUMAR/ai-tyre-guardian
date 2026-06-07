@@ -34,6 +34,7 @@ import { Route as ToolsAiTyreComparisonRouteImport } from './routes/tools.ai-tyr
 import { Route as ToolsAiTyreBrandRecommenderRouteImport } from './routes/tools.ai-tyre-brand-recommender'
 import { Route as ToolsAiServiceAdvisorRouteImport } from './routes/tools.ai-service-advisor'
 import { Route as ToolsSplatRouteImport } from './routes/tools.$'
+import { Route as AuthenticatedGarageRouteImport } from './routes/_authenticated/garage'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 
 const TyreLifeRoute = TyreLifeRouteImport.update({
@@ -168,6 +169,11 @@ const ToolsSplatRoute = ToolsSplatRouteImport.update({
   path: '/tools/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedGarageRoute = AuthenticatedGarageRouteImport.update({
+  id: '/garage',
+  path: '/garage',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/ai-tyre-brand-recommender': typeof ToolsAiTyreBrandRecommenderRoute
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/ai-tyre-brand-recommender': typeof ToolsAiTyreBrandRecommenderRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/ai-tyre-brand-recommender': typeof ToolsAiTyreBrandRecommenderRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tyre-life'
     | '/dashboard'
+    | '/garage'
     | '/tools/$'
     | '/tools/ai-service-advisor'
     | '/tools/ai-tyre-brand-recommender'
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tyre-life'
     | '/dashboard'
+    | '/garage'
     | '/tools/$'
     | '/tools/ai-service-advisor'
     | '/tools/ai-tyre-brand-recommender'
@@ -324,6 +335,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tyre-life'
     | '/_authenticated/dashboard'
+    | '/_authenticated/garage'
     | '/tools/$'
     | '/tools/ai-service-advisor'
     | '/tools/ai-tyre-brand-recommender'
@@ -547,6 +559,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/garage': {
+      id: '/_authenticated/garage'
+      path: '/garage'
+      fullPath: '/garage'
+      preLoaderRoute: typeof AuthenticatedGarageRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -559,10 +578,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedGarageRoute: typeof AuthenticatedGarageRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedGarageRoute: AuthenticatedGarageRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

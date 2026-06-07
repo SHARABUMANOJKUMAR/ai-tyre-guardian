@@ -19,6 +19,7 @@ import { Route as AiCheckRouteImport } from './routes/ai-check'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsSizeRouteImport } from './routes/tools.size'
+import { Route as ToolsServiceCostRouteImport } from './routes/tools.service-cost'
 import { Route as ToolsPressureRouteImport } from './routes/tools.pressure'
 import { Route as ToolsMileageRouteImport } from './routes/tools.mileage'
 import { Route as ToolsFuelRouteImport } from './routes/tools.fuel'
@@ -73,6 +74,11 @@ const ToolsSizeRoute = ToolsSizeRouteImport.update({
   path: '/size',
   getParentRoute: () => ToolsRoute,
 } as any)
+const ToolsServiceCostRoute = ToolsServiceCostRouteImport.update({
+  id: '/service-cost',
+  path: '/service-cost',
+  getParentRoute: () => ToolsRoute,
+} as any)
 const ToolsPressureRoute = ToolsPressureRouteImport.update({
   id: '/pressure',
   path: '/pressure',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/tools/fuel': typeof ToolsFuelRoute
   '/tools/mileage': typeof ToolsMileageRoute
   '/tools/pressure': typeof ToolsPressureRoute
+  '/tools/service-cost': typeof ToolsServiceCostRoute
   '/tools/size': typeof ToolsSizeRoute
 }
 export interface FileRoutesByTo {
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/tools/fuel': typeof ToolsFuelRoute
   '/tools/mileage': typeof ToolsMileageRoute
   '/tools/pressure': typeof ToolsPressureRoute
+  '/tools/service-cost': typeof ToolsServiceCostRoute
   '/tools/size': typeof ToolsSizeRoute
 }
 export interface FileRoutesById {
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/tools/fuel': typeof ToolsFuelRoute
   '/tools/mileage': typeof ToolsMileageRoute
   '/tools/pressure': typeof ToolsPressureRoute
+  '/tools/service-cost': typeof ToolsServiceCostRoute
   '/tools/size': typeof ToolsSizeRoute
 }
 export interface FileRouteTypes {
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/tools/fuel'
     | '/tools/mileage'
     | '/tools/pressure'
+    | '/tools/service-cost'
     | '/tools/size'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/tools/fuel'
     | '/tools/mileage'
     | '/tools/pressure'
+    | '/tools/service-cost'
     | '/tools/size'
   id:
     | '__root__'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/tools/fuel'
     | '/tools/mileage'
     | '/tools/pressure'
+    | '/tools/service-cost'
     | '/tools/size'
   fileRoutesById: FileRoutesById
 }
@@ -274,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsSizeRouteImport
       parentRoute: typeof ToolsRoute
     }
+    '/tools/service-cost': {
+      id: '/tools/service-cost'
+      path: '/service-cost'
+      fullPath: '/tools/service-cost'
+      preLoaderRoute: typeof ToolsServiceCostRouteImport
+      parentRoute: typeof ToolsRoute
+    }
     '/tools/pressure': {
       id: '/tools/pressure'
       path: '/pressure'
@@ -320,6 +339,7 @@ interface ToolsRouteChildren {
   ToolsFuelRoute: typeof ToolsFuelRoute
   ToolsMileageRoute: typeof ToolsMileageRoute
   ToolsPressureRoute: typeof ToolsPressureRoute
+  ToolsServiceCostRoute: typeof ToolsServiceCostRoute
   ToolsSizeRoute: typeof ToolsSizeRoute
 }
 
@@ -327,6 +347,7 @@ const ToolsRouteChildren: ToolsRouteChildren = {
   ToolsFuelRoute: ToolsFuelRoute,
   ToolsMileageRoute: ToolsMileageRoute,
   ToolsPressureRoute: ToolsPressureRoute,
+  ToolsServiceCostRoute: ToolsServiceCostRoute,
   ToolsSizeRoute: ToolsSizeRoute,
 }
 

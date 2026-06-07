@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Upload, ScanLine, ShieldCheck, AlertTriangle, CheckCircle2, RefreshCcw, Sparkles, XCircle } from "lucide-react";
+import { Upload, ScanLine, ShieldCheck, AlertTriangle, CheckCircle2, RefreshCcw, Sparkles, XCircle, Download } from "lucide-react";
 import { analyzeTyre, type TyreAnalysis } from "@/lib/tyre-analyze.functions";
+import { generateTyreReportPDF } from "@/lib/tyre-report-pdf";
 
 export const Route = createFileRoute("/ai-check")({
   head: () => ({
@@ -124,8 +125,16 @@ function AiCheckPage() {
               <Button variant="hero" size="lg" disabled={!image || loading} onClick={runAnalysis}>
                 <ScanLine className="w-5 h-5" /> {loading ? "Analyzing…" : "Analyze with AI"}
               </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                disabled={!result || loading}
+                onClick={() => result && generateTyreReportPDF(result, image)}
+              >
+                <Download className="w-4 h-4" /> Download Report
+              </Button>
               {image && (
-                <Button variant="outline" size="lg" onClick={reset}>
+                <Button variant="ghost" size="lg" onClick={reset}>
                   <RefreshCcw className="w-4 h-4" /> Reset
                 </Button>
               )}

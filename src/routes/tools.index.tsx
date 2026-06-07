@@ -138,6 +138,7 @@ const TOOLS: ToolCardProps[] = [
     to: "/tools/emergency-tyre-assistant",
     icon: <AlertTriangle className="w-6 h-6" />,
     tag: "AI",
+  },
   {
     title: "My Garage — Vehicles & Reminders",
     desc: "Track vehicles, maintenance reminders (with email alerts) and full service history.",

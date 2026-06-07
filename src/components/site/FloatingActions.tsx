@@ -17,7 +17,7 @@ export function FloatingActions() {
         type="button"
         onClick={(e) => {
           e.preventDefault();
-          openExternal(buildWhatsAppUrl("918897230858", "Hi Manoj Wheels, I need tyre service"));
+          openWhatsApp("918897230858", "Hi Manoj Wheels, I need tyre service");
         }}
         aria-label="Chat on WhatsApp"
         className="w-14 h-14 rounded-full bg-[oklch(0.72_0.18_145)] text-white shadow-elegant inline-flex items-center justify-center hover:scale-110 transition-transform"

@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import { NOTO_SANS_REGULAR_BASE64, NOTO_SANS_BOLD_BASE64 } from "./pdf-fonts";
 
 const BRAND = {
   name: "Manoj Wheels",
@@ -8,39 +9,35 @@ const BRAND = {
   address: "Manoj Puncture Shop, Pulivendula, Andhra Pradesh",
 };
 
+const FONT = "NotoSans";
+
 export interface ToolReportInput {
-  /** Human title shown at the top of the PDF, e.g. "Tyre Mileage Calculator". */
   toolName: string;
-  /** A short subtitle/summary line shown under the title. */
   summary?: string;
-  /** Optional headline metric (e.g. "82/100", "32 PSI"). Rendered big. */
   headline?: string;
   headlineLabel?: string;
-  /** Recommendation / verdict line under the headline. */
   recommendation?: string;
-  /** Key/value rows in the "Inputs" table. */
   inputs?: Array<{ label: string; value: string }>;
-  /** Key/value rows in the "Results" table. */
   results?: Array<{ label: string; value: string }>;
-  /** Bullet observations / tips. */
   notes?: string[];
-  /** File name slug, e.g. "tyre-mileage". Defaults to a sanitised toolName. */
   fileSlug?: string;
 }
 
-// jsPDF's built-in Helvetica doesn't support ₹ (U+20B9) or many unicode glyphs,
-// so we normalise to ASCII before drawing. Otherwise rupee amounts render as
-// garbled sequences like "¹&1&0&,&5&0&8&0".
+let fontsRegistered: WeakSet<jsPDF> | null = null;
+function ensureFonts(doc: jsPDF) {
+  if (!fontsRegistered) fontsRegistered = new WeakSet();
+  if (fontsRegistered.has(doc)) return;
+  doc.addFileToVFS("NotoSans-Regular.ttf", NOTO_SANS_REGULAR_BASE64);
+  doc.addFont("NotoSans-Regular.ttf", FONT, "normal");
+  doc.addFileToVFS("NotoSans-Bold.ttf", NOTO_SANS_BOLD_BASE64);
+  doc.addFont("NotoSans-Bold.ttf", FONT, "bold");
+  fontsRegistered.add(doc);
+}
+
+/** Normalise stray characters that the embedded subset doesn't cover. */
 function s(text: string | undefined | null): string {
   if (text == null) return "";
-  return String(text)
-    .replace(/\u20B9/g, "Rs. ")
-    .replace(/\u2022/g, "-")
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/\u2013|\u2014/g, "-")
-    .replace(/\u00A0/g, " ")
-    .replace(/[^\x20-\x7E\n]/g, "");
+  return String(text).replace(/\u00A0/g, " ");
 }
 
 export function generateToolReportPDF(
@@ -49,103 +46,149 @@ export function generateToolReportPDF(
 ): { blob: Blob; filename: string; dataUrl: string } {
   const save = options?.save !== false;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
+  ensureFonts(doc);
+
   const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
   const M = 40;
+  const FOOTER_RESERVE = 80; // keep clear for footer band
+  const CONTENT_TOP = 60;    // top margin on continuation pages
 
-  // Header band
-  doc.setFillColor(220, 38, 38);
-  doc.rect(0, 0, W, 90, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-  doc.text(s(BRAND.name), M, 40);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  doc.text(s(BRAND.tagline), M, 60);
-  doc.setFontSize(9);
-  doc.text(s(`${BRAND.phone}  |  ${BRAND.email}`), M, 76);
-
-  // Title
-  doc.setTextColor(20, 20, 20);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text(s(input.toolName), M, 130);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(110, 110, 110);
   const now = new Date();
-  doc.text(s(`Generated: ${now.toLocaleString()}`), M, 148);
-  doc.text(s(`Report ID: MW-${now.getTime().toString(36).toUpperCase()}`), M, 162);
-  if (input.summary) {
-    doc.setTextColor(60, 60, 60);
+  let pageNo = 1;
+
+  function drawHeaderBand() {
+    doc.setFillColor(220, 38, 38);
+    doc.rect(0, 0, W, 90, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont(FONT, "bold");
+    doc.setFontSize(22);
+    doc.text(s(BRAND.name), M, 40);
+    doc.setFont(FONT, "normal");
     doc.setFontSize(11);
-    doc.text(doc.splitTextToSize(s(input.summary), W - M * 2), M, 184);
+    doc.text(s(BRAND.tagline), M, 60);
+    doc.setFontSize(9);
+    doc.text(s(`${BRAND.phone}  |  ${BRAND.email}`), M, 76);
   }
 
-  let y = 220;
+  function drawFooter() {
+    const footerY = H - 50;
+    doc.setDrawColor(220, 38, 38);
+    doc.setLineWidth(1);
+    doc.line(M, footerY, W - M, footerY);
+    doc.setFont(FONT, "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(110, 110, 110);
+    doc.text(s(BRAND.address), M, footerY + 14);
+    doc.text(`Page ${pageNo}`, W / 2, footerY + 14, { align: "center" });
+    doc.text("manojwheels.com", W - M, footerY + 14, { align: "right" });
+  }
 
-  // Headline metric
+  function newPage() {
+    drawFooter();
+    doc.addPage();
+    pageNo += 1;
+    y = CONTENT_TOP;
+  }
+
+  /** Ensure `needed` vertical space is available before next draw, else paginate. */
+  function ensureSpace(needed: number) {
+    if (y + needed > H - FOOTER_RESERVE) newPage();
+  }
+
+  // === PAGE 1 HEADER + TITLE ===
+  drawHeaderBand();
+
+  doc.setTextColor(20, 20, 20);
+  doc.setFont(FONT, "bold");
+  doc.setFontSize(18);
+  doc.text(s(input.toolName), M, 128);
+
+  doc.setFont(FONT, "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(110, 110, 110);
+  doc.text(s(`Generated: ${now.toLocaleString()}`), M, 146);
+  doc.text(s(`Report ID: MW-${now.getTime().toString(36).toUpperCase()}`), M, 160);
+
+  let y = 184;
+  if (input.summary) {
+    doc.setTextColor(60, 60, 60);
+    doc.setFont(FONT, "normal");
+    doc.setFontSize(11);
+    const lines = doc.splitTextToSize(s(input.summary), W - M * 2);
+    doc.text(lines, M, y);
+    y += lines.length * 14 + 12;
+  } else {
+    y += 8;
+  }
+
+  // === HEADLINE METRIC CARD ===
   if (input.headline) {
-    const boxH = 96;
+    const boxH = 100;
+    ensureSpace(boxH + 16);
     doc.setDrawColor(220, 38, 38);
     doc.setFillColor(252, 232, 232);
     doc.roundedRect(M, y, W - M * 2, boxH, 10, 10, "FD");
 
     const headline = s(input.headline);
-    const maxHeadlineW = (W - M * 2) * 0.55 - 22;
-    let hSize = 36;
-    doc.setFont("helvetica", "bold");
+    const leftColW = (W - M * 2) * 0.5 - 22;
+    let hSize = 34;
+    doc.setFont(FONT, "bold");
     doc.setFontSize(hSize);
-    while (doc.getTextWidth(headline) > maxHeadlineW && hSize > 16) {
+    while (doc.getTextWidth(headline) > leftColW && hSize > 14) {
       hSize -= 2;
       doc.setFontSize(hSize);
     }
     doc.setTextColor(220, 38, 38);
-    doc.text(headline, M + 22, y + 50);
+    doc.text(headline, M + 22, y + 52);
 
     if (input.headlineLabel) {
       doc.setTextColor(80, 80, 80);
-      doc.setFont("helvetica", "normal");
+      doc.setFont(FONT, "normal");
       doc.setFontSize(11);
-      doc.text(s(input.headlineLabel), M + 22, y + 74);
+      const labelLines = doc.splitTextToSize(s(input.headlineLabel), leftColW + 22);
+      doc.text(labelLines, M + 22, y + 78);
     }
     if (input.recommendation) {
       doc.setTextColor(20, 20, 20);
-      doc.setFont("helvetica", "bold");
+      doc.setFont(FONT, "bold");
       doc.setFontSize(12);
-      const recX = M + (W - M * 2) * 0.58;
-      const recW = W - M - recX - 12;
-      const lines = doc.splitTextToSize(s(input.recommendation), recW);
-      doc.text(lines, recX, y + 44);
+      const recX = M + (W - M * 2) * 0.55;
+      const recW = W - M - recX - 14;
+      const recLines = doc.splitTextToSize(s(input.recommendation), recW);
+      doc.text(recLines, recX, y + 44);
     }
-    y += boxH + 20;
+    y += boxH + 22;
   }
 
+  // === KEY/VALUE TABLES ===
   function table(title: string, rows: Array<{ label: string; value: string }>) {
     if (!rows.length) return;
+    ensureSpace(46);
     doc.setTextColor(20, 20, 20);
-    doc.setFont("helvetica", "bold");
+    doc.setFont(FONT, "bold");
     doc.setFontSize(13);
     doc.text(s(title), M, y);
-    y += 14;
+    y += 12;
     doc.setDrawColor(230, 230, 230);
     doc.setLineWidth(0.5);
     doc.line(M, y, W - M, y);
-    y += 10;
-    doc.setFont("helvetica", "normal");
+    y += 14;
+
+    doc.setFont(FONT, "normal");
     doc.setFontSize(11);
     rows.forEach((r) => {
-      if (y > 760) {
-        doc.addPage();
-        y = 60;
-      }
+      const valueLines = doc.splitTextToSize(s(r.value), (W - M * 2) * 0.55);
+      const labelLines = doc.splitTextToSize(s(r.label), (W - M * 2) * 0.4);
+      const rowH = Math.max(valueLines.length, labelLines.length) * 14 + 6;
+      ensureSpace(rowH);
       doc.setTextColor(110, 110, 110);
-      doc.text(s(r.label), M, y);
+      doc.setFont(FONT, "normal");
+      doc.text(labelLines, M, y);
       doc.setTextColor(20, 20, 20);
-      doc.setFont("helvetica", "bold");
-      doc.text(s(r.value), W - M, y, { align: "right" });
-      doc.setFont("helvetica", "normal");
-      y += 18;
+      doc.setFont(FONT, "bold");
+      doc.text(valueLines, W - M, y, { align: "right" });
+      y += rowH;
     });
     y += 10;
   }
@@ -153,40 +196,27 @@ export function generateToolReportPDF(
   table("Inputs", input.inputs ?? []);
   table("Results", input.results ?? []);
 
+  // === NOTES ===
   if (input.notes && input.notes.length) {
-    if (y > 720) {
-      doc.addPage();
-      y = 60;
-    }
-    doc.setFont("helvetica", "bold");
+    ensureSpace(40);
+    doc.setFont(FONT, "bold");
     doc.setFontSize(13);
     doc.setTextColor(20, 20, 20);
     doc.text("Notes & recommendations", M, y);
     y += 16;
-    doc.setFont("helvetica", "normal");
+    doc.setFont(FONT, "normal");
     doc.setFontSize(11);
     doc.setTextColor(60, 60, 60);
     input.notes.forEach((n) => {
-      const lines = doc.splitTextToSize(s(`- ${n}`), W - M * 2);
-      if (y + lines.length * 14 > 780) {
-        doc.addPage();
-        y = 60;
-      }
+      const lines = doc.splitTextToSize(s(`• ${n}`), W - M * 2);
+      const blockH = lines.length * 14 + 6;
+      ensureSpace(blockH);
       doc.text(lines, M, y);
-      y += lines.length * 14 + 4;
+      y += blockH;
     });
   }
 
-  // Footer
-  const footerY = 820;
-  doc.setDrawColor(220, 38, 38);
-  doc.setLineWidth(1);
-  doc.line(M, footerY, W - M, footerY);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(110, 110, 110);
-  doc.text(s(BRAND.address), M, footerY + 14);
-  doc.text("manojwheels.com", W - M, footerY + 14, { align: "right" });
+  drawFooter();
 
   const slug =
     input.fileSlug ??

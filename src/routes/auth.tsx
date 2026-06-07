@@ -56,6 +56,7 @@ function AuthPage() {
     const email = String(fd.get("email") ?? "");
     const password = String(fd.get("password") ?? "");
     const name = String(fd.get("name") ?? "");
+    const phone = String(fd.get("phone") ?? "").trim();
 
     const ep = emailSchema.safeParse(email);
     const pp = passwordSchema.safeParse(password);
@@ -73,15 +74,16 @@ function AuthPage() {
           email, password,
           options: {
             emailRedirectTo: window.location.origin + "/dashboard",
-            data: { full_name: name },
+            data: { full_name: name, phone_number: phone },
           },
         });
         if (error) throw error;
         if (signUpData.user) {
-          const ok = await logSignup({
+          const ok = logSignup({
             userId: deriveUserId(signUpData.user.id),
             fullName: name,
             email,
+            phoneNumber: phone,
             authType: "Email",
             emailVerified: signUpData.user.email_confirmed_at ? "Yes" : "No",
             profileImage: "",
@@ -125,10 +127,16 @@ function AuthPage() {
 
         <form onSubmit={onSubmit} className="space-y-4">
           {mode === "signup" && (
-            <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" name="name" placeholder="Your name" autoComplete="name" />
-            </div>
+            <>
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <Input id="name" name="name" placeholder="Your name" autoComplete="name" />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone Number (optional)</Label>
+                <Input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" autoComplete="tel" />
+              </div>
+            </>
           )}
           <div>
             <Label htmlFor="email">Email</Label>

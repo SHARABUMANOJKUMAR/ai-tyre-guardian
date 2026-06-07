@@ -9,6 +9,7 @@ import {
   RefreshCcw, Sparkles, XCircle, Download, Share2, Mail, History, Trash2,
 } from "lucide-react";
 import { analyzeTyre, type TyreAnalysis } from "@/lib/tyre-analyze.functions";
+import { sendTyreReportEmail } from "@/lib/email.functions";
 import { generateTyreReportPDF } from "@/lib/tyre-report-pdf";
 import { openExternal } from "@/lib/external-link";
 import { toast } from "sonner";
@@ -25,10 +26,18 @@ export const Route = createFileRoute("/ai-check")({
   component: AiCheckPage,
 });
 
-const WHATSAPP = "918897230858";
+const WHATSAPP = "918897230858"; // E.164 without "+" for wa.me
+const WHATSAPP_DISPLAY = "+91 88972 30858";
 const EMAIL_TO = "manojwheels.official@gmail.com";
 const HISTORY_KEY = "mw_tyre_history_v1";
 const HISTORY_LIMIT = 5;
+
+function formatReportDate(ts: number) {
+  return new Date(ts).toLocaleString("en-IN", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
 
 type HistoryEntry = {
   id: string;

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { UserMenu } from "./UserMenu";
 
 const LOGO_URL =
-  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780805003/MAnoj_Wheels_Logo_99_shtjjo.png";
+  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";
 
 const links = [
   { to: "/", label: "Home" },

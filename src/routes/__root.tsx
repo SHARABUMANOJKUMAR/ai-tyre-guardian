@@ -170,39 +170,33 @@ function RootComponent() {
 }
 
 function useAppsScriptAuthSync() {
-  // Module-side imports kept top-level; this hook just wires onAuthStateChange once.
-  const { useEffect } = require("react") as typeof import("react");
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { deriveUserId, logLogin, logSignup } = await import("@/lib/apps-script-logger");
-      const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if (cancelled || event !== "SIGNED_IN" || !session?.user) return;
-        const user = session.user;
-        const key = `mw_synced_${user.id}`;
-        if (sessionStorage.getItem(key)) return;
-        sessionStorage.setItem(key, "1");
-        const userId = deriveUserId(user.id);
-        const createdAt = user.created_at ? new Date(user.created_at).getTime() : 0;
-        const isNew = Date.now() - createdAt < 2 * 60 * 1000;
-        const provider = (user.app_metadata?.provider as string | undefined) ?? "email";
-        const authType: "Google" | "Email" = provider === "google" ? "Google" : "Email";
-        const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
-        if (isNew) {
-          await logSignup({
-            userId,
-            fullName: String(meta.full_name ?? meta.name ?? ""),
-            email: user.email ?? "",
-            authType,
-            emailVerified: user.email_confirmed_at ? "Yes" : "No",
-            profileImage: String(meta.avatar_url ?? meta.picture ?? ""),
-          });
-        }
-        await logLogin({ userId, email: user.email ?? "" });
-      });
-      return () => { cancelled = true; sub.subscription.unsubscribe(); };
-    })();
+    const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event !== "SIGNED_IN" || !session?.user) return;
+      const user = session.user;
+      const key = `mw_synced_${user.id}`;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+      const userId = deriveUserId(user.id);
+      const createdAt = user.created_at ? new Date(user.created_at).getTime() : 0;
+      const isNew = Date.now() - createdAt < 2 * 60 * 1000;
+      const provider = (user.app_metadata?.provider as string | undefined) ?? "email";
+      const authType: "Google" | "Email" = provider === "google" ? "Google" : "Email";
+      const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+      if (isNew) {
+        await logSignup({
+          userId,
+          fullName: String(meta.full_name ?? meta.name ?? ""),
+          email: user.email ?? "",
+          authType,
+          emailVerified: user.email_confirmed_at ? "Yes" : "No",
+          profileImage: String(meta.avatar_url ?? meta.picture ?? ""),
+        });
+      }
+      await logLogin({ userId, email: user.email ?? "" });
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 }
+
 

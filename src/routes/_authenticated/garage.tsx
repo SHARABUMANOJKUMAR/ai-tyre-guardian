@@ -110,7 +110,7 @@ function GaragePage() {
           <p className="text-muted-foreground mt-1 text-sm">Vehicles, reminders & health record — all in one place.</p>
         </div>
         <div className="flex gap-2">
-          <Button asChild variant="outline"><Link to="/_authenticated/dashboard">Reports</Link></Button>
+          <Button asChild variant="outline"><Link to="/dashboard">Reports</Link></Button>
           <Button variant="hero" onClick={() => setShowVehicleForm(v => !v)}>
             <Plus className="w-4 h-4" /> Add Vehicle
           </Button>

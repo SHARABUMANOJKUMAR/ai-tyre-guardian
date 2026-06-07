@@ -170,7 +170,7 @@ function Dashboard() {
           <p className="text-muted-foreground mt-1 text-sm">{user?.email}</p>
         </div>
         <div className="flex gap-2">
-          <Button asChild variant="outline"><Link to="/_authenticated/garage">My Garage</Link></Button>
+          <Button asChild variant="outline"><Link to="/garage">My Garage</Link></Button>
           <Button variant="outline" onClick={async () => { await signOut(); window.location.href = "/"; }}>
             <LogOut className="w-4 h-4" /> Sign Out
           </Button>

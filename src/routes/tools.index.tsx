@@ -18,6 +18,8 @@ import {
   AlertTriangle,
   Trophy,
   GitCompareArrows,
+  Garage as _Garage,
+  Wrench,
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/")({

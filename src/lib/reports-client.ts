@@ -1,5 +1,12 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase as sb } from "@/integrations/supabase/client";
 import type { TyreAnalysis } from "./tyre-analyze.functions";
+
+// Types may not be regenerated yet; cast to loosen the table union.
+const supabase = sb as unknown as {
+  auth: typeof sb.auth;
+  storage: typeof sb.storage;
+  from: (table: string) => any;
+};
 
 export type StoredReport = {
   id: string;

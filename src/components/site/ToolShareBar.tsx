@@ -110,6 +110,37 @@ export function ToolShareBar({ build, disabled }: Props) {
         </div>
       )}
 
+      {showWa && (
+        <div className="mt-3 flex flex-wrap gap-2 items-end">
+          <div className="flex-1 min-w-[200px]">
+            <Label htmlFor="tool-wa" className="text-xs">
+              WhatsApp number (with country code)
+            </Label>
+            <Input
+              id="tool-wa"
+              type="tel"
+              inputMode="tel"
+              value={waVal}
+              onChange={(e) => setWaVal(e.target.value)}
+              placeholder="e.g. 919876543210"
+            />
+          </div>
+          <Button
+            size="sm"
+            variant="hero"
+            disabled={disabled || !!reporter.busy}
+            onClick={() => reporter.shareToWhatsApp(build(), waVal)}
+          >
+            {reporter.busy === "wa" ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <MessageCircle className="w-4 h-4" />
+            )}
+            Send
+          </Button>
+        </div>
+      )}
+
       {user ? (
         <p className="mt-3 text-[11px] text-muted-foreground">
           Saved to your{" "}

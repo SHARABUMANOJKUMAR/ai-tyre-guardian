@@ -75,17 +75,27 @@ export const emailReportPdf = createServerFn({ method: "POST" })
 
     const resp = await fetch(url, { method: "POST", headers, body: JSON.stringify(payload) });
     const text = await resp.text();
+    let parsed: { messageId?: string; code?: string; message?: string } = {};
+    try { parsed = JSON.parse(text); } catch { /* non-json response */ }
 
-    if (!resp.ok) {
+    if (!resp.ok || !parsed.messageId) {
+      const errMsg = parsed.message || text.slice(0, 300) || `HTTP ${resp.status}`;
+      console.error("[email-pdf] Brevo rejected send", { status: resp.status, body: text.slice(0, 500), sender: senderEmail });
       await supabase.from("email_sends").insert({
         user_id: userId, report_id: report.id, recipient: data.toEmail,
-        status: "failed", error: text.slice(0, 500),
+        status: "failed", error: errMsg.slice(0, 500),
       });
-      throw new Error(`Email failed (${resp.status}): ${text.slice(0, 200)}`);
+      // Common cause: sender domain not authenticated in Brevo
+      const hint = !process.env.EMAIL_FROM
+        ? " (set EMAIL_FROM to a sender verified in your Brevo account)"
+        : "";
+      throw new Error(`Email rejected by provider: ${errMsg}${hint}`);
     }
 
+    console.log("[email-pdf] sent", { messageId: parsed.messageId, to: data.toEmail });
     await supabase.from("email_sends").insert({
-      user_id: userId, report_id: report.id, recipient: data.toEmail, status: "sent",
+      user_id: userId, report_id: report.id, recipient: data.toEmail,
+      status: "sent", error: parsed.messageId,
     });
-    return { ok: true };
+    return { ok: true, messageId: parsed.messageId };
   });

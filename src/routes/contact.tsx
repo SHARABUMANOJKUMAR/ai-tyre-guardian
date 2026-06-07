@@ -182,7 +182,7 @@ function ContactPage() {
             <h3 className="mt-4 font-bold">Workshop Address</h3>
             <p className="mt-2 text-muted-foreground">
               Manoj Puncture Shop<br />
-              Kadapa, Andhra Pradesh<br />
+              Pulivendula, Andhra Pradesh<br />
               India
             </p>
             <Button asChild variant="outline" size="sm" className="mt-4">

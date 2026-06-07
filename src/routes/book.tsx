@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CalendarDays, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { openExternal } from "@/lib/external-link";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/book")({
   head: () => ({

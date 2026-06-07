@@ -7,7 +7,11 @@ import {
   Ruler,
   Wind,
   Fuel,
-  Wrench,
+  Compass,
+  Timer,
+  CloudSun,
+  Map,
+  Bot,
   ArrowRight,
   Sparkles,
 } from "lucide-react";
@@ -15,17 +19,17 @@ import {
 export const Route = createFileRoute("/tools/")({
   head: () => ({
     meta: [
-      { title: "Tyre & Vehicle Tools Hub | Manoj Wheels" },
+      { title: "Smart Tyre & Vehicle Tools Hub | Manoj Wheels" },
       {
         name: "description",
         content:
-          "Free online tools for drivers: AI tyre analyzer, mileage, size, pressure, fuel savings and service cost calculators. Save reports, download PDFs, share via WhatsApp.",
+          "AI-powered tyre tools — alignment checker, life predictor, seasonal health, road-trip safety, AI service advisor and more. PDF, WhatsApp & email sharing.",
       },
-      { property: "og:title", content: "Manoj Wheels — Tools Hub" },
+      { property: "og:title", content: "Manoj Wheels — Smart Tools Hub" },
       {
         property: "og:description",
         content:
-          "All Manoj Wheels calculators in one place. Mathematically accurate, PDF + WhatsApp share, history saved to your account.",
+          "10 smart tools for drivers — AI tyre analyzer, alignment, life predictor, weather-aware health and more.",
       },
     ],
   }),
@@ -49,6 +53,41 @@ const TOOLS: ToolCardProps[] = [
     tag: "AI",
   },
   {
+    title: "Wheel Alignment Checker",
+    desc: "Symptom-based alignment risk score with possible causes.",
+    to: "/tools/wheel-alignment-checker",
+    icon: <Compass className="w-6 h-6" />,
+    tag: "AI",
+  },
+  {
+    title: "Tyre Life Predictor",
+    desc: "Remaining tyre life in km and months from tread depth, age & driving style.",
+    to: "/tools/tyre-life-predictor",
+    icon: <Timer className="w-6 h-6" />,
+    tag: "AI",
+  },
+  {
+    title: "Seasonal Tyre Health",
+    desc: "Live local weather feeds into a seasonal tyre risk score.",
+    to: "/tools/seasonal-tyre-health",
+    icon: <CloudSun className="w-6 h-6" />,
+    tag: "Live",
+  },
+  {
+    title: "Road Trip Safety Checker",
+    desc: "Score your tyres' readiness before a long trip.",
+    to: "/tools/road-trip-safety",
+    icon: <Map className="w-6 h-6" />,
+    tag: "AI",
+  },
+  {
+    title: "AI Service Advisor",
+    desc: "Describe symptoms in chat — get likely causes and recommended services.",
+    to: "/tools/ai-service-advisor",
+    icon: <Bot className="w-6 h-6" />,
+    tag: "AI",
+  },
+  {
     title: "Tyre Mileage Calculator",
     desc: "Estimate remaining tyre life in km based on tread depth and driving style.",
     to: "/tools/tyre-mileage-calculator",
@@ -68,15 +107,9 @@ const TOOLS: ToolCardProps[] = [
   },
   {
     title: "Fuel Savings Calculator",
-    desc: "See how much you save monthly and yearly by switching mileage or fuel price.",
+    desc: "See how much you save monthly and yearly by improving mileage.",
     to: "/tools/fuel-savings-calculator",
     icon: <Fuel className="w-6 h-6" />,
-  },
-  {
-    title: "Service Cost Estimator",
-    desc: "Estimate the cost of alignment, balancing, puncture repair and full service.",
-    to: "/tools/service-cost-estimator",
-    icon: <Wrench className="w-6 h-6" />,
   },
 ];
 
@@ -91,7 +124,7 @@ function ToolsHub() {
             <Sparkles className="w-3.5 h-3.5 text-gold" /> Manoj Wheels Tools
           </span>
           <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
-            One hub. <span className="text-gradient-primary">Six smart tools.</span>
+            One hub. <span className="text-gradient-primary">Ten smart tools.</span>
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">
             Free calculators and the AI tyre analyzer — accurate, mobile-ready, with

@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CalendarDays, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { saveBooking } from "@/lib/reports-client";
 
 export const Route = createFileRoute("/book")({
   head: () => ({
@@ -72,6 +73,8 @@ function BookPage() {
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       });
+      // Also save to user account (no-op if not signed in)
+      saveBooking(payload).catch(() => {/* silent */});
       setDone(true);
       toast.success("Booking confirmed! We'll WhatsApp you shortly.");
     } catch {

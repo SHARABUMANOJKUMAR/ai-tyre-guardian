@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X, LayoutDashboard, LogIn } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
 
 const LOGO_URL =
   "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780805003/MAnoj_Wheels_Logo_99_shtjjo.png";
@@ -18,7 +17,6 @@ const links = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const { user } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -58,15 +56,6 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          {user ? (
-            <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-              <Link to="/dashboard"><LayoutDashboard className="w-4 h-4 mr-1.5" />Dashboard</Link>
-            </Button>
-          ) : (
-            <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-              <Link to="/auth"><LogIn className="w-4 h-4 mr-1.5" />Sign in</Link>
-            </Button>
-          )}
           <Button asChild variant="hero" size="sm" className="hidden sm:inline-flex">
             <Link to="/book">Book Now</Link>
           </Button>

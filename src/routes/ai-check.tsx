@@ -28,7 +28,7 @@ export const Route = createFileRoute("/ai-check")({
 
 const WHATSAPP = "918897230858"; // E.164 without "+" for wa.me
 const WHATSAPP_DISPLAY = "+91 88972 30858";
-const EMAIL_TO = "manojwheels.official@gmail.com";
+
 const HISTORY_KEY = "mw_tyre_history_v1";
 const HISTORY_LIMIT = 5;
 

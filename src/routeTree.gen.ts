@@ -18,10 +18,15 @@ import { Route as AiCheckRouteImport } from './routes/ai-check'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
+import { Route as ToolsWheelAlignmentCheckerRouteImport } from './routes/tools.wheel-alignment-checker'
 import { Route as ToolsTyreSizeCalculatorRouteImport } from './routes/tools.tyre-size-calculator'
 import { Route as ToolsTyrePressureCalculatorRouteImport } from './routes/tools.tyre-pressure-calculator'
 import { Route as ToolsTyreMileageCalculatorRouteImport } from './routes/tools.tyre-mileage-calculator'
+import { Route as ToolsTyreLifePredictorRouteImport } from './routes/tools.tyre-life-predictor'
+import { Route as ToolsSeasonalTyreHealthRouteImport } from './routes/tools.seasonal-tyre-health'
+import { Route as ToolsRoadTripSafetyRouteImport } from './routes/tools.road-trip-safety'
 import { Route as ToolsFuelSavingsCalculatorRouteImport } from './routes/tools.fuel-savings-calculator'
+import { Route as ToolsAiServiceAdvisorRouteImport } from './routes/tools.ai-service-advisor'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 
 const TyreLifeRoute = TyreLifeRouteImport.update({
@@ -68,6 +73,12 @@ const ToolsIndexRoute = ToolsIndexRouteImport.update({
   path: '/tools/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsWheelAlignmentCheckerRoute =
+  ToolsWheelAlignmentCheckerRouteImport.update({
+    id: '/tools/wheel-alignment-checker',
+    path: '/tools/wheel-alignment-checker',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ToolsTyreSizeCalculatorRoute = ToolsTyreSizeCalculatorRouteImport.update({
   id: '/tools/tyre-size-calculator',
   path: '/tools/tyre-size-calculator',
@@ -85,12 +96,32 @@ const ToolsTyreMileageCalculatorRoute =
     path: '/tools/tyre-mileage-calculator',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ToolsTyreLifePredictorRoute = ToolsTyreLifePredictorRouteImport.update({
+  id: '/tools/tyre-life-predictor',
+  path: '/tools/tyre-life-predictor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsSeasonalTyreHealthRoute = ToolsSeasonalTyreHealthRouteImport.update({
+  id: '/tools/seasonal-tyre-health',
+  path: '/tools/seasonal-tyre-health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsRoadTripSafetyRoute = ToolsRoadTripSafetyRouteImport.update({
+  id: '/tools/road-trip-safety',
+  path: '/tools/road-trip-safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ToolsFuelSavingsCalculatorRoute =
   ToolsFuelSavingsCalculatorRouteImport.update({
     id: '/tools/fuel-savings-calculator',
     path: '/tools/fuel-savings-calculator',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ToolsAiServiceAdvisorRoute = ToolsAiServiceAdvisorRouteImport.update({
+  id: '/tools/ai-service-advisor',
+  path: '/tools/ai-service-advisor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -106,10 +137,15 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/fuel-savings-calculator': typeof ToolsFuelSavingsCalculatorRoute
+  '/tools/road-trip-safety': typeof ToolsRoadTripSafetyRoute
+  '/tools/seasonal-tyre-health': typeof ToolsSeasonalTyreHealthRoute
+  '/tools/tyre-life-predictor': typeof ToolsTyreLifePredictorRoute
   '/tools/tyre-mileage-calculator': typeof ToolsTyreMileageCalculatorRoute
   '/tools/tyre-pressure-calculator': typeof ToolsTyrePressureCalculatorRoute
   '/tools/tyre-size-calculator': typeof ToolsTyreSizeCalculatorRoute
+  '/tools/wheel-alignment-checker': typeof ToolsWheelAlignmentCheckerRoute
   '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -121,10 +157,15 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/fuel-savings-calculator': typeof ToolsFuelSavingsCalculatorRoute
+  '/tools/road-trip-safety': typeof ToolsRoadTripSafetyRoute
+  '/tools/seasonal-tyre-health': typeof ToolsSeasonalTyreHealthRoute
+  '/tools/tyre-life-predictor': typeof ToolsTyreLifePredictorRoute
   '/tools/tyre-mileage-calculator': typeof ToolsTyreMileageCalculatorRoute
   '/tools/tyre-pressure-calculator': typeof ToolsTyrePressureCalculatorRoute
   '/tools/tyre-size-calculator': typeof ToolsTyreSizeCalculatorRoute
+  '/tools/wheel-alignment-checker': typeof ToolsWheelAlignmentCheckerRoute
   '/tools': typeof ToolsIndexRoute
 }
 export interface FileRoutesById {
@@ -138,10 +179,15 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/tyre-life': typeof TyreLifeRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/fuel-savings-calculator': typeof ToolsFuelSavingsCalculatorRoute
+  '/tools/road-trip-safety': typeof ToolsRoadTripSafetyRoute
+  '/tools/seasonal-tyre-health': typeof ToolsSeasonalTyreHealthRoute
+  '/tools/tyre-life-predictor': typeof ToolsTyreLifePredictorRoute
   '/tools/tyre-mileage-calculator': typeof ToolsTyreMileageCalculatorRoute
   '/tools/tyre-pressure-calculator': typeof ToolsTyrePressureCalculatorRoute
   '/tools/tyre-size-calculator': typeof ToolsTyreSizeCalculatorRoute
+  '/tools/wheel-alignment-checker': typeof ToolsWheelAlignmentCheckerRoute
   '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRouteTypes {
@@ -155,10 +201,15 @@ export interface FileRouteTypes {
     | '/services'
     | '/tyre-life'
     | '/dashboard'
+    | '/tools/ai-service-advisor'
     | '/tools/fuel-savings-calculator'
+    | '/tools/road-trip-safety'
+    | '/tools/seasonal-tyre-health'
+    | '/tools/tyre-life-predictor'
     | '/tools/tyre-mileage-calculator'
     | '/tools/tyre-pressure-calculator'
     | '/tools/tyre-size-calculator'
+    | '/tools/wheel-alignment-checker'
     | '/tools/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -170,10 +221,15 @@ export interface FileRouteTypes {
     | '/services'
     | '/tyre-life'
     | '/dashboard'
+    | '/tools/ai-service-advisor'
     | '/tools/fuel-savings-calculator'
+    | '/tools/road-trip-safety'
+    | '/tools/seasonal-tyre-health'
+    | '/tools/tyre-life-predictor'
     | '/tools/tyre-mileage-calculator'
     | '/tools/tyre-pressure-calculator'
     | '/tools/tyre-size-calculator'
+    | '/tools/wheel-alignment-checker'
     | '/tools'
   id:
     | '__root__'
@@ -186,10 +242,15 @@ export interface FileRouteTypes {
     | '/services'
     | '/tyre-life'
     | '/_authenticated/dashboard'
+    | '/tools/ai-service-advisor'
     | '/tools/fuel-savings-calculator'
+    | '/tools/road-trip-safety'
+    | '/tools/seasonal-tyre-health'
+    | '/tools/tyre-life-predictor'
     | '/tools/tyre-mileage-calculator'
     | '/tools/tyre-pressure-calculator'
     | '/tools/tyre-size-calculator'
+    | '/tools/wheel-alignment-checker'
     | '/tools/'
   fileRoutesById: FileRoutesById
 }
@@ -202,10 +263,15 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   ServicesRoute: typeof ServicesRoute
   TyreLifeRoute: typeof TyreLifeRoute
+  ToolsAiServiceAdvisorRoute: typeof ToolsAiServiceAdvisorRoute
   ToolsFuelSavingsCalculatorRoute: typeof ToolsFuelSavingsCalculatorRoute
+  ToolsRoadTripSafetyRoute: typeof ToolsRoadTripSafetyRoute
+  ToolsSeasonalTyreHealthRoute: typeof ToolsSeasonalTyreHealthRoute
+  ToolsTyreLifePredictorRoute: typeof ToolsTyreLifePredictorRoute
   ToolsTyreMileageCalculatorRoute: typeof ToolsTyreMileageCalculatorRoute
   ToolsTyrePressureCalculatorRoute: typeof ToolsTyrePressureCalculatorRoute
   ToolsTyreSizeCalculatorRoute: typeof ToolsTyreSizeCalculatorRoute
+  ToolsWheelAlignmentCheckerRoute: typeof ToolsWheelAlignmentCheckerRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
 }
 
@@ -274,6 +340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/wheel-alignment-checker': {
+      id: '/tools/wheel-alignment-checker'
+      path: '/tools/wheel-alignment-checker'
+      fullPath: '/tools/wheel-alignment-checker'
+      preLoaderRoute: typeof ToolsWheelAlignmentCheckerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/tyre-size-calculator': {
       id: '/tools/tyre-size-calculator'
       path: '/tools/tyre-size-calculator'
@@ -295,11 +368,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsTyreMileageCalculatorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/tyre-life-predictor': {
+      id: '/tools/tyre-life-predictor'
+      path: '/tools/tyre-life-predictor'
+      fullPath: '/tools/tyre-life-predictor'
+      preLoaderRoute: typeof ToolsTyreLifePredictorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/seasonal-tyre-health': {
+      id: '/tools/seasonal-tyre-health'
+      path: '/tools/seasonal-tyre-health'
+      fullPath: '/tools/seasonal-tyre-health'
+      preLoaderRoute: typeof ToolsSeasonalTyreHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/road-trip-safety': {
+      id: '/tools/road-trip-safety'
+      path: '/tools/road-trip-safety'
+      fullPath: '/tools/road-trip-safety'
+      preLoaderRoute: typeof ToolsRoadTripSafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/fuel-savings-calculator': {
       id: '/tools/fuel-savings-calculator'
       path: '/tools/fuel-savings-calculator'
       fullPath: '/tools/fuel-savings-calculator'
       preLoaderRoute: typeof ToolsFuelSavingsCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/ai-service-advisor': {
+      id: '/tools/ai-service-advisor'
+      path: '/tools/ai-service-advisor'
+      fullPath: '/tools/ai-service-advisor'
+      preLoaderRoute: typeof ToolsAiServiceAdvisorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard': {
@@ -332,12 +433,27 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   ServicesRoute: ServicesRoute,
   TyreLifeRoute: TyreLifeRoute,
+  ToolsAiServiceAdvisorRoute: ToolsAiServiceAdvisorRoute,
   ToolsFuelSavingsCalculatorRoute: ToolsFuelSavingsCalculatorRoute,
+  ToolsRoadTripSafetyRoute: ToolsRoadTripSafetyRoute,
+  ToolsSeasonalTyreHealthRoute: ToolsSeasonalTyreHealthRoute,
+  ToolsTyreLifePredictorRoute: ToolsTyreLifePredictorRoute,
   ToolsTyreMileageCalculatorRoute: ToolsTyreMileageCalculatorRoute,
   ToolsTyrePressureCalculatorRoute: ToolsTyrePressureCalculatorRoute,
   ToolsTyreSizeCalculatorRoute: ToolsTyreSizeCalculatorRoute,
+  ToolsWheelAlignmentCheckerRoute: ToolsWheelAlignmentCheckerRoute,
   ToolsIndexRoute: ToolsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

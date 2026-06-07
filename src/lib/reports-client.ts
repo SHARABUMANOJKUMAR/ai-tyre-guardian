@@ -92,7 +92,7 @@ export async function fetchMyBookings() {
 export async function saveBooking(payload: {
   fullName: string;
   email: string;
-  phone: string;
+  phoneNumber: string;
   vehicleType: string;
   serviceNeeded: string;
   preferredDate: string;
@@ -106,7 +106,7 @@ export async function saveBooking(payload: {
     user_id: user.id,
     full_name: payload.fullName,
     email: payload.email,
-    phone: payload.phone,
+    phone: payload.phoneNumber,
     vehicle_type: payload.vehicleType,
     service_needed: payload.serviceNeeded,
     preferred_date: payload.preferredDate || null,

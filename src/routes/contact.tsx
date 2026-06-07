@@ -40,14 +40,19 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
+const CONTACT_GAS_URL =
+  "https://script.google.com/macros/s/AKfycbyVEFVBpAdMrom7po4cz_ASzHxWT2myeancOrz39E-dBh5bsqtsDE6w2fyM6ZrWpDsPZw/exec";
+
 function ContactPage() {
   const [done, setDone] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
+    if (submitting) return;
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const values = {
       name: String(fd.get("name") ?? ""),
       phone: String(fd.get("phone") ?? ""),
@@ -66,22 +71,32 @@ function ContactPage() {
     setErrors({});
     setSubmitting(true);
 
-    // Hand off to WhatsApp with a pre-filled professional message
-    const text =
-      `Hello Manoj Wheels,\n\n` +
-      `Name: ${parsed.data.name}\n` +
-      `Phone: ${parsed.data.phone}\n` +
-      (parsed.data.email ? `Email: ${parsed.data.email}\n` : "") +
-      `Subject: ${parsed.data.subject}\n\n` +
-      `${parsed.data.message}`;
-    const url = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
-
-    setTimeout(() => {
-      setSubmitting(false);
+    try {
+      await fetch(CONTACT_GAS_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          fullName: parsed.data.name,
+          phoneNumber: parsed.data.phone,
+          email: parsed.data.email ?? "",
+          subject: parsed.data.subject,
+          message: parsed.data.message,
+        }),
+      });
+      toast.success("✓ Message sent successfully");
       setDone(true);
-      toast.success("Message ready — opening WhatsApp");
-      openExternal(url);
-    }, 400);
+      form.reset();
+    } catch {
+      toast.error("✗ Failed to send. Please try WhatsApp instead.");
+      const text =
+        `Hello Manoj Wheels,\nName: ${parsed.data.name}\nPhone: ${parsed.data.phone}\n` +
+        (parsed.data.email ? `Email: ${parsed.data.email}\n` : "") +
+        `Subject: ${parsed.data.subject}\n\n${parsed.data.message}`;
+      openExternal(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -130,8 +145,8 @@ function ContactPage() {
               <div className="w-14 h-14 mx-auto rounded-full bg-gradient-primary inline-flex items-center justify-center shadow-glow">
                 <CheckCircle2 className="w-7 h-7 text-primary-foreground" />
               </div>
-              <h2 className="mt-5 text-2xl font-bold">Message ready!</h2>
-              <p className="mt-2 text-muted-foreground max-w-sm mx-auto">We've opened WhatsApp with your message. Just press send and our team will get back to you shortly.</p>
+              <h2 className="mt-5 text-2xl font-bold">Message sent!</h2>
+              <p className="mt-2 text-muted-foreground max-w-sm mx-auto">Thanks for reaching out. Our team will get back to you within working hours.</p>
               <Button variant="outline" className="mt-6" onClick={() => setDone(false)}>Send another message</Button>
             </div>
           ) : (

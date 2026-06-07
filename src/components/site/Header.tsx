@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UserMenu } from "./UserMenu";
 
 const LOGO_URL =
   "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780805003/MAnoj_Wheels_Logo_99_shtjjo.png";
@@ -59,6 +60,7 @@ export function Header() {
           <Button asChild variant="hero" size="sm" className="hidden sm:inline-flex">
             <Link to="/book">Book Now</Link>
           </Button>
+          <UserMenu />
           <button
             className="lg:hidden p-2 rounded-md hover:bg-accent"
             onClick={() => setOpen((v) => !v)}

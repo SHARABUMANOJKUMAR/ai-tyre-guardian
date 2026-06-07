@@ -94,7 +94,7 @@ function ContactPage() {
         `Hello Manoj Wheels,\nName: ${parsed.data.name}\nPhone: ${parsed.data.phone}\n` +
         (parsed.data.email ? `Email: ${parsed.data.email}\n` : "") +
         `Subject: ${parsed.data.subject}\n\n${parsed.data.message}`;
-      openExternal(buildWhatsAppUrl(WHATSAPP, text));
+      openWhatsApp(WHATSAPP, text);
     } finally {
       setSubmitting(false);
     }
@@ -119,7 +119,7 @@ function ContactPage() {
           <h3 className="mt-4 font-bold">WhatsApp</h3>
           <p className="mt-1 text-sm text-muted-foreground">Quick replies, photos &amp; instant booking.</p>
           <Button asChild variant="hero" size="sm" className="mt-4">
-            <button type="button" onClick={() => openExternal(buildWhatsAppUrl(WHATSAPP))}>
+            <button type="button" onClick={() => openWhatsApp(WHATSAPP)}>
               <WhatsAppIcon className="w-4 h-4" /> Chat Now
             </button>
           </Button>

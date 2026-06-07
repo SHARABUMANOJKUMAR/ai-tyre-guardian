@@ -78,7 +78,7 @@ function HomePage() {
               <Button asChild variant="glass" size="xl">
                 <Link to="/book"><Calendar className="w-5 h-5" /> Book Service Now</Link>
               </Button>
-              <Button variant="outline" size="xl" className="border-[oklch(0.72_0.18_145)] text-[oklch(0.85_0.18_145)] hover:bg-[oklch(0.72_0.18_145)] hover:text-white" onClick={() => openExternal(buildWhatsAppUrl("918897230858"))}>
+              <Button variant="outline" size="xl" className="border-[oklch(0.72_0.18_145)] text-[oklch(0.85_0.18_145)] hover:bg-[oklch(0.72_0.18_145)] hover:text-white" onClick={() => openWhatsApp("918897230858")}>
                 <MessageCircle className="w-5 h-5" /> WhatsApp
               </Button>
             </div>

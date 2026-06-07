@@ -132,7 +132,7 @@ function BookPage() {
             <Button type="submit" variant="hero" size="lg" disabled={submitting}>
               {submitting ? "Booking…" : "Confirm Booking"}
             </Button>
-            <Button type="button" variant="outline" size="lg" onClick={() => openExternal(buildWhatsAppUrl("918897230858", "Hi Manoj Wheels, I want to book a service"))}>
+            <Button type="button" variant="outline" size="lg" onClick={() => openWhatsApp("918897230858", "Hi Manoj Wheels, I want to book a service")}>
               Book on WhatsApp
             </Button>
           </div>

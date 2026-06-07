@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
+import { deriveUserId, logLogin, logSignup } from "@/lib/apps-script-logger";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -68,7 +69,7 @@ function AuthPage() {
     setSubmitting(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email, password,
           options: {
             emailRedirectTo: window.location.origin + "/dashboard",
@@ -76,10 +77,25 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created! Check your inbox to confirm.");
+        if (signUpData.user) {
+          const ok = await logSignup({
+            userId: deriveUserId(signUpData.user.id),
+            fullName: name,
+            email,
+            authType: "Email",
+            emailVerified: signUpData.user.email_confirmed_at ? "Yes" : "No",
+            profileImage: "",
+          });
+          toast.success(ok ? "Account created successfully." : "Account created successfully, but profile sync is pending.");
+        } else {
+          toast.success("Account created! Check your inbox to confirm.");
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (signInData.user) {
+          void logLogin({ userId: deriveUserId(signInData.user.id), email: signInData.user.email ?? email });
+        }
         toast.success("Welcome back!");
         navigate({ to: "/dashboard" });
       }

@@ -7,7 +7,7 @@ const BRAND = {
   phone: "+91 8897230858",
   whatsapp: "+91 8897230858",
   email: "manojwheels.official@gmail.com",
-  address: "Manoj Puncture Shop, Kadapa, Andhra Pradesh",
+  address: "Manoj Puncture Shop, Pulivendula, Andhra Pradesh",
 };
 
 export function generateTyreReportPDF(result: TyreAnalysis, imageDataUrl?: string | null) {

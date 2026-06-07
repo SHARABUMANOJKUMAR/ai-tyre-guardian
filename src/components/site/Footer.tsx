@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Phone, MapPin, Clock, Mail, Instagram, Facebook, Youtube } from "lucide-react";
 
 const LOGO_URL =
-  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780767447/ChatGPT_Image_Jun_6_2026_11_07_08_PM_y0q8kr.png";
+  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780805003/MAnoj_Wheels_Logo_99_shtjjo.png";
 
 export function Footer() {
   return (

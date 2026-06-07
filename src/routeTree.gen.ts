@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TyreLifeRouteImport } from './routes/tyre-life'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BookRouteImport } from './routes/book'
@@ -34,6 +35,11 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 const TyreLifeRoute = TyreLifeRouteImport.update({
   id: '/tyre-life',
   path: '/tyre-life',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesRoute = ServicesRouteImport.update({
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/tools/$': typeof ToolsSplatRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/tools/$': typeof ToolsSplatRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/tools/$': typeof ToolsSplatRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/services'
+    | '/sitemap.xml'
     | '/tyre-life'
     | '/dashboard'
     | '/tools/$'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/services'
+    | '/sitemap.xml'
     | '/tyre-life'
     | '/dashboard'
     | '/tools/$'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/services'
+    | '/sitemap.xml'
     | '/tyre-life'
     | '/_authenticated/dashboard'
     | '/tools/$'
@@ -287,6 +299,7 @@ export interface RootRouteChildren {
   BookRoute: typeof BookRoute
   ContactRoute: typeof ContactRoute
   ServicesRoute: typeof ServicesRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TyreLifeRoute: typeof TyreLifeRoute
   ToolsSplatRoute: typeof ToolsSplatRoute
   ToolsAiServiceAdvisorRoute: typeof ToolsAiServiceAdvisorRoute
@@ -309,6 +322,13 @@ declare module '@tanstack/react-router' {
       path: '/tyre-life'
       fullPath: '/tyre-life'
       preLoaderRoute: typeof TyreLifeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services': {
@@ -473,6 +493,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookRoute: BookRoute,
   ContactRoute: ContactRoute,
   ServicesRoute: ServicesRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TyreLifeRoute: TyreLifeRoute,
   ToolsSplatRoute: ToolsSplatRoute,
   ToolsAiServiceAdvisorRoute: ToolsAiServiceAdvisorRoute,

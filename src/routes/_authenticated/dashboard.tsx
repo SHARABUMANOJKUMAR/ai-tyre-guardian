@@ -169,9 +169,12 @@ function Dashboard() {
           <h1 className="text-3xl sm:text-4xl font-extrabold">My Dashboard</h1>
           <p className="text-muted-foreground mt-1 text-sm">{user?.email}</p>
         </div>
-        <Button variant="outline" onClick={async () => { await signOut(); window.location.href = "/"; }}>
-          <LogOut className="w-4 h-4" /> Sign Out
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline"><Link to="/_authenticated/garage">My Garage</Link></Button>
+          <Button variant="outline" onClick={async () => { await signOut(); window.location.href = "/"; }}>
+            <LogOut className="w-4 h-4" /> Sign Out
+          </Button>
+        </div>
       </div>
 
       <div className="mt-6 grid sm:grid-cols-3 gap-4">

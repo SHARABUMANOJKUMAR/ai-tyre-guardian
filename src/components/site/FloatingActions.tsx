@@ -1,5 +1,4 @@
 import { Phone } from "lucide-react";
-import { openExternal } from "@/lib/external-link";
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (

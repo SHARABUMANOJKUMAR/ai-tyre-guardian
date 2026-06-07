@@ -16,11 +16,14 @@ import { openWhatsApp } from "@/lib/whatsapp";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Manoj Wheels — AI-Powered Tyre Care Center in India" },
-      { name: "description", content: "Drive Safer with AI-Powered Tyre Diagnostics. Upload your tyre photo, check tyre health instantly, and book expert wheel alignment & tyre services online." },
-      { property: "og:title", content: "Manoj Wheels — AI-Powered Tyre Care" },
-      { property: "og:description", content: "India's smartest AI-powered tyre care center." },
+      { title: "AI Tyre Analyzer & Wheel Alignment Services | Manoj Wheels" },
+      { name: "description", content: "Professional tyre care, wheel alignment, balancing, puncture repair and AI tyre diagnostics in Pulivendula. Free AI tyre health check & instant booking." },
+      { property: "og:title", content: "AI Tyre Analyzer & Wheel Alignment Services | Manoj Wheels" },
+      { property: "og:description", content: "Professional tyre care, wheel alignment, balancing, puncture repair and AI tyre diagnostics in Pulivendula." },
+      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/" },
     ],
+    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/" }],
+
   }),
   component: HomePage,
 });

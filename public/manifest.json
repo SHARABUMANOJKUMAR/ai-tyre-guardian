@@ -1,0 +1,20 @@
+{
+  "name": "Manoj Wheels — AI Tyre & Wheel Care",
+  "short_name": "Manoj Wheels",
+  "description": "AI-powered tyre diagnostics, wheel alignment & tyre care in Pulivendula.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
+  "lang": "en-IN",
+  "categories": ["automotive", "business", "utilities"],
+  "icons": [
+    {
+      "src": "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780805003/MAnoj_Wheels_Logo_99_shtjjo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -14,6 +14,10 @@ import {
   Bot,
   ArrowRight,
   Sparkles,
+  Wallet,
+  AlertTriangle,
+  Trophy,
+  GitCompareArrows,
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/")({
@@ -106,6 +110,34 @@ const TOOLS: ToolCardProps[] = [
     to: "/tools/fuel-savings-calculator",
     icon: <Fuel className="w-6 h-6" />,
   },
+  {
+    title: "Vehicle Running Cost Calculator",
+    desc: "Total monthly & yearly cost — fuel, tyres, insurance and maintenance.",
+    to: "/tools/vehicle-running-cost-calculator",
+    icon: <Wallet className="w-6 h-6" />,
+    tag: "New",
+  },
+  {
+    title: "AI Tyre Brand Recommender",
+    desc: "Best tyre brand for your vehicle, budget and road type — 7 top brands.",
+    to: "/tools/ai-tyre-brand-recommender",
+    icon: <Trophy className="w-6 h-6" />,
+    tag: "AI",
+  },
+  {
+    title: "AI Tyre Comparison",
+    desc: "Compare two tyre brands side-by-side — score, pros, cons, best use.",
+    to: "/tools/ai-tyre-comparison",
+    icon: <GitCompareArrows className="w-6 h-6" />,
+    tag: "AI",
+  },
+  {
+    title: "Emergency Tyre Assistant",
+    desc: "Tyre burst, vibration, pulling — get immediate safety steps.",
+    to: "/tools/emergency-tyre-assistant",
+    icon: <AlertTriangle className="w-6 h-6" />,
+    tag: "AI",
+  },
 ];
 
 function ToolsHub() {
@@ -119,7 +151,7 @@ function ToolsHub() {
             <Sparkles className="w-3.5 h-3.5 text-gold" /> Manoj Wheels Tools
           </span>
           <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
-            One hub. <span className="text-gradient-primary">Ten smart tools.</span>
+            One hub. <span className="text-gradient-primary">Fourteen smart tools.</span>
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">
             Free calculators and the AI tyre analyzer — accurate, mobile-ready, with

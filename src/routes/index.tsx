@@ -16,14 +16,13 @@ import { openWhatsApp } from "@/lib/whatsapp";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AI Tyre Analyzer & Wheel Alignment Services | Manoj Wheels" },
-      { name: "description", content: "Professional tyre care, wheel alignment, balancing, puncture repair and AI tyre diagnostics in Pulivendula. Free AI tyre health check & instant booking." },
-      { property: "og:title", content: "AI Tyre Analyzer & Wheel Alignment Services | Manoj Wheels" },
-      { property: "og:description", content: "Professional tyre care, wheel alignment, balancing, puncture repair and AI tyre diagnostics in Pulivendula." },
+      { title: "Manoj Wheels | Best Tyre Shop in Pulivendula | AI Tyre Analyzer & Wheel Alignment" },
+      { name: "description", content: "Manoj Wheels — Pulivendula's trusted tyre & wheel care center. Wheel alignment, balancing, nitrogen filling, puncture repair, tyre replacement & free AI tyre health check." },
+      { property: "og:title", content: "Manoj Wheels | Best Tyre Shop in Pulivendula | AI Tyre Analyzer" },
+      { property: "og:description", content: "Wheel alignment, balancing, nitrogen filling, puncture repair, tyre replacement and AI tyre diagnostics in Pulivendula, YSR Kadapa, Andhra Pradesh." },
       { property: "og:url", content: "https://manojwheels.online/" },
     ],
     links: [{ rel: "canonical", href: "https://manojwheels.online/" }],
-
   }),
   component: HomePage,
 });

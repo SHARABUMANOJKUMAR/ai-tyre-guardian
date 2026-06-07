@@ -18,6 +18,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AiCheckRouteImport } from './routes/ai-check'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ToolsSizeRouteImport } from './routes/tools.size'
 import { Route as ToolsMileageRouteImport } from './routes/tools.mileage'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 
@@ -65,6 +66,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsSizeRoute = ToolsSizeRouteImport.update({
+  id: '/size',
+  path: '/size',
+  getParentRoute: () => ToolsRoute,
+} as any)
 const ToolsMileageRoute = ToolsMileageRouteImport.update({
   id: '/mileage',
   path: '/mileage',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/tools/mileage': typeof ToolsMileageRoute
+  '/tools/size': typeof ToolsSizeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/tools/mileage': typeof ToolsMileageRoute
+  '/tools/size': typeof ToolsSizeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/tyre-life': typeof TyreLifeRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/tools/mileage': typeof ToolsMileageRoute
+  '/tools/size': typeof ToolsSizeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/dashboard'
     | '/tools/mileage'
+    | '/tools/size'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/dashboard'
     | '/tools/mileage'
+    | '/tools/size'
   id:
     | '__root__'
     | '/'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/_authenticated/dashboard'
     | '/tools/mileage'
+    | '/tools/size'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -231,6 +243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/size': {
+      id: '/tools/size'
+      path: '/size'
+      fullPath: '/tools/size'
+      preLoaderRoute: typeof ToolsSizeRouteImport
+      parentRoute: typeof ToolsRoute
+    }
     '/tools/mileage': {
       id: '/tools/mileage'
       path: '/mileage'
@@ -261,10 +280,12 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface ToolsRouteChildren {
   ToolsMileageRoute: typeof ToolsMileageRoute
+  ToolsSizeRoute: typeof ToolsSizeRoute
 }
 
 const ToolsRouteChildren: ToolsRouteChildren = {
   ToolsMileageRoute: ToolsMileageRoute,
+  ToolsSizeRoute: ToolsSizeRoute,
 }
 
 const ToolsRouteWithChildren = ToolsRoute._addFileChildren(ToolsRouteChildren)
@@ -283,3 +304,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

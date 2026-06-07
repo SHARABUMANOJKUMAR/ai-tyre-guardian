@@ -10,6 +10,7 @@ const LOGO_URL =
 const links = [
   { to: "/", label: "Home" },
   { to: "/services", label: "Services" },
+  { to: "/tools", label: "Tools" },
   { to: "/ai-check", label: "AI Tyre Check" },
   { to: "/tyre-life", label: "Tyre Life" },
   { to: "/contact", label: "Contact" },

@@ -145,8 +145,8 @@ function ContactPage() {
               <div className="w-14 h-14 mx-auto rounded-full bg-gradient-primary inline-flex items-center justify-center shadow-glow">
                 <CheckCircle2 className="w-7 h-7 text-primary-foreground" />
               </div>
-              <h2 className="mt-5 text-2xl font-bold">Message ready!</h2>
-              <p className="mt-2 text-muted-foreground max-w-sm mx-auto">We've opened WhatsApp with your message. Just press send and our team will get back to you shortly.</p>
+              <h2 className="mt-5 text-2xl font-bold">Message sent!</h2>
+              <p className="mt-2 text-muted-foreground max-w-sm mx-auto">Thanks for reaching out. Our team will get back to you within working hours.</p>
               <Button variant="outline" className="mt-6" onClick={() => setDone(false)}>Send another message</Button>
             </div>
           ) : (

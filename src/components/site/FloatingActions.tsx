@@ -1,4 +1,5 @@
 import { Phone } from "lucide-react";
+import { openExternal } from "@/lib/external-link";
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -14,15 +15,17 @@ const WHATSAPP_URL =
 export function FloatingActions() {
   return (
     <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-3">
-      <a
-        href={WHATSAPP_URL}
-        target="_top"
-        rel="noopener noreferrer"
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          openExternal(WHATSAPP_URL);
+        }}
         aria-label="Chat on WhatsApp"
         className="w-14 h-14 rounded-full bg-[oklch(0.72_0.18_145)] text-white shadow-elegant inline-flex items-center justify-center hover:scale-110 transition-transform"
       >
         <WhatsAppIcon className="w-7 h-7" />
-      </a>
+      </button>
       <a
         href="tel:+918897230858"
         aria-label="Call us"

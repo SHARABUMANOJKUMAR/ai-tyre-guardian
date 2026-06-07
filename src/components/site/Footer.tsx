@@ -50,7 +50,7 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold mb-4 uppercase tracking-wider text-gold">Get In Touch</h4>
           <ul className="space-y-3 text-sm text-muted-foreground">
-            <li className="flex gap-2.5"><MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" /> Manoj Puncture Shop, Kadapa, Andhra Pradesh, India</li>
+            <li className="flex gap-2.5"><MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" /> Manoj Puncture Shop, Pulivendula, Andhra Pradesh, India</li>
             <li className="flex gap-2.5"><Phone className="w-4 h-4 mt-0.5 text-primary shrink-0" /> <a href="tel:+918897230858" className="hover:text-foreground">+91 88972 30858</a></li>
             <li className="flex gap-2.5"><Mail className="w-4 h-4 mt-0.5 text-primary shrink-0" /> <a href="mailto:manojwheels.official@gmail.com" className="hover:text-foreground break-all">manojwheels.official@gmail.com</a></li>
             <li className="flex gap-2.5"><Clock className="w-4 h-4 mt-0.5 text-primary shrink-0" /> Mon–Sun · 8:00 AM – 9:00 PM</li>

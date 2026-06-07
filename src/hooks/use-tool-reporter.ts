@@ -164,7 +164,10 @@ export function useToolReporter() {
       const r = await persistWithPdf(p);
       if (!r.reportId) throw new Error("Could not save report");
       await email({ data: { reportId: r.reportId, toEmail: to.trim() } });
-      toast.success("✓ Email sent successfully");
+      toast.success("✓ Email sent — check inbox & spam folder", {
+        description: "If it doesn't arrive in 2–3 min, verify your sender domain in Brevo (SPF/DKIM).",
+        duration: 6000,
+      });
     } catch (e) {
       toast.error(`✗ ${e instanceof Error ? e.message : "Failed to send"}`);
     } finally {

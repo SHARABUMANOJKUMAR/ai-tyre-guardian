@@ -2,24 +2,15 @@ function cleanPhone(phone: string) {
   return phone.replace(/[^\d]/g, "");
 }
 
-function isMobile() {
-  return (
-    typeof navigator !== "undefined" &&
-    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
-  );
-}
-
 export function buildWhatsAppUrl(phone: string, text?: string): string {
+  const cleanText = text ?? "";
   const p = cleanPhone(phone);
-  const t = text ? encodeURIComponent(text) : "";
-  return `https://wa.me/${p}${t ? `?text=${t}` : ""}`;
+  return `https://wa.me/${p}?text=${encodeURIComponent(cleanText)}`;
 }
 
 export function openWhatsApp(phone: string, text?: string) {
-  const url = buildWhatsAppUrl(phone, text);
-  if (isMobile()) {
-    window.location.href = url;
-    return;
-  }
+  const message = text ?? "";
+  const cleanPhoneNumber = cleanPhone(phone);
+  const url = `https://wa.me/${cleanPhoneNumber}?text=${encodeURIComponent(message)}`;
   window.open(url, "_blank", "noopener,noreferrer");
 }

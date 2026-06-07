@@ -216,12 +216,22 @@ function Dashboard() {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-bold truncate">AI Tyre Check</span>
-                            <RecommendationBadge value={r.recommendation} />
+                            <span className="font-bold truncate">
+                              {r.title ?? REPORT_LABEL[r.report_type] ?? "Report"}
+                            </span>
+                            <Badge variant="outline" className="text-[10px] uppercase">
+                              {REPORT_LABEL[r.report_type] ?? r.report_type}
+                            </Badge>
+                            {r.report_type === "ai-tyre-check" && <RecommendationBadge value={r.recommendation} />}
                             {!r.pdf_path && <Badge variant="outline" className="text-[10px]">No PDF</Badge>}
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {new Date(r.created_at).toLocaleString()} · Tread {r.tread ?? 0}% · {r.cracks ?? "—"}
+                            {new Date(r.created_at).toLocaleString()}
+                            {r.report_type === "ai-tyre-check"
+                              ? ` · Tread ${r.tread ?? 0}% · ${r.cracks ?? "—"}`
+                              : r.summary
+                              ? ` · ${r.summary}`
+                              : ""}
                           </p>
                           {r.notes && <p className="text-sm mt-1 text-muted-foreground line-clamp-2">{r.notes}</p>}
                         </div>

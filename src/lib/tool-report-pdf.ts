@@ -28,6 +28,21 @@ export interface ToolReportInput {
   fileSlug?: string;
 }
 
+// jsPDF's built-in Helvetica doesn't support ₹ (U+20B9) or many unicode glyphs,
+// so we normalise to ASCII before drawing. Otherwise rupee amounts render as
+// garbled sequences like "¹&1&0&,&5&0&8&0".
+function s(text: string | undefined | null): string {
+  if (text == null) return "";
+  return String(text)
+    .replace(/\u20B9/g, "Rs. ")
+    .replace(/\u2022/g, "-")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\u2013|\u2014/g, "-")
+    .replace(/\u00A0/g, " ")
+    .replace(/[^\x20-\x7E\n]/g, "");
+}
+
 export function generateToolReportPDF(
   input: ToolReportInput,
   options?: { save?: boolean }
@@ -43,55 +58,67 @@ export function generateToolReportPDF(
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
-  doc.text(BRAND.name, M, 40);
+  doc.text(s(BRAND.name), M, 40);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
-  doc.text(BRAND.tagline, M, 60);
+  doc.text(s(BRAND.tagline), M, 60);
   doc.setFontSize(9);
-  doc.text(`${BRAND.phone}  |  ${BRAND.email}`, M, 76);
+  doc.text(s(`${BRAND.phone}  |  ${BRAND.email}`), M, 76);
 
   // Title
   doc.setTextColor(20, 20, 20);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.text(input.toolName, M, 130);
+  doc.text(s(input.toolName), M, 130);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(110, 110, 110);
   const now = new Date();
-  doc.text(`Generated: ${now.toLocaleString()}`, M, 148);
-  doc.text(`Report ID: MW-${now.getTime().toString(36).toUpperCase()}`, M, 162);
+  doc.text(s(`Generated: ${now.toLocaleString()}`), M, 148);
+  doc.text(s(`Report ID: MW-${now.getTime().toString(36).toUpperCase()}`), M, 162);
   if (input.summary) {
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(11);
-    doc.text(doc.splitTextToSize(input.summary, W - M * 2), M, 184);
+    doc.text(doc.splitTextToSize(s(input.summary), W - M * 2), M, 184);
   }
 
   let y = 220;
 
   // Headline metric
   if (input.headline) {
+    const boxH = 96;
     doc.setDrawColor(220, 38, 38);
     doc.setFillColor(252, 232, 232);
-    doc.roundedRect(M, y, W - M * 2, 90, 10, 10, "FD");
-    doc.setTextColor(220, 38, 38);
+    doc.roundedRect(M, y, W - M * 2, boxH, 10, 10, "FD");
+
+    const headline = s(input.headline);
+    const maxHeadlineW = (W - M * 2) * 0.55 - 22;
+    let hSize = 36;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(36);
-    doc.text(input.headline, M + 22, y + 56);
+    doc.setFontSize(hSize);
+    while (doc.getTextWidth(headline) > maxHeadlineW && hSize > 16) {
+      hSize -= 2;
+      doc.setFontSize(hSize);
+    }
+    doc.setTextColor(220, 38, 38);
+    doc.text(headline, M + 22, y + 50);
+
     if (input.headlineLabel) {
       doc.setTextColor(80, 80, 80);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(11);
-      doc.text(input.headlineLabel, M + 22, y + 76);
+      doc.text(s(input.headlineLabel), M + 22, y + 74);
     }
     if (input.recommendation) {
       doc.setTextColor(20, 20, 20);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(13);
-      const lines = doc.splitTextToSize(input.recommendation, W - M * 2 - 220);
-      doc.text(lines, M + 220, y + 48);
+      doc.setFontSize(12);
+      const recX = M + (W - M * 2) * 0.58;
+      const recW = W - M - recX - 12;
+      const lines = doc.splitTextToSize(s(input.recommendation), recW);
+      doc.text(lines, recX, y + 44);
     }
-    y += 110;
+    y += boxH + 20;
   }
 
   function table(title: string, rows: Array<{ label: string; value: string }>) {

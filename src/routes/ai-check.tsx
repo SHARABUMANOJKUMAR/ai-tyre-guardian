@@ -125,8 +125,16 @@ function AiCheckPage() {
               <Button variant="hero" size="lg" disabled={!image || loading} onClick={runAnalysis}>
                 <ScanLine className="w-5 h-5" /> {loading ? "Analyzing…" : "Analyze with AI"}
               </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                disabled={!result || loading}
+                onClick={() => result && generateTyreReportPDF(result, image)}
+              >
+                <Download className="w-4 h-4" /> Download Report
+              </Button>
               {image && (
-                <Button variant="outline" size="lg" onClick={reset}>
+                <Button variant="ghost" size="lg" onClick={reset}>
                   <RefreshCcw className="w-4 h-4" /> Reset
                 </Button>
               )}

@@ -11,6 +11,7 @@ import {
 import { analyzeTyre, type TyreAnalysis } from "@/lib/tyre-analyze.functions";
 import { sendTyreReportEmail } from "@/lib/email.functions";
 import { generateTyreReportPDF } from "@/lib/tyre-report-pdf";
+import { saveTyreReport } from "@/lib/reports-client";
 import { openExternal } from "@/lib/external-link";
 import { toast } from "sonner";
 
@@ -104,7 +105,7 @@ function AiCheckPage() {
       const base64 = image.includes(",") ? image.split(",")[1] : image;
       const res = await analyze({ data: { imageBase64: base64, mime } });
       setResult(res);
-      // Save to history
+      // Save to local history
       const entry: HistoryEntry = {
         id: `MW-${Date.now().toString(36).toUpperCase()}`,
         createdAt: Date.now(),
@@ -114,6 +115,10 @@ function AiCheckPage() {
       const next = [entry, ...history].slice(0, HISTORY_LIMIT);
       setHistory(next);
       saveHistory(next);
+      // Save to cloud (no-op if not signed in)
+      saveTyreReport(res, image)
+        .then((saved) => { if (saved) toast.success("Saved to your account"); })
+        .catch(() => {/* silent */});
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Analysis failed. Please try again.";
       setError(msg);

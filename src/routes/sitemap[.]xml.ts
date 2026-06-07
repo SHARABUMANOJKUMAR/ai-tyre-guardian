@@ -27,6 +27,10 @@ const entries: SitemapEntry[] = [
   { path: "/tools/tyre-pressure-calculator", changefreq: "monthly", priority: "0.7" },
   { path: "/tools/tyre-size-calculator", changefreq: "monthly", priority: "0.7" },
   { path: "/tools/wheel-alignment-checker", changefreq: "monthly", priority: "0.7" },
+  { path: "/tools/vehicle-running-cost-calculator", changefreq: "monthly", priority: "0.8" },
+  { path: "/tools/ai-tyre-brand-recommender", changefreq: "monthly", priority: "0.8" },
+  { path: "/tools/ai-tyre-comparison", changefreq: "monthly", priority: "0.8" },
+  { path: "/tools/emergency-tyre-assistant", changefreq: "monthly", priority: "0.8" },
 ];
 
 export const Route = createFileRoute("/sitemap.xml")({

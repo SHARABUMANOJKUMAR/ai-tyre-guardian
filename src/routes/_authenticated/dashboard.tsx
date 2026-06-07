@@ -55,6 +55,11 @@ const REPORT_LABEL: Record<string, string> = {
   "seasonal-tyre": "Seasonal Health",
   "road-trip": "Road Trip Safety",
   "ai-advisor": "AI Service Advisor",
+  "service-cost": "Service Cost",
+  "running-cost": "Running Cost",
+  "emergency-assistant": "Emergency Guidance",
+  "brand-recommender": "Brand Recommendation",
+  "tyre-comparison": "Tyre Comparison",
 };
 
 function Dashboard() {

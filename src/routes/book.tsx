@@ -15,9 +15,13 @@ import { openWhatsApp } from "@/lib/whatsapp";
 export const Route = createFileRoute("/book")({
   head: () => ({
     meta: [
-      { title: "Book Tyre Service Online | Manoj Wheels" },
-      { name: "description", content: "Book wheel alignment, balancing, puncture repair and tyre services online with Manoj Wheels. Free pickup & drop within 5 km." },
+      { title: "Book Tyre Service Online in Pulivendula | Manoj Wheels" },
+      { name: "description", content: "Book wheel alignment, balancing, puncture repair & tyre services online in Pulivendula. Free pickup & drop within 5 km. Open 7 days." },
+      { property: "og:title", content: "Book Tyre Service in Pulivendula | Manoj Wheels" },
+      { property: "og:description", content: "Online booking for tyre care, wheel alignment, balancing & puncture repair." },
+      { property: "og:url", content: "https://ai-tyre-vision.lovable.app/book" },
     ],
+    links: [{ rel: "canonical", href: "https://ai-tyre-vision.lovable.app/book" }],
   }),
   component: BookPage,
 });

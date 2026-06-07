@@ -22,7 +22,11 @@ type ToolType =
   | "seasonal-tyre"
   | "road-trip"
   | "ai-advisor"
-  | "service-cost";
+  | "service-cost"
+  | "running-cost"
+  | "emergency-assistant"
+  | "brand-recommender"
+  | "tyre-comparison";
 
 export interface SaveToolPayload {
   reportType: ToolType;

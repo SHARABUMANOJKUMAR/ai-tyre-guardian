@@ -14,7 +14,6 @@ import {
   Bot,
   ArrowRight,
   Sparkles,
-  Wrench,
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/")({
@@ -111,12 +110,6 @@ const TOOLS: ToolCardProps[] = [
     desc: "See how much you save monthly and yearly by improving mileage.",
     to: "/tools/fuel-savings-calculator",
     icon: <Fuel className="w-6 h-6" />,
-  },
-  {
-    title: "Service Cost Estimator",
-    desc: "Itemised workshop estimate with GST for tyre, alignment & nitrogen services.",
-    to: "/tools/service-cost-estimator",
-    icon: <Wrench className="w-6 h-6" />,
   },
 ];
 

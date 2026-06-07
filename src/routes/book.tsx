@@ -38,7 +38,8 @@ function BookPage() {
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const parsed = schema.safeParse(Object.fromEntries(fd));
+    const payload = Object.fromEntries(fd);
+    const parsed = schema.safeParse(payload);
     if (!parsed.success) {
       const errs: Record<string, string> = {};
       parsed.error.issues.forEach((i) => { errs[i.path.join(".")] = i.message; });
@@ -48,11 +49,26 @@ function BookPage() {
     }
     setErrors({});
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      setDone(true);
-      toast.success("Booking confirmed! We'll WhatsApp you shortly.");
-    }, 900);
+
+    const data = { ...parsed.data, submittedAt: new Date().toISOString() };
+    fetch(
+      "https://script.google.com/macros/s/AKfycbyYDQDaOrFQcHzyuQEXosGlnZi-elAJtR3PVj2k4p7uZUZCzL6qoHRadgKjfjW3D5gacw/exec",
+      {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(data),
+      }
+    )
+      .then(() => {
+        setSubmitting(false);
+        setDone(true);
+        toast.success("Booking confirmed! We'll WhatsApp you shortly.");
+      })
+      .catch(() => {
+        setSubmitting(false);
+        toast.error("Could not submit. Please try WhatsApp instead.");
+      });
   }
 
   if (done) {

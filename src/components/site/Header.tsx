@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const LOGO_URL =
-  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780767447/ChatGPT_Image_Jun_6_2026_11_07_08_PM_y0q8kr.png";
+  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780801082/Gemini_Generated_Image_nkxh5tnkxh5tnkxh_bzlgpj.png";
 
 const links = [
   { to: "/", label: "Home" },

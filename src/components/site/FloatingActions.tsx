@@ -1,6 +1,6 @@
 import { Phone } from "lucide-react";
 import { openExternal } from "@/lib/external-link";
-import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { openWhatsApp } from "@/lib/whatsapp";
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (

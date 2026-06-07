@@ -14,7 +14,6 @@ import {
   Bot,
   ArrowRight,
   Sparkles,
-  Wrench,
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/")({

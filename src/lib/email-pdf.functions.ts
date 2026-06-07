@@ -37,7 +37,7 @@ export const emailReportPdf = createServerFn({ method: "POST" })
     const lovableKey = process.env.LOVABLE_API_KEY;
     const useGateway = !!lovableKey;
     const url = useGateway
-      ? "https://connector-gateway.lovable.dev/brevo/v3/smtp/email"
+      ? "https://connector-gateway.lovable.dev/brevo/smtp/email"
       : "https://api.brevo.com/v3/smtp/email";
 
     const headers: Record<string, string> = { "Content-Type": "application/json", accept: "application/json" };

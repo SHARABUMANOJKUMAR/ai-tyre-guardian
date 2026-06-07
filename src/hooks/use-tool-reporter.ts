@@ -18,7 +18,11 @@ type ToolType =
   | "tyre-size"
   | "tyre-pressure"
   | "fuel-savings"
-  | "service-cost";
+  | "wheel-alignment"
+  | "tyre-life"
+  | "seasonal-tyre"
+  | "road-trip"
+  | "ai-advisor";
 
 export interface SaveToolPayload {
   reportType: ToolType;

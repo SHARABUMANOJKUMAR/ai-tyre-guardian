@@ -21,7 +21,6 @@ import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as ToolsTyreSizeCalculatorRouteImport } from './routes/tools.tyre-size-calculator'
 import { Route as ToolsTyrePressureCalculatorRouteImport } from './routes/tools.tyre-pressure-calculator'
 import { Route as ToolsTyreMileageCalculatorRouteImport } from './routes/tools.tyre-mileage-calculator'
-import { Route as ToolsServiceCostEstimatorRouteImport } from './routes/tools.service-cost-estimator'
 import { Route as ToolsFuelSavingsCalculatorRouteImport } from './routes/tools.fuel-savings-calculator'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 
@@ -86,12 +85,6 @@ const ToolsTyreMileageCalculatorRoute =
     path: '/tools/tyre-mileage-calculator',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ToolsServiceCostEstimatorRoute =
-  ToolsServiceCostEstimatorRouteImport.update({
-    id: '/tools/service-cost-estimator',
-    path: '/tools/service-cost-estimator',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ToolsFuelSavingsCalculatorRoute =
   ToolsFuelSavingsCalculatorRouteImport.update({
     id: '/tools/fuel-savings-calculator',
@@ -114,7 +107,6 @@ export interface FileRoutesByFullPath {
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/tools/fuel-savings-calculator': typeof ToolsFuelSavingsCalculatorRoute
-  '/tools/service-cost-estimator': typeof ToolsServiceCostEstimatorRoute
   '/tools/tyre-mileage-calculator': typeof ToolsTyreMileageCalculatorRoute
   '/tools/tyre-pressure-calculator': typeof ToolsTyrePressureCalculatorRoute
   '/tools/tyre-size-calculator': typeof ToolsTyreSizeCalculatorRoute
@@ -130,7 +122,6 @@ export interface FileRoutesByTo {
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/tools/fuel-savings-calculator': typeof ToolsFuelSavingsCalculatorRoute
-  '/tools/service-cost-estimator': typeof ToolsServiceCostEstimatorRoute
   '/tools/tyre-mileage-calculator': typeof ToolsTyreMileageCalculatorRoute
   '/tools/tyre-pressure-calculator': typeof ToolsTyrePressureCalculatorRoute
   '/tools/tyre-size-calculator': typeof ToolsTyreSizeCalculatorRoute
@@ -148,7 +139,6 @@ export interface FileRoutesById {
   '/tyre-life': typeof TyreLifeRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/tools/fuel-savings-calculator': typeof ToolsFuelSavingsCalculatorRoute
-  '/tools/service-cost-estimator': typeof ToolsServiceCostEstimatorRoute
   '/tools/tyre-mileage-calculator': typeof ToolsTyreMileageCalculatorRoute
   '/tools/tyre-pressure-calculator': typeof ToolsTyrePressureCalculatorRoute
   '/tools/tyre-size-calculator': typeof ToolsTyreSizeCalculatorRoute
@@ -166,7 +156,6 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/dashboard'
     | '/tools/fuel-savings-calculator'
-    | '/tools/service-cost-estimator'
     | '/tools/tyre-mileage-calculator'
     | '/tools/tyre-pressure-calculator'
     | '/tools/tyre-size-calculator'
@@ -182,7 +171,6 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/dashboard'
     | '/tools/fuel-savings-calculator'
-    | '/tools/service-cost-estimator'
     | '/tools/tyre-mileage-calculator'
     | '/tools/tyre-pressure-calculator'
     | '/tools/tyre-size-calculator'
@@ -199,7 +187,6 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/_authenticated/dashboard'
     | '/tools/fuel-savings-calculator'
-    | '/tools/service-cost-estimator'
     | '/tools/tyre-mileage-calculator'
     | '/tools/tyre-pressure-calculator'
     | '/tools/tyre-size-calculator'
@@ -216,7 +203,6 @@ export interface RootRouteChildren {
   ServicesRoute: typeof ServicesRoute
   TyreLifeRoute: typeof TyreLifeRoute
   ToolsFuelSavingsCalculatorRoute: typeof ToolsFuelSavingsCalculatorRoute
-  ToolsServiceCostEstimatorRoute: typeof ToolsServiceCostEstimatorRoute
   ToolsTyreMileageCalculatorRoute: typeof ToolsTyreMileageCalculatorRoute
   ToolsTyrePressureCalculatorRoute: typeof ToolsTyrePressureCalculatorRoute
   ToolsTyreSizeCalculatorRoute: typeof ToolsTyreSizeCalculatorRoute
@@ -309,13 +295,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsTyreMileageCalculatorRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/service-cost-estimator': {
-      id: '/tools/service-cost-estimator'
-      path: '/tools/service-cost-estimator'
-      fullPath: '/tools/service-cost-estimator'
-      preLoaderRoute: typeof ToolsServiceCostEstimatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/tools/fuel-savings-calculator': {
       id: '/tools/fuel-savings-calculator'
       path: '/tools/fuel-savings-calculator'
@@ -354,7 +333,6 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesRoute: ServicesRoute,
   TyreLifeRoute: TyreLifeRoute,
   ToolsFuelSavingsCalculatorRoute: ToolsFuelSavingsCalculatorRoute,
-  ToolsServiceCostEstimatorRoute: ToolsServiceCostEstimatorRoute,
   ToolsTyreMileageCalculatorRoute: ToolsTyreMileageCalculatorRoute,
   ToolsTyrePressureCalculatorRoute: ToolsTyrePressureCalculatorRoute,
   ToolsTyreSizeCalculatorRoute: ToolsTyreSizeCalculatorRoute,

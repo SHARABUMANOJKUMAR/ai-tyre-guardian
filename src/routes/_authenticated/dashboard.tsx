@@ -50,7 +50,11 @@ const REPORT_LABEL: Record<string, string> = {
   "tyre-size": "Tyre Size",
   "tyre-pressure": "Tyre Pressure",
   "fuel-savings": "Fuel Savings",
-  "service-cost": "Service Cost",
+  "wheel-alignment": "Wheel Alignment",
+  "tyre-life": "Tyre Life",
+  "seasonal-tyre": "Seasonal Health",
+  "road-trip": "Road Trip Safety",
+  "ai-advisor": "AI Service Advisor",
 };
 
 function Dashboard() {

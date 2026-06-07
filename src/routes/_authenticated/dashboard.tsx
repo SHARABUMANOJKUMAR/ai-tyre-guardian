@@ -31,6 +31,8 @@ type ReportRow = {
   id: string;
   email: string;
   report_type: string;
+  title: string | null;
+  summary: string | null;
   score: number;
   recommendation: string | null;
   tread: number | null;
@@ -40,6 +42,15 @@ type ReportRow = {
   notes: string | null;
   pdf_path: string | null;
   created_at: string;
+};
+
+const REPORT_LABEL: Record<string, string> = {
+  "ai-tyre-check": "AI Tyre Check",
+  "tyre-mileage": "Tyre Mileage",
+  "tyre-size": "Tyre Size",
+  "tyre-pressure": "Tyre Pressure",
+  "fuel-savings": "Fuel Savings",
+  "service-cost": "Service Cost",
 };
 
 function Dashboard() {

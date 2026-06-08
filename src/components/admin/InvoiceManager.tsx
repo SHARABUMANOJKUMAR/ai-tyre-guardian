@@ -232,10 +232,18 @@ async function findLatestSheetInvoiceId(payload: Record<string, string>): Promis
   return "";
 }
 
+export type AppsScriptInvoiceResponse = {
+  invoiceId: string;
+  invoiceUrl?: string;
+  whatsappMessage?: string;
+};
+
 // Submit invoice to Apps Script and return the authoritative invoiceId.
 // Throws if Apps Script is unreachable or does not return a valid invoiceId.
 // Never generate IDs on the client — the sheet is the single source of truth.
-async function submitToAppsScript(payload: Record<string, string>): Promise<string> {
+async function submitToAppsScript(
+  payload: Record<string, string>,
+): Promise<AppsScriptInvoiceResponse> {
   const res = await fetch(GAS_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -252,15 +260,21 @@ async function submitToAppsScript(payload: Record<string, string>): Promise<stri
   if (json.success === false) {
     throw new Error(String(json.message || "Apps Script rejected the invoice"));
   }
+  const invoiceUrl = typeof json.invoiceUrl === "string" ? json.invoiceUrl : undefined;
+  const whatsappMessage =
+    typeof json.whatsappMessage === "string" ? json.whatsappMessage : undefined;
+
   const returned = extractInvoiceId(json);
-  if (returned) return returned;
+  if (returned) return { invoiceId: returned, invoiceUrl, whatsappMessage };
 
   const recovered = await findLatestSheetInvoiceId(payload);
   if (!recovered) {
-    throw new Error("Invoice was saved, but the authoritative invoice ID could not be read from the sheet yet. Please try Generate again in a few seconds.");
+    throw new Error(
+      "Invoice was saved, but no invoiceId was returned. Please try Generate again in a few seconds.",
+    );
   }
-  console.warn("Apps Script response omitted invoiceId; recovered authoritative ID from sheet:", recovered);
-  return recovered;
+  console.warn("Apps Script response omitted invoiceId; recovered from sheet:", recovered);
+  return { invoiceId: recovered, invoiceUrl, whatsappMessage };
 }
 
 function loadInvoices(): InvoiceRecord[] {

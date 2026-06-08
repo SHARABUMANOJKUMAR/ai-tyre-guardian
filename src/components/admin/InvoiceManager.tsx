@@ -338,7 +338,8 @@ function pdfToBase64(doc: jsPDF): string {
 }
 
 export function InvoiceManager({ token }: { token: string }) {
-  const [invoiceNumber, setInvoiceNumber] = useState(() => nextInvoiceNumber());
+  const [invoiceNumber, setInvoiceNumber] = useState<string>("");
+  const [lastSavedRec, setLastSavedRec] = useState<InvoiceRecord | null>(null);
   const [date] = useState(todayStr());
   const [fullName, setFullName] = useState("");
   const [mobile, setMobile] = useState("");

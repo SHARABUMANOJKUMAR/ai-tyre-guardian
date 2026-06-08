@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getPublicInvoice, type PublicInvoice } from "@/lib/public-invoice.functions";
-import { CheckCircle2, ShieldCheck, XCircle, Loader2, Phone, Mail, Car, Wrench, IndianRupee, Calendar, User, Printer, Download, RefreshCw, AlertTriangle, FileWarning } from "lucide-react";
+import { CheckCircle2, ShieldCheck, XCircle, Loader2, Phone, Mail, Car, Wrench, IndianRupee, Calendar, User, Printer, Download, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import jsPDF from "jspdf";

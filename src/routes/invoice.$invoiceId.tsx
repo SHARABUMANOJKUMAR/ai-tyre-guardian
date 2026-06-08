@@ -233,7 +233,10 @@ function PublicInvoicePage() {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["public-invoice", invoiceId],
     queryFn: () => fetcher({ data: { id: invoiceId } }),
-    staleTime: 30_000,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 30_000,
     retry: 1,
   });
 

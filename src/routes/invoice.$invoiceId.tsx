@@ -474,6 +474,56 @@ function InvoiceView({ inv }: { inv: PublicInvoice }) {
 }
 
 
+function SignatureBlock({ inv }: { inv: PublicInvoice }) {
+  const [qr, setQr] = useState<string>("");
+  const sig = invoiceSignature(inv);
+  const hash = invoiceHash(inv);
+  const verifyUrl = `${VERIFY_BASE}${inv.invoiceNumber}`;
+  useEffect(() => {
+    let cancel = false;
+    QRCode.toDataURL(verifyUrl, { width: 220, margin: 1 })
+      .then((d) => { if (!cancel) setQr(d); })
+      .catch(() => { /* ignore */ });
+    return () => { cancel = true; };
+  }, [verifyUrl]);
+  return (
+    <div className="px-5 sm:px-7 pb-5">
+      <div className="border-t border-dashed border-border/60 pt-4 grid sm:grid-cols-[1fr_auto] gap-4 items-end">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded">
+            <ShieldCheck className="w-3 h-3" />
+            Signature Verified — matches sheet data
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-2">
+            This invoice carries a tamper-evident signature derived from the
+            authoritative Google Sheets record. If any field changes, the
+            hash below changes too.
+          </p>
+          <div className="mt-2 font-mono text-[10px] text-muted-foreground space-y-0.5">
+            <p>SIG : <span className="text-foreground">{sig}</span></p>
+            <p>HASH: <span className="text-foreground">{hash}</span></p>
+          </div>
+        </div>
+        <div className="flex items-end gap-4">
+          {qr ? (
+            <div className="text-center">
+              <img src={qr} alt="Verify this invoice" className="w-20 h-20 rounded border border-border bg-white p-1" />
+              <p className="text-[9px] text-muted-foreground mt-1 leading-tight">Scan to<br/>re-verify</p>
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded border border-border bg-muted animate-pulse" />
+          )}
+          <div className="text-right">
+            <p className="font-['Brush_Script_MT','Segoe_Script',cursive] text-2xl sm:text-3xl text-blue-700 leading-none">Manoj Wheels</p>
+            <div className="border-t border-foreground/70 w-40 ml-auto mt-1" />
+            <p className="text-[10px] text-muted-foreground mt-1">Authorized Signatory</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ActionsBar({ inv }: { inv: PublicInvoice }) {
   const fetcherRefetch = useServerFn(getPublicInvoice);
   const { refetch, isFetching } = useQuery({

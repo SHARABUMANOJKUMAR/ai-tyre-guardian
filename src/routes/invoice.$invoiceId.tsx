@@ -303,26 +303,67 @@ function PublicInvoicePage() {
     retry: 1,
   });
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[80vh] grid place-items-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          <p className="text-sm text-muted-foreground">Verifying invoice…</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <InvoiceSkeleton />;
   if (isError) {
     return (
-      <div className="min-h-[60vh] grid place-items-center p-6 text-center">
-        <p className="text-sm text-red-600">{(error as Error).message}</p>
+      <div className="min-h-[70vh] grid place-items-center p-4">
+        <div className="max-w-md w-full bg-card border-2 border-amber-500/40 rounded-2xl p-8 text-center shadow-xl">
+          <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 dark:bg-amber-900/30 grid place-items-center">
+            <AlertTriangle className="w-9 h-9 text-amber-600" />
+          </div>
+          <h1 className="text-xl font-bold mt-4 text-amber-700 dark:text-amber-400">Verification Service Unavailable</h1>
+          <p className="text-sm text-muted-foreground mt-2">
+            We couldn't reach the invoice verification service right now.
+          </p>
+          <p className="text-xs text-muted-foreground mt-2 font-mono bg-muted rounded px-2 py-1 inline-block">
+            {(error as Error)?.message || "Network error"}
+          </p>
+          <div className="mt-5 flex gap-2 justify-center">
+            <Button size="sm" onClick={() => window.location.reload()}>
+              <RefreshCw className="w-4 h-4 mr-1.5" /> Try Again
+            </Button>
+            <Link to="/" className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent px-3 h-9 text-sm">Home</Link>
+          </div>
+        </div>
       </div>
     );
   }
   if (!data) return <NotFound />;
 
   return <InvoiceView inv={data} />;
+}
+
+function InvoiceSkeleton() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-blue-950/10 dark:to-background py-6 sm:py-10 px-3 sm:px-6">
+      <div className="max-w-3xl mx-auto animate-pulse">
+        <div className="h-9 w-72 mx-auto rounded-full bg-muted mb-4" />
+        <div className="bg-card rounded-2xl shadow-2xl border border-border/60 overflow-hidden">
+          <div className="h-28 bg-gradient-to-r from-slate-800 to-blue-900" />
+          <div className="p-6 space-y-3">
+            <div className="h-3 w-32 bg-muted rounded" />
+            <div className="grid grid-cols-4 gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-9 rounded-full bg-muted" />
+              ))}
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 p-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-10 bg-muted rounded" />
+            ))}
+          </div>
+          <div className="px-6 pb-6">
+            <div className="h-20 rounded-xl bg-muted" />
+          </div>
+        </div>
+        <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+          Verifying invoice with Manoj Wheels…
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function InvoiceView({ inv }: { inv: PublicInvoice }) {

@@ -37,6 +37,7 @@ import { Route as ToolsAiTyreBrandRecommenderRouteImport } from './routes/tools.
 import { Route as ToolsAiServiceAdvisorRouteImport } from './routes/tools.ai-service-advisor'
 import { Route as ToolsSplatRouteImport } from './routes/tools.$'
 import { Route as InvoiceInvoiceIdRouteImport } from './routes/invoice.$invoiceId'
+import { Route as AuthenticatedMyInvoicesRouteImport } from './routes/_authenticated/my-invoices'
 import { Route as AuthenticatedGarageRouteImport } from './routes/_authenticated/garage'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as ApiPublicHooksSendMaintenanceRemindersRouteImport } from './routes/api/public/hooks/send-maintenance-reminders'
@@ -188,6 +189,11 @@ const InvoiceInvoiceIdRoute = InvoiceInvoiceIdRouteImport.update({
   path: '/invoice/$invoiceId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedMyInvoicesRoute = AuthenticatedMyInvoicesRouteImport.update({
+  id: '/my-invoices',
+  path: '/my-invoices',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGarageRoute = AuthenticatedGarageRouteImport.update({
   id: '/garage',
   path: '/garage',
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/garage': typeof AuthenticatedGarageRoute
+  '/my-invoices': typeof AuthenticatedMyInvoicesRoute
   '/invoice/$invoiceId': typeof InvoiceInvoiceIdRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
@@ -250,6 +257,7 @@ export interface FileRoutesByTo {
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/garage': typeof AuthenticatedGarageRoute
+  '/my-invoices': typeof AuthenticatedMyInvoicesRoute
   '/invoice/$invoiceId': typeof InvoiceInvoiceIdRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/tyre-life': typeof TyreLifeRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/garage': typeof AuthenticatedGarageRoute
+  '/_authenticated/my-invoices': typeof AuthenticatedMyInvoicesRoute
   '/invoice/$invoiceId': typeof InvoiceInvoiceIdRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
@@ -318,6 +327,7 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/dashboard'
     | '/garage'
+    | '/my-invoices'
     | '/invoice/$invoiceId'
     | '/tools/$'
     | '/tools/ai-service-advisor'
@@ -350,6 +360,7 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/dashboard'
     | '/garage'
+    | '/my-invoices'
     | '/invoice/$invoiceId'
     | '/tools/$'
     | '/tools/ai-service-advisor'
@@ -383,6 +394,7 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/_authenticated/dashboard'
     | '/_authenticated/garage'
+    | '/_authenticated/my-invoices'
     | '/invoice/$invoiceId'
     | '/tools/$'
     | '/tools/ai-service-advisor'
@@ -633,6 +645,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InvoiceInvoiceIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/my-invoices': {
+      id: '/_authenticated/my-invoices'
+      path: '/my-invoices'
+      fullPath: '/my-invoices'
+      preLoaderRoute: typeof AuthenticatedMyInvoicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/garage': {
       id: '/_authenticated/garage'
       path: '/garage'
@@ -660,11 +679,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedGarageRoute: typeof AuthenticatedGarageRoute
+  AuthenticatedMyInvoicesRoute: typeof AuthenticatedMyInvoicesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedGarageRoute: AuthenticatedGarageRoute,
+  AuthenticatedMyInvoicesRoute: AuthenticatedMyInvoicesRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -706,3 +727,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

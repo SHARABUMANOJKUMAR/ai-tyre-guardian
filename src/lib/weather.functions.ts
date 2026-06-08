@@ -40,11 +40,7 @@ function rateLimit(ip: string) {
 export const getWeather = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => Schema.parse(d))
   .handler(async ({ data }): Promise<WeatherSnapshot> => {
-    const ip =
-      (getRequestHeader("cf-connecting-ip") ||
-        getRequestHeader("x-forwarded-for")?.split(",")[0].trim() ||
-        getRequestHeader("x-real-ip") ||
-        "unknown") as string;
+    const ip = getRequestIP({ xForwardedFor: true }) || "unknown";
     if (!rateLimit(ip)) {
       throw new Error("Too many weather requests. Please wait a minute and try again.");
     }

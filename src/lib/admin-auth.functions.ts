@@ -1,13 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import crypto from "crypto";
 
-// Credentials are read from env (with safe defaults). Server-side only.
-const ADMIN_USERNAME = (process.env.ADMIN_USERNAME ?? "manoj wheels").trim();
-const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD ?? "manojwheels").trim();
-const TOKEN_SECRET =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.SUPABASE_PUBLISHABLE_KEY ||
-  "mw-admin-fallback-secret";
+// Credentials are read from env; no insecure defaults.
+const ADMIN_USERNAME = (process.env.ADMIN_USERNAME ?? "").trim();
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD ?? "").trim();
+// Signing secret MUST be a dedicated secret — never reuse the publicly-known
+// Supabase anon/publishable key (would let any browser forge admin tokens).
+const TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET ?? "";
 const TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 function sign(payload: string): string {
@@ -22,7 +21,7 @@ function makeToken(): string {
 }
 
 export function verifyAdminToken(token: string | undefined | null): boolean {
-  if (!token) return false;
+  if (!token || !TOKEN_SECRET) return false;
   try {
     const decoded = Buffer.from(token, "base64").toString("utf-8");
     const parts = decoded.split(":");
@@ -47,6 +46,11 @@ export const adminLogin = createServerFn({ method: "POST" })
     password: String(d?.password ?? ""),
   }))
   .handler(async ({ data }) => {
+    if (!ADMIN_USERNAME || !ADMIN_PASSWORD || !TOKEN_SECRET) {
+      throw new Error(
+        "Admin auth is not configured. Set ADMIN_USERNAME, ADMIN_PASSWORD and ADMIN_TOKEN_SECRET secrets.",
+      );
+    }
     const u = data.username.trim();
     const p = data.password.trim();
     // Case-insensitive username, exact password.

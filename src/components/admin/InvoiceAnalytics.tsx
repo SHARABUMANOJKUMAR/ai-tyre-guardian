@@ -146,11 +146,11 @@ function exportPDF(
 
 const STATUSES = ["all", "Pending", "In Progress", "Completed", "Delivered", "Cancelled"] as const;
 
-export function InvoiceAnalytics() {
+export function InvoiceAnalytics({ token }: { token: string }) {
   const fn = useServerFn(getAllInvoices);
   const { data = [], isLoading, isFetching, refetch } = useQuery({
     queryKey: ["all-invoices"],
-    queryFn: () => fn(),
+    queryFn: () => fn({ data: { token } }),
     refetchInterval: 30_000,
     refetchOnWindowFocus: true,
     staleTime: 10_000,

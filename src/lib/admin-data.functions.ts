@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { verifyAdminToken } from "./admin-auth.functions";
 
 const CSV_URLS = {
   users:
@@ -19,7 +19,6 @@ export type AdminDataset = {
   contacts: Record<string, string>[];
 };
 
-// Minimal CSV parser handling quoted fields and embedded commas / newlines.
 function parseCSV(text: string): Record<string, string>[] {
   const rows: string[][] = [];
   let field = "";
@@ -71,8 +70,7 @@ function parseCSV(text: string): Record<string, string>[] {
   });
 }
 
-// Simple 5-minute in-memory cache (per worker instance).
-const CACHE_MS = 5 * 60 * 1000;
+const CACHE_MS = 60 * 1000; // 1 min cache so notifications stay fresh
 const cache: Partial<Record<SourceKey, { ts: number; data: Record<string, string>[] }>> = {};
 
 async function loadSource(key: SourceKey): Promise<Record<string, string>[]> {
@@ -86,22 +84,11 @@ async function loadSource(key: SourceKey): Promise<Record<string, string>[]> {
   return data;
 }
 
-function isAdmin(email: string | undefined | null): boolean {
-  if (!email) return false;
-  const raw = process.env.ADMIN_EMAILS ?? "";
-  const list = raw
-    .split(/[,;\s]+/)
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-  return list.includes(email.toLowerCase());
-}
-
-export const getAdminDataset = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<AdminDataset> => {
-    const email = (context.claims?.email as string | undefined) ?? "";
-    if (!isAdmin(email)) {
-      throw new Error("Forbidden: admin access required");
+export const getAdminDataset = createServerFn({ method: "POST" })
+  .inputValidator((d: { token: string }) => ({ token: String(d?.token ?? "") }))
+  .handler(async ({ data }): Promise<AdminDataset> => {
+    if (!verifyAdminToken(data.token)) {
+      throw new Error("Unauthorized: invalid or expired admin session");
     }
     const [users, services, contacts] = await Promise.all([
       loadSource("users").catch(() => []),
@@ -109,11 +96,4 @@ export const getAdminDataset = createServerFn({ method: "GET" })
       loadSource("contacts").catch(() => []),
     ]);
     return { fetchedAt: new Date().toISOString(), users, services, contacts };
-  });
-
-export const checkAdmin = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const email = (context.claims?.email as string | undefined) ?? "";
-    return { isAdmin: isAdmin(email), email };
   });

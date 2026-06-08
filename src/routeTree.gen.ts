@@ -17,6 +17,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BookRouteImport } from './routes/book'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AiCheckRouteImport } from './routes/ai-check'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
@@ -37,7 +38,6 @@ import { Route as ToolsAiServiceAdvisorRouteImport } from './routes/tools.ai-ser
 import { Route as ToolsSplatRouteImport } from './routes/tools.$'
 import { Route as AuthenticatedGarageRouteImport } from './routes/_authenticated/garage'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicHooksSendMaintenanceRemindersRouteImport } from './routes/api/public/hooks/send-maintenance-reminders'
 
 const TyreLifeRoute = TyreLifeRouteImport.update({
@@ -78,6 +78,11 @@ const AuthRoute = AuthRouteImport.update({
 const AiCheckRoute = AiCheckRouteImport.update({
   id: '/ai-check',
   path: '/ai-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -187,11 +192,6 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const ApiPublicHooksSendMaintenanceRemindersRoute =
   ApiPublicHooksSendMaintenanceRemindersRouteImport.update({
     id: '/api/public/hooks/send-maintenance-reminders',
@@ -201,6 +201,7 @@ const ApiPublicHooksSendMaintenanceRemindersRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/ai-check': typeof AiCheckRoute
   '/auth': typeof AuthRoute
   '/book': typeof BookRoute
@@ -209,7 +210,6 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
@@ -232,6 +232,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/ai-check': typeof AiCheckRoute
   '/auth': typeof AuthRoute
   '/book': typeof BookRoute
@@ -240,7 +241,6 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
@@ -265,6 +265,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/admin': typeof AdminRoute
   '/ai-check': typeof AiCheckRoute
   '/auth': typeof AuthRoute
   '/book': typeof BookRoute
@@ -273,7 +274,6 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
@@ -298,6 +298,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/ai-check'
     | '/auth'
     | '/book'
@@ -306,7 +307,6 @@ export interface FileRouteTypes {
     | '/services'
     | '/sitemap.xml'
     | '/tyre-life'
-    | '/admin'
     | '/dashboard'
     | '/garage'
     | '/tools/$'
@@ -329,6 +329,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/ai-check'
     | '/auth'
     | '/book'
@@ -337,7 +338,6 @@ export interface FileRouteTypes {
     | '/services'
     | '/sitemap.xml'
     | '/tyre-life'
-    | '/admin'
     | '/dashboard'
     | '/garage'
     | '/tools/$'
@@ -361,6 +361,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/admin'
     | '/ai-check'
     | '/auth'
     | '/book'
@@ -369,7 +370,6 @@ export interface FileRouteTypes {
     | '/services'
     | '/sitemap.xml'
     | '/tyre-life'
-    | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/garage'
     | '/tools/$'
@@ -394,6 +394,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AdminRoute: typeof AdminRoute
   AiCheckRoute: typeof AiCheckRoute
   AuthRoute: typeof AuthRoute
   BookRoute: typeof BookRoute
@@ -477,6 +478,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-check'
       fullPath: '/ai-check'
       preLoaderRoute: typeof AiCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -619,13 +627,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/api/public/hooks/send-maintenance-reminders': {
       id: '/api/public/hooks/send-maintenance-reminders'
       path: '/api/public/hooks/send-maintenance-reminders'
@@ -637,13 +638,11 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedGarageRoute: typeof AuthenticatedGarageRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedGarageRoute: AuthenticatedGarageRoute,
 }
@@ -654,6 +653,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AdminRoute: AdminRoute,
   AiCheckRoute: AiCheckRoute,
   AuthRoute: AuthRoute,
   BookRoute: BookRoute,

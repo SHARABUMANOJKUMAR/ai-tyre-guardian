@@ -1,15 +1,13 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  getAdminDataset,
-  checkAdmin,
-  type AdminDataset,
-} from "@/lib/admin-data.functions";
+import { getAdminDataset, type AdminDataset } from "@/lib/admin-data.functions";
+import { adminLogin } from "@/lib/admin-auth.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -55,26 +53,40 @@ import {
   Download,
   RefreshCw,
   LogOut,
-  ShieldAlert,
+  Bell,
+  BellOff,
+  Lock,
+  Loader2,
+  FileDown,
 } from "lucide-react";
 import { format, parseISO, subDays, isValid } from "date-fns";
 import jsPDF from "jspdf";
-import { signOut } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/admin")({
+const LOGO_URL =
+  "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";
+const TOKEN_KEY = "mw_admin_token";
+const SEEN_KEY = "mw_admin_seen_counts";
+const BRAND_COLOR = "#ef4444";
+
+export const Route = createFileRoute("/admin")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Admin Dashboard — Manoj Wheels" },
-      { name: "robots", content: "noindex, nofollow, noarchive" },
+      { name: "robots", content: "noindex, nofollow, noarchive, nosnippet" },
+      { name: "googlebot", content: "noindex, nofollow" },
     ],
   }),
-  component: AdminDashboard,
+  component: AdminPage,
 });
 
 const PAGE_SIZE = 10;
 const COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7", "#ec4899"];
 
+/* ============================================================
+   HELPERS
+============================================================ */
 function pick(row: Record<string, string>, keys: string[]): string {
   for (const k of keys) {
     const found = Object.keys(row).find((rk) => rk.toLowerCase().trim() === k.toLowerCase());
@@ -86,7 +98,6 @@ function pick(row: Record<string, string>, keys: string[]): string {
 function tryParseDate(v: string): Date | null {
   if (!v) return null;
   const s = v.trim();
-  // try ISO
   const iso = parseISO(s);
   if (isValid(iso)) return iso;
   const d = new Date(s);
@@ -117,6 +128,393 @@ function downloadFile(content: string | Blob, filename: string, type = "text/csv
   URL.revokeObjectURL(url);
 }
 
+function filterByDateRange(
+  rows: Record<string, string>[],
+  from: string,
+  to: string,
+  dateKeys: string[],
+): Record<string, string>[] {
+  if (!from && !to) return rows;
+  const fromD = from ? new Date(from + "T00:00:00") : null;
+  const toD = to ? new Date(to + "T23:59:59") : null;
+  return rows.filter((r) => {
+    const d = tryParseDate(pick(r, dateKeys));
+    if (!d) return false;
+    if (fromD && d < fromD) return false;
+    if (toD && d > toD) return false;
+    return true;
+  });
+}
+
+/* ============================================================
+   PDF EXPORT (branded)
+============================================================ */
+function exportPDF(
+  title: string,
+  rows: Record<string, string>[],
+  meta?: { from?: string; to?: string },
+) {
+  const doc = new jsPDF({ orientation: "landscape" });
+  // Header band
+  doc.setFillColor(239, 68, 68);
+  doc.rect(0, 0, 297, 22, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.text("Manoj Wheels", 14, 14);
+  doc.setFontSize(11);
+  doc.text(title, 297 - 14, 14, { align: "right" });
+
+  doc.setTextColor(60, 60, 60);
+  doc.setFontSize(9);
+  const range =
+    meta?.from || meta?.to
+      ? `Range: ${meta?.from || "—"} → ${meta?.to || "—"}`
+      : "Range: All time";
+  doc.text(
+    `Generated: ${format(new Date(), "PP p")}  •  ${rows.length} records  •  ${range}`,
+    14,
+    30,
+  );
+
+  if (!rows.length) {
+    doc.setTextColor(120, 120, 120);
+    doc.text("No data in selected range.", 14, 44);
+    doc.save(`${title.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+    return;
+  }
+
+  const headers = Object.keys(rows[0]).slice(0, 6);
+  const colW = (297 - 28) / headers.length;
+  let y = 40;
+  doc.setFillColor(245, 245, 245);
+  doc.rect(14, y - 5, 297 - 28, 8, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(40, 40, 40);
+  headers.forEach((h, i) => doc.text(String(h).slice(0, 24), 14 + i * colW + 2, y));
+  doc.setFont("helvetica", "normal");
+  y += 8;
+
+  rows.forEach((r, idx) => {
+    if (y > 195) {
+      doc.addPage();
+      y = 16;
+    }
+    if (idx % 2 === 0) {
+      doc.setFillColor(252, 252, 252);
+      doc.rect(14, y - 5, 297 - 28, 7, "F");
+    }
+    headers.forEach((h, i) => {
+      const v = String(r[h] ?? "").slice(0, 30);
+      doc.text(v, 14 + i * colW + 2, y);
+    });
+    y += 7;
+  });
+
+  // Footer
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(
+      `manojwheels.online  •  Page ${i} of ${pageCount}`,
+      297 / 2,
+      205,
+      { align: "center" },
+    );
+  }
+  doc.save(`${title.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+}
+
+/* ============================================================
+   WEB NOTIFICATIONS
+============================================================ */
+function browserNotify(title: string, body: string) {
+  try {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+    const n = new Notification(`🛞 ${title}`, {
+      body,
+      icon: LOGO_URL,
+      badge: LOGO_URL,
+      tag: "manoj-wheels-admin",
+      requireInteraction: false,
+    });
+    n.onclick = () => {
+      window.focus();
+      n.close();
+    };
+  } catch {
+    /* ignore */
+  }
+}
+
+/* ============================================================
+   ROOT
+============================================================ */
+function AdminPage() {
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem(TOKEN_KEY);
+  });
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    setToken(null);
+    toast.success("Logged out");
+  }, []);
+
+  if (!token) {
+    return <LoginScreen onSuccess={(t) => setToken(t)} />;
+  }
+  return <Dashboard token={token} onLogout={handleLogout} />;
+}
+
+/* ============================================================
+   LOGIN
+============================================================ */
+function LoginScreen({ onSuccess }: { onSuccess: (token: string) => void }) {
+  const loginFn = useServerFn(adminLogin);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const r = await loginFn({ data: { username, password } });
+      localStorage.setItem(TOKEN_KEY, r.token);
+      toast.success("Welcome, Admin");
+      onSuccess(r.token);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/10 px-4">
+      <Card className="w-full max-w-sm backdrop-blur-md bg-card/70 border-border/60 shadow-xl">
+        <CardHeader className="text-center space-y-3">
+          <img src={LOGO_URL} alt="Manoj Wheels" className="h-14 mx-auto" />
+          <CardTitle className="flex items-center justify-center gap-2 text-xl">
+            <Lock className="w-4 h-4" /> Admin Sign In
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">Restricted access — Manoj Wheels</p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="u">Username</Label>
+              <Input
+                id="u"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="p">Password</Label>
+              <Input
+                id="p"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Sign In
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+function Dashboard({ token, onLogout }: { token: string; onLogout: () => void }) {
+  const getDataFn = useServerFn(getAdminDataset);
+
+  const { data, isLoading, isFetching, refetch, error } = useQuery<AdminDataset>({
+    queryKey: ["admin-dataset"],
+    queryFn: () => getDataFn({ data: { token } }),
+    refetchInterval: 30_000, // 30s real-time polling
+    staleTime: 15_000,
+    retry: 1,
+  });
+
+  // Token expired / invalid → boot to login
+  useEffect(() => {
+    if (error && /unauthorized/i.test((error as Error).message)) {
+      localStorage.removeItem(TOKEN_KEY);
+      toast.error("Session expired. Please sign in again.");
+      onLogout();
+    }
+  }, [error, onLogout]);
+
+  // Web Notification permission
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission>(() =>
+    typeof window !== "undefined" && "Notification" in window
+      ? Notification.permission
+      : "denied",
+  );
+  const requestNotif = useCallback(async () => {
+    if (!("Notification" in window)) {
+      toast.error("This browser does not support notifications");
+      return;
+    }
+    const p = await Notification.requestPermission();
+    setNotifPerm(p);
+    if (p === "granted") {
+      toast.success("Notifications enabled");
+      browserNotify("Notifications Enabled", "You'll be alerted for new signups, contacts & bookings.");
+    }
+  }, []);
+
+  // New-item detection with localStorage persistence
+  const seenRef = useRef<{ users: number; contacts: number; services: number } | null>(null);
+  useEffect(() => {
+    if (!data) return;
+    if (!seenRef.current) {
+      const raw = localStorage.getItem(SEEN_KEY);
+      seenRef.current = raw ? JSON.parse(raw) : { users: 0, contacts: 0, services: 0 };
+    }
+    const prev = seenRef.current!;
+    const cur = {
+      users: data.users.length,
+      contacts: data.contacts.length,
+      services: data.services.length,
+    };
+
+    if (prev.users && cur.users > prev.users) {
+      const n = cur.users - prev.users;
+      toast.success(`🎉 ${n} new user signup${n > 1 ? "s" : ""}`, {
+        description: "View the Users tab for details.",
+      });
+      browserNotify("New User Signup", `${n} new user${n > 1 ? "s" : ""} just registered on Manoj Wheels.`);
+    }
+    if (prev.contacts && cur.contacts > prev.contacts) {
+      const n = cur.contacts - prev.contacts;
+      toast.success(`📩 ${n} new contact request${n > 1 ? "s" : ""}`, {
+        description: "Check the Contacts tab.",
+      });
+      browserNotify("New Contact Request", `${n} customer${n > 1 ? "s" : ""} just reached out.`);
+    }
+    if (prev.services && cur.services > prev.services) {
+      const n = cur.services - prev.services;
+      toast.success(`🔧 ${n} new service booking${n > 1 ? "s" : ""}`, {
+        description: "View the Services tab.",
+      });
+      browserNotify("New Service Booking", `${n} new booking${n > 1 ? "s" : ""} received.`);
+    }
+
+    seenRef.current = cur;
+    localStorage.setItem(SEEN_KEY, JSON.stringify(cur));
+  }, [data]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="container py-6 space-y-6">
+        <Header
+          fetchedAt={data?.fetchedAt}
+          isFetching={isFetching}
+          notifPerm={notifPerm}
+          onEnableNotif={requestNotif}
+          onRefresh={() => refetch()}
+          onLogout={onLogout}
+        />
+
+        {error && !/unauthorized/i.test((error as Error).message) && (
+          <Card className="border-destructive/40">
+            <CardContent className="p-4 text-sm text-destructive">
+              Failed to load admin data. {(error as Error).message}
+            </CardContent>
+          </Card>
+        )}
+
+        {isLoading || !data ? <LoadingSkeleton /> : <DashboardBody data={data} />}
+      </div>
+    </div>
+  );
+}
+
+function Header({
+  fetchedAt,
+  isFetching,
+  notifPerm,
+  onEnableNotif,
+  onRefresh,
+  onLogout,
+}: {
+  fetchedAt?: string;
+  isFetching: boolean;
+  notifPerm: NotificationPermission;
+  onEnableNotif: () => void;
+  onRefresh: () => void;
+  onLogout: () => void;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex items-center gap-3">
+        <img src={LOGO_URL} alt="" className="h-10 w-10 object-contain" />
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
+          <p className="text-xs text-muted-foreground">
+            Manoj Wheels • Real-time business intelligence
+            {fetchedAt && ` • Updated ${format(new Date(fetchedAt), "p")}`}
+          </p>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {notifPerm !== "granted" && (
+          <Button variant="outline" size="sm" onClick={onEnableNotif}>
+            {notifPerm === "denied" ? (
+              <><BellOff className="w-4 h-4 mr-1" /> Notifications Blocked</>
+            ) : (
+              <><Bell className="w-4 h-4 mr-1" /> Enable Notifications</>
+            )}
+          </Button>
+        )}
+        {notifPerm === "granted" && (
+          <Badge variant="secondary" className="gap-1 self-center">
+            <Bell className="w-3 h-3" /> Alerts On
+          </Badge>
+        )}
+        <Button variant="outline" size="sm" onClick={onRefresh} disabled={isFetching}>
+          <RefreshCw className={`w-4 h-4 mr-1 ${isFetching ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
+        <Button variant="destructive" size="sm" onClick={onLogout}>
+          <LogOut className="w-4 h-4 mr-1" /> Logout
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-24" />
+        ))}
+      </div>
+      <Skeleton className="h-64" />
+      <Skeleton className="h-96" />
+    </div>
+  );
+}
+
 function StatCard({
   icon: Icon,
   label,
@@ -143,185 +541,6 @@ function StatCard({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function AdminDashboard() {
-  const navigate = useNavigate();
-  const checkAdminFn = useServerFn(checkAdmin);
-  const getDataFn = useServerFn(getAdminDataset);
-
-  const { data: adminCheck, isLoading: checking } = useQuery({
-    queryKey: ["admin-check"],
-    queryFn: () => checkAdminFn(),
-    retry: false,
-  });
-
-  const isAdmin = adminCheck?.isAdmin === true;
-
-  const {
-    data,
-    isLoading,
-    isFetching,
-    refetch,
-    error,
-  } = useQuery<AdminDataset>({
-    queryKey: ["admin-dataset"],
-    queryFn: () => getDataFn(),
-    enabled: isAdmin,
-    refetchInterval: 5 * 60 * 1000,
-    staleTime: 60_000,
-  });
-
-  // Notification: detect new users / contacts since last view
-  const [seen, setSeen] = useState<{ users: number; contacts: number; services: number }>({
-    users: 0,
-    contacts: 0,
-    services: 0,
-  });
-  useEffect(() => {
-    if (!data) return;
-    if (seen.users && data.users.length > seen.users) {
-      toast.success(`${data.users.length - seen.users} new user signup(s)`);
-    }
-    if (seen.contacts && data.contacts.length > seen.contacts) {
-      toast.success(`${data.contacts.length - seen.contacts} new contact request(s)`);
-    }
-    if (seen.services && data.services.length > seen.services) {
-      toast.success(`${data.services.length - seen.services} new service booking(s)`);
-    }
-    setSeen({
-      users: data.users.length,
-      contacts: data.contacts.length,
-      services: data.services.length,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.fetchedAt]);
-
-  if (checking) {
-    return (
-      <div className="container py-10 space-y-4">
-        <Skeleton className="h-10 w-64" />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-24" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="container py-20 max-w-md">
-        <Card className="backdrop-blur-md bg-card/60 border-destructive/40">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-destructive">
-              <ShieldAlert className="w-5 h-5" /> Access Denied
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Your account ({adminCheck?.email || "—"}) is not authorized to view the admin
-              dashboard.
-            </p>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => navigate({ to: "/" })}>
-                Go Home
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={async () => {
-                  await signOut();
-                  navigate({ to: "/auth" });
-                }}
-              >
-                <LogOut className="w-4 h-4 mr-1" /> Sign Out
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container py-6 space-y-6">
-        <Header
-          fetchedAt={data?.fetchedAt}
-          isFetching={isFetching}
-          onRefresh={() => refetch()}
-        />
-
-        {error && (
-          <Card className="border-destructive/40">
-            <CardContent className="p-4 text-sm text-destructive">
-              Failed to load admin data. {(error as Error).message}
-            </CardContent>
-          </Card>
-        )}
-
-        {isLoading || !data ? (
-          <LoadingSkeleton />
-        ) : (
-          <DashboardBody data={data} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Header({
-  fetchedAt,
-  isFetching,
-  onRefresh,
-}: {
-  fetchedAt?: string;
-  isFetching: boolean;
-  onRefresh: () => void;
-}) {
-  const navigate = useNavigate();
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-xs text-muted-foreground mt-1">
-          Manoj Wheels • Real-time business intelligence
-          {fetchedAt && ` • Updated ${format(new Date(fetchedAt), "PP p")}`}
-        </p>
-      </div>
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={onRefresh} disabled={isFetching}>
-          <RefreshCw className={`w-4 h-4 mr-1 ${isFetching ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={async () => {
-            await signOut();
-            navigate({ to: "/auth" });
-          }}
-        >
-          <LogOut className="w-4 h-4 mr-1" /> Logout
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-24" />
-        ))}
-      </div>
-      <Skeleton className="h-64" />
-      <Skeleton className="h-96" />
-    </div>
   );
 }
 
@@ -364,6 +583,8 @@ function DashboardBody({ data }: { data: AdminDataset }) {
         <StatCard icon={Mail} label="New Contacts Today" value={stats.newContactsToday} />
       </div>
 
+      <DateRangeReports data={data} />
+
       <Tabs defaultValue="users" className="space-y-4">
         <TabsList className="grid grid-cols-4 w-full sm:w-auto">
           <TabsTrigger value="users">Users</TabsTrigger>
@@ -381,7 +602,92 @@ function DashboardBody({ data }: { data: AdminDataset }) {
   );
 }
 
-/* -------------------- USERS -------------------- */
+/* ============================================================
+   DATE-RANGE REPORTS (PDF + CSV)
+============================================================ */
+function DateRangeReports({ data }: { data: AdminDataset }) {
+  const [from, setFrom] = useState(format(subDays(new Date(), 30), "yyyy-MM-dd"));
+  const [to, setTo] = useState(format(new Date(), "yyyy-MM-dd"));
+
+  const USER_DATE = ["createdAt", "Created At", "Signup Date", "Date", "Timestamp"];
+  const LOGIN_DATE = ["lastLogin", "Last Login", "loginAt", "createdAt", "Created At", "Date", "Timestamp"];
+  const CONTACT_DATE = ["createdAt", "Created At", "Date", "Timestamp"];
+  const SERVICE_DATE = ["createdAt", "Created At", "Date", "Booking Date", "Timestamp"];
+
+  const reports = useMemo(
+    () => [
+      { key: "users", label: "Users", icon: Users, rows: filterByDateRange(data.users, from, to, USER_DATE) },
+      { key: "logins", label: "Logins", icon: LogIn, rows: filterByDateRange(data.users, from, to, LOGIN_DATE) },
+      { key: "contacts", label: "Contacts", icon: MessageSquare, rows: filterByDateRange(data.contacts, from, to, CONTACT_DATE) },
+      { key: "services", label: "Services", icon: Wrench, rows: filterByDateRange(data.services, from, to, SERVICE_DATE) },
+    ],
+    [data, from, to],
+  );
+
+  return (
+    <Card className="backdrop-blur-md bg-card/60 border-primary/20">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileDown className="w-4 h-4" /> Date-Range Reports
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <Label className="text-xs">From</Label>
+            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          </div>
+          <div>
+            <Label className="text-xs">To</Label>
+            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          </div>
+          <div className="sm:col-span-2 lg:col-span-2 flex items-end">
+            <p className="text-xs text-muted-foreground">
+              Choose a date range, then download PDF or CSV reports for each dataset.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {reports.map((r) => (
+            <Card key={r.key} className="bg-background/40">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-medium text-sm">
+                    <r.icon className="w-4 h-4 text-primary" /> {r.label}
+                  </div>
+                  <Badge variant="secondary">{r.rows.length}</Badge>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="flex-1"
+                    onClick={() => exportPDF(`${r.label} Report`, r.rows, { from, to })}
+                  >
+                    <Download className="w-3 h-3 mr-1" /> PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => downloadFile(toCSV(r.rows), `${r.key}-${from}-to-${to}.csv`)}
+                  >
+                    <Download className="w-3 h-3 mr-1" /> CSV
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ============================================================
+   USERS
+============================================================ */
 function UsersSection({ rows }: { rows: Record<string, string>[] }) {
   const [q, setQ] = useState("");
   const [authFilter, setAuthFilter] = useState("all");
@@ -406,9 +712,7 @@ function UsersSection({ rows }: { rows: Record<string, string>[] }) {
       const auth = pick(r, ["authType", "Auth Type", "provider"]);
       const ds = pick(r, ["createdAt", "Created At", "Signup Date", "Date", "Timestamp"]);
       const d = tryParseDate(ds);
-
-      if (q && ![name, email, phone].some((v) => v.toLowerCase().includes(q.toLowerCase())))
-        return false;
+      if (q && ![name, email, phone].some((v) => v.toLowerCase().includes(q.toLowerCase()))) return false;
       if (authFilter !== "all" && auth !== authFilter) return false;
       if (dateFrom && d && d < new Date(dateFrom)) return false;
       if (dateTo && d && d > new Date(dateTo + "T23:59:59")) return false;
@@ -424,18 +728,10 @@ function UsersSection({ rows }: { rows: Record<string, string>[] }) {
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <CardTitle>Users ({filtered.length})</CardTitle>
         <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => downloadFile(toCSV(filtered), "users.csv")}
-          >
+          <Button size="sm" variant="outline" onClick={() => downloadFile(toCSV(filtered), "users.csv")}>
             <Download className="w-4 h-4 mr-1" /> CSV
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => exportPDF("Users Report", filtered.slice(0, 100))}
-          >
+          <Button size="sm" variant="outline" onClick={() => exportPDF("Users Report", filtered.slice(0, 200), { from: dateFrom, to: dateTo })}>
             <Download className="w-4 h-4 mr-1" /> PDF
           </Button>
         </div>
@@ -494,7 +790,9 @@ function UsersSection({ rows }: { rows: Record<string, string>[] }) {
   );
 }
 
-/* -------------------- LOGINS -------------------- */
+/* ============================================================
+   LOGINS
+============================================================ */
 function LoginsSection({ rows }: { rows: Record<string, string>[] }) {
   const daily = useMemo(() => {
     const map = new Map<string, number>();
@@ -519,9 +817,7 @@ function LoginsSection({ rows }: { rows: Record<string, string>[] }) {
       const key = v ? v.split(" on ").pop() || v : "Unknown";
       map.set(key, (map.get(key) ?? 0) + 1);
     });
-    return Array.from(map, ([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 6);
+    return Array.from(map, ([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 6);
   }, [rows]);
 
   const topUsers = useMemo(() => {
@@ -543,15 +839,15 @@ function LoginsSection({ rows }: { rows: Record<string, string>[] }) {
             <AreaChart data={daily}>
               <defs>
                 <linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ef4444" stopOpacity={0.6} />
-                  <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
+                  <stop offset="0%" stopColor={BRAND_COLOR} stopOpacity={0.6} />
+                  <stop offset="100%" stopColor={BRAND_COLOR} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
               <XAxis dataKey="date" stroke="#888" fontSize={12} />
               <YAxis stroke="#888" fontSize={12} allowDecimals={false} />
               <Tooltip contentStyle={{ background: "#111", border: "1px solid #333" }} />
-              <Area type="monotone" dataKey="count" stroke="#ef4444" fill="url(#lg)" />
+              <Area type="monotone" dataKey="count" stroke={BRAND_COLOR} fill="url(#lg)" />
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
@@ -581,7 +877,7 @@ function LoginsSection({ rows }: { rows: Record<string, string>[] }) {
               <XAxis type="number" stroke="#888" fontSize={12} allowDecimals={false} />
               <YAxis type="category" dataKey="name" stroke="#888" fontSize={11} width={120} />
               <Tooltip contentStyle={{ background: "#111", border: "1px solid #333" }} />
-              <Bar dataKey="logins" fill="#ef4444" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="logins" fill={BRAND_COLOR} radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -590,7 +886,9 @@ function LoginsSection({ rows }: { rows: Record<string, string>[] }) {
   );
 }
 
-/* -------------------- CONTACTS -------------------- */
+/* ============================================================
+   CONTACTS
+============================================================ */
 function ContactsSection({ rows }: { rows: Record<string, string>[] }) {
   const todayStr = format(new Date(), "yyyy-MM-dd");
   const newToday = rows.filter((r) => {
@@ -626,7 +924,7 @@ function ContactsSection({ rows }: { rows: Record<string, string>[] }) {
                 <XAxis dataKey="name" stroke="#888" fontSize={11} />
                 <YAxis stroke="#888" fontSize={12} allowDecimals={false} />
                 <Tooltip contentStyle={{ background: "#111", border: "1px solid #333" }} />
-                <Bar dataKey="value" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill={BRAND_COLOR} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -635,9 +933,14 @@ function ContactsSection({ rows }: { rows: Record<string, string>[] }) {
         <Card className="backdrop-blur-md bg-card/60">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Recent Contacts</CardTitle>
-            <Button size="sm" variant="outline" onClick={() => downloadFile(toCSV(rows), "contacts.csv")}>
-              <Download className="w-4 h-4 mr-1" /> CSV
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => downloadFile(toCSV(rows), "contacts.csv")}>
+                <Download className="w-4 h-4 mr-1" /> CSV
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => exportPDF("Contacts Report", rows.slice(0, 200))}>
+                <Download className="w-4 h-4 mr-1" /> PDF
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {recent.map((r, i) => (
@@ -658,7 +961,9 @@ function ContactsSection({ rows }: { rows: Record<string, string>[] }) {
   );
 }
 
-/* -------------------- SERVICES -------------------- */
+/* ============================================================
+   SERVICES
+============================================================ */
 function ServicesSection({ rows }: { rows: Record<string, string>[] }) {
   const popularity = useMemo(() => {
     const map = new Map<string, number>();
@@ -696,9 +1001,14 @@ function ServicesSection({ rows }: { rows: Record<string, string>[] }) {
         <Card className="backdrop-blur-md bg-card/60">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Service Popularity</CardTitle>
-            <Button size="sm" variant="outline" onClick={() => downloadFile(toCSV(rows), "services.csv")}>
-              <Download className="w-4 h-4 mr-1" /> CSV
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => downloadFile(toCSV(rows), "services.csv")}>
+                <Download className="w-4 h-4 mr-1" /> CSV
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => exportPDF("Services Report", rows.slice(0, 200))}>
+                <Download className="w-4 h-4 mr-1" /> PDF
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -722,7 +1032,7 @@ function ServicesSection({ rows }: { rows: Record<string, string>[] }) {
                 <XAxis dataKey="date" stroke="#888" fontSize={12} />
                 <YAxis stroke="#888" fontSize={12} allowDecimals={false} />
                 <Tooltip contentStyle={{ background: "#111", border: "1px solid #333" }} />
-                <Line type="monotone" dataKey="count" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="count" stroke={BRAND_COLOR} strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -730,38 +1040,4 @@ function ServicesSection({ rows }: { rows: Record<string, string>[] }) {
       </div>
     </div>
   );
-}
-
-/* -------------------- PDF EXPORT -------------------- */
-function exportPDF(title: string, rows: Record<string, string>[]) {
-  const doc = new jsPDF({ orientation: "landscape" });
-  doc.setFontSize(16);
-  doc.text(`Manoj Wheels — ${title}`, 14, 16);
-  doc.setFontSize(10);
-  doc.text(`Generated: ${format(new Date(), "PP p")} • ${rows.length} records`, 14, 22);
-
-  if (!rows.length) {
-    doc.text("No data.", 14, 32);
-    doc.save(`${title.toLowerCase().replace(/\s+/g, "-")}.pdf`);
-    return;
-  }
-  const headers = Object.keys(rows[0]).slice(0, 6);
-  const colW = (297 - 28) / headers.length;
-  let y = 32;
-  doc.setFont("helvetica", "bold");
-  headers.forEach((h, i) => doc.text(String(h).slice(0, 20), 14 + i * colW, y));
-  doc.setFont("helvetica", "normal");
-  y += 6;
-  rows.forEach((r) => {
-    if (y > 195) {
-      doc.addPage();
-      y = 16;
-    }
-    headers.forEach((h, i) => {
-      const v = String(r[h] ?? "").slice(0, 28);
-      doc.text(v, 14 + i * colW, y);
-    });
-    y += 6;
-  });
-  doc.save(`${title.toLowerCase().replace(/\s+/g, "-")}.pdf`);
 }

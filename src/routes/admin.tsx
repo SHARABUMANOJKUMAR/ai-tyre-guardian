@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getAdminDataset, type AdminDataset } from "@/lib/admin-data.functions";
@@ -53,8 +53,6 @@ import {
   Download,
   RefreshCw,
   LogOut,
-  Bell,
-  BellOff,
   Lock,
   Loader2,
   FileDown,
@@ -66,7 +64,6 @@ import { toast } from "sonner";
 const LOGO_URL =
   "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";
 const TOKEN_KEY = "mw_admin_token";
-const SEEN_KEY = "mw_admin_seen_counts";
 const BRAND_COLOR = "#ef4444";
 
 export const Route = createFileRoute("/admin")({
@@ -88,8 +85,10 @@ const COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"
    HELPERS
 ============================================================ */
 function pick(row: Record<string, string>, keys: string[]): string {
+  const norm = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
   for (const k of keys) {
-    const found = Object.keys(row).find((rk) => rk.toLowerCase().trim() === k.toLowerCase());
+    const wanted = norm(k);
+    const found = Object.keys(row).find((rk) => norm(rk) === wanted);
     if (found && row[found]) return row[found];
   }
   return "";
@@ -100,6 +99,12 @@ function tryParseDate(v: string): Date | null {
   const s = v.trim();
   const iso = parseISO(s);
   if (isValid(iso)) return iso;
+  const indian = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (indian) {
+    const [, dd, mm, yyyy, hh = "0", min = "0", sec = "0"] = indian;
+    const parsed = new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(min), Number(sec));
+    if (isValid(parsed)) return parsed;
+  }
   const d = new Date(s);
   return isValid(d) ? d : null;
 }
@@ -145,6 +150,11 @@ function filterByDateRange(
     return true;
   });
 }
+
+const USER_DATE_KEYS = ["createdAt", "created_at", "Created At", "Created_Date", "Signup Date", "Date", "Timestamp"];
+const LOGIN_DATE_KEYS = ["lastLogin", "Last Login", "Last_Login", "loginAt", "createdAt", "Created At", "Created_Date", "Date", "Timestamp"];
+const CONTACT_DATE_KEYS = ["Submitted Date", "Submitted_Date", "createdAt", "Created At", "Date", "Timestamp"];
+const SERVICE_DATE_KEYS = ["Booking DateTime", "Booking_DateTime", "createdAt", "Created At", "Date", "Booking Date", "Timestamp"];
 
 /* ============================================================
    PDF EXPORT (branded)
@@ -224,29 +234,6 @@ function exportPDF(
     );
   }
   doc.save(`${title.toLowerCase().replace(/\s+/g, "-")}.pdf`);
-}
-
-/* ============================================================
-   WEB NOTIFICATIONS
-============================================================ */
-function browserNotify(title: string, body: string) {
-  try {
-    if (typeof window === "undefined" || !("Notification" in window)) return;
-    if (Notification.permission !== "granted") return;
-    const n = new Notification(`🛞 ${title}`, {
-      body,
-      icon: LOGO_URL,
-      badge: LOGO_URL,
-      tag: "manoj-wheels-admin",
-      requireInteraction: false,
-    });
-    n.onclick = () => {
-      window.focus();
-      n.close();
-    };
-  } catch {
-    /* ignore */
-  }
 }
 
 /* ============================================================
@@ -347,8 +334,10 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
   const { data, isLoading, isFetching, refetch, error } = useQuery<AdminDataset>({
     queryKey: ["admin-dataset"],
     queryFn: () => getDataFn({ data: { token } }),
-    refetchInterval: 30_000, // 30s real-time polling
-    staleTime: 15_000,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
     retry: 1,
   });
 
@@ -361,74 +350,12 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
     }
   }, [error, onLogout]);
 
-  // Web Notification permission
-  const [notifPerm, setNotifPerm] = useState<NotificationPermission>(() =>
-    typeof window !== "undefined" && "Notification" in window
-      ? Notification.permission
-      : "denied",
-  );
-  const requestNotif = useCallback(async () => {
-    if (!("Notification" in window)) {
-      toast.error("This browser does not support notifications");
-      return;
-    }
-    const p = await Notification.requestPermission();
-    setNotifPerm(p);
-    if (p === "granted") {
-      toast.success("Notifications enabled");
-      browserNotify("Notifications Enabled", "You'll be alerted for new signups, contacts & bookings.");
-    }
-  }, []);
-
-  // New-item detection with localStorage persistence
-  const seenRef = useRef<{ users: number; contacts: number; services: number } | null>(null);
-  useEffect(() => {
-    if (!data) return;
-    if (!seenRef.current) {
-      const raw = localStorage.getItem(SEEN_KEY);
-      seenRef.current = raw ? JSON.parse(raw) : { users: 0, contacts: 0, services: 0 };
-    }
-    const prev = seenRef.current!;
-    const cur = {
-      users: data.users.length,
-      contacts: data.contacts.length,
-      services: data.services.length,
-    };
-
-    if (prev.users && cur.users > prev.users) {
-      const n = cur.users - prev.users;
-      toast.success(`🎉 ${n} new user signup${n > 1 ? "s" : ""}`, {
-        description: "View the Users tab for details.",
-      });
-      browserNotify("New User Signup", `${n} new user${n > 1 ? "s" : ""} just registered on Manoj Wheels.`);
-    }
-    if (prev.contacts && cur.contacts > prev.contacts) {
-      const n = cur.contacts - prev.contacts;
-      toast.success(`📩 ${n} new contact request${n > 1 ? "s" : ""}`, {
-        description: "Check the Contacts tab.",
-      });
-      browserNotify("New Contact Request", `${n} customer${n > 1 ? "s" : ""} just reached out.`);
-    }
-    if (prev.services && cur.services > prev.services) {
-      const n = cur.services - prev.services;
-      toast.success(`🔧 ${n} new service booking${n > 1 ? "s" : ""}`, {
-        description: "View the Services tab.",
-      });
-      browserNotify("New Service Booking", `${n} new booking${n > 1 ? "s" : ""} received.`);
-    }
-
-    seenRef.current = cur;
-    localStorage.setItem(SEEN_KEY, JSON.stringify(cur));
-  }, [data]);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container py-6 space-y-6">
         <Header
           fetchedAt={data?.fetchedAt}
           isFetching={isFetching}
-          notifPerm={notifPerm}
-          onEnableNotif={requestNotif}
           onRefresh={() => refetch()}
           onLogout={onLogout}
         />
@@ -450,15 +377,11 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
 function Header({
   fetchedAt,
   isFetching,
-  notifPerm,
-  onEnableNotif,
   onRefresh,
   onLogout,
 }: {
   fetchedAt?: string;
   isFetching: boolean;
-  notifPerm: NotificationPermission;
-  onEnableNotif: () => void;
   onRefresh: () => void;
   onLogout: () => void;
 }) {
@@ -469,26 +392,12 @@ function Header({
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
           <p className="text-xs text-muted-foreground">
-            Manoj Wheels • Real-time business intelligence
+            Manoj Wheels • Live Google Sheets business intelligence
             {fetchedAt && ` • Updated ${format(new Date(fetchedAt), "p")}`}
           </p>
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
-        {notifPerm !== "granted" && (
-          <Button variant="outline" size="sm" onClick={onEnableNotif}>
-            {notifPerm === "denied" ? (
-              <><BellOff className="w-4 h-4 mr-1" /> Notifications Blocked</>
-            ) : (
-              <><Bell className="w-4 h-4 mr-1" /> Enable Notifications</>
-            )}
-          </Button>
-        )}
-        {notifPerm === "granted" && (
-          <Badge variant="secondary" className="gap-1 self-center">
-            <Bell className="w-3 h-3" /> Alerts On
-          </Badge>
-        )}
         <Button variant="outline" size="sm" onClick={onRefresh} disabled={isFetching}>
           <RefreshCw className={`w-4 h-4 mr-1 ${isFetching ? "animate-spin" : ""}`} />
           Refresh
@@ -549,11 +458,11 @@ function DashboardBody({ data }: { data: AdminDataset }) {
 
   const stats = useMemo(() => {
     const newUsersToday = data.users.filter((u) => {
-      const d = tryParseDate(pick(u, ["createdAt", "created_at", "Created At", "Signup Date", "Date", "Timestamp"]));
+      const d = tryParseDate(pick(u, USER_DATE_KEYS));
       return d && format(d, "yyyy-MM-dd") === todayStr;
     }).length;
     const newContactsToday = data.contacts.filter((c) => {
-      const d = tryParseDate(pick(c, ["createdAt", "Created At", "Date", "Timestamp"]));
+      const d = tryParseDate(pick(c, CONTACT_DATE_KEYS));
       return d && format(d, "yyyy-MM-dd") === todayStr;
     }).length;
     const totalLogins =
@@ -609,17 +518,12 @@ function DateRangeReports({ data }: { data: AdminDataset }) {
   const [from, setFrom] = useState(format(subDays(new Date(), 30), "yyyy-MM-dd"));
   const [to, setTo] = useState(format(new Date(), "yyyy-MM-dd"));
 
-  const USER_DATE = ["createdAt", "Created At", "Signup Date", "Date", "Timestamp"];
-  const LOGIN_DATE = ["lastLogin", "Last Login", "loginAt", "createdAt", "Created At", "Date", "Timestamp"];
-  const CONTACT_DATE = ["createdAt", "Created At", "Date", "Timestamp"];
-  const SERVICE_DATE = ["createdAt", "Created At", "Date", "Booking Date", "Timestamp"];
-
   const reports = useMemo(
     () => [
-      { key: "users", label: "Users", icon: Users, rows: filterByDateRange(data.users, from, to, USER_DATE) },
-      { key: "logins", label: "Logins", icon: LogIn, rows: filterByDateRange(data.users, from, to, LOGIN_DATE) },
-      { key: "contacts", label: "Contacts", icon: MessageSquare, rows: filterByDateRange(data.contacts, from, to, CONTACT_DATE) },
-      { key: "services", label: "Services", icon: Wrench, rows: filterByDateRange(data.services, from, to, SERVICE_DATE) },
+      { key: "users", label: "Users", icon: Users, rows: filterByDateRange(data.users, from, to, USER_DATE_KEYS) },
+      { key: "logins", label: "Logins", icon: LogIn, rows: filterByDateRange(data.users, from, to, LOGIN_DATE_KEYS) },
+      { key: "contacts", label: "Contacts", icon: MessageSquare, rows: filterByDateRange(data.contacts, from, to, CONTACT_DATE_KEYS) },
+      { key: "services", label: "Services", icon: Wrench, rows: filterByDateRange(data.services, from, to, SERVICE_DATE_KEYS) },
     ],
     [data, from, to],
   );
@@ -698,7 +602,7 @@ function UsersSection({ rows }: { rows: Record<string, string>[] }) {
   const authTypes = useMemo(() => {
     const set = new Set<string>();
     rows.forEach((r) => {
-      const t = pick(r, ["authType", "Auth Type", "provider", "Provider"]);
+      const t = pick(r, ["authType", "Auth Type", "Auth_Type", "provider", "Provider"]);
       if (t) set.add(t);
     });
     return Array.from(set);
@@ -708,9 +612,9 @@ function UsersSection({ rows }: { rows: Record<string, string>[] }) {
     return rows.filter((r) => {
       const name = pick(r, ["fullName", "Full Name", "name", "Name"]);
       const email = pick(r, ["email", "Email"]);
-      const phone = pick(r, ["phoneNumber", "Phone Number", "phone"]);
-      const auth = pick(r, ["authType", "Auth Type", "provider"]);
-      const ds = pick(r, ["createdAt", "Created At", "Signup Date", "Date", "Timestamp"]);
+      const phone = pick(r, ["phoneNumber", "Phone Number", "Phone_Number", "phone"]);
+      const auth = pick(r, ["authType", "Auth Type", "Auth_Type", "provider"]);
+      const ds = pick(r, USER_DATE_KEYS);
       const d = tryParseDate(ds);
       if (q && ![name, email, phone].some((v) => v.toLowerCase().includes(q.toLowerCase()))) return false;
       if (authFilter !== "all" && auth !== authFilter) return false;
@@ -731,7 +635,7 @@ function UsersSection({ rows }: { rows: Record<string, string>[] }) {
           <Button size="sm" variant="outline" onClick={() => downloadFile(toCSV(filtered), "users.csv")}>
             <Download className="w-4 h-4 mr-1" /> CSV
           </Button>
-          <Button size="sm" variant="outline" onClick={() => exportPDF("Users Report", filtered.slice(0, 200), { from: dateFrom, to: dateTo })}>
+          <Button size="sm" variant="outline" onClick={() => exportPDF("Users Report", filtered, { from: dateFrom, to: dateTo })}>
             <Download className="w-4 h-4 mr-1" /> PDF
           </Button>
         </div>
@@ -766,9 +670,9 @@ function UsersSection({ rows }: { rows: Record<string, string>[] }) {
                 <TableRow key={i}>
                   <TableCell className="font-medium">{pick(r, ["fullName", "Full Name", "name"])}</TableCell>
                   <TableCell>{pick(r, ["email", "Email"])}</TableCell>
-                  <TableCell>{pick(r, ["phoneNumber", "Phone Number", "phone"])}</TableCell>
-                  <TableCell><Badge variant="secondary">{pick(r, ["authType", "Auth Type", "provider"]) || "—"}</Badge></TableCell>
-                  <TableCell>{pick(r, ["createdAt", "Created At", "Signup Date", "Date", "Timestamp"])}</TableCell>
+                  <TableCell>{pick(r, ["phoneNumber", "Phone Number", "Phone_Number", "phone"])}</TableCell>
+                  <TableCell><Badge variant="secondary">{pick(r, ["authType", "Auth Type", "Auth_Type", "provider"]) || "—"}</Badge></TableCell>
+                  <TableCell>{pick(r, USER_DATE_KEYS)}</TableCell>
                 </TableRow>
               ))}
               {!pageRows.length && (
@@ -801,7 +705,7 @@ function LoginsSection({ rows }: { rows: Record<string, string>[] }) {
       map.set(d, 0);
     }
     rows.forEach((r) => {
-      const ds = pick(r, ["lastLogin", "Last Login", "loginAt", "createdAt", "Created At", "Date", "Timestamp"]);
+      const ds = pick(r, LOGIN_DATE_KEYS);
       const d = tryParseDate(ds);
       if (!d) return;
       const k = format(d, "MMM dd");
@@ -892,7 +796,7 @@ function LoginsSection({ rows }: { rows: Record<string, string>[] }) {
 function ContactsSection({ rows }: { rows: Record<string, string>[] }) {
   const todayStr = format(new Date(), "yyyy-MM-dd");
   const newToday = rows.filter((r) => {
-    const d = tryParseDate(pick(r, ["createdAt", "Created At", "Date", "Timestamp"]));
+    const d = tryParseDate(pick(r, CONTACT_DATE_KEYS));
     return d && format(d, "yyyy-MM-dd") === todayStr;
   }).length;
 
@@ -937,7 +841,7 @@ function ContactsSection({ rows }: { rows: Record<string, string>[] }) {
               <Button size="sm" variant="outline" onClick={() => downloadFile(toCSV(rows), "contacts.csv")}>
                 <Download className="w-4 h-4 mr-1" /> CSV
               </Button>
-              <Button size="sm" variant="outline" onClick={() => exportPDF("Contacts Report", rows.slice(0, 200))}>
+              <Button size="sm" variant="outline" onClick={() => exportPDF("Contacts Report", rows)}>
                 <Download className="w-4 h-4 mr-1" /> PDF
               </Button>
             </div>
@@ -946,10 +850,10 @@ function ContactsSection({ rows }: { rows: Record<string, string>[] }) {
             {recent.map((r, i) => (
               <div key={i} className="border-b border-border/40 pb-2 last:border-0 last:pb-0">
                 <div className="flex justify-between text-sm font-medium">
-                  <span>{pick(r, ["name", "Name", "Full Name"]) || "Anonymous"}</span>
-                  <span className="text-xs text-muted-foreground">{pick(r, ["createdAt", "Date", "Timestamp"])}</span>
+                  <span>{pick(r, ["name", "Name", "Full Name", "Full_Name"]) || "Anonymous"}</span>
+                  <span className="text-xs text-muted-foreground">{pick(r, CONTACT_DATE_KEYS)}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">{pick(r, ["email", "Email"])}{pick(r, ["phone", "Phone"]) ? ` • ${pick(r, ["phone", "Phone"])}` : ""}</p>
+                <p className="text-xs text-muted-foreground">{pick(r, ["email", "Email"])}{pick(r, ["phone", "Phone", "Phone Number", "Phone_Number"]) ? ` • ${pick(r, ["phone", "Phone", "Phone Number", "Phone_Number"])}` : ""}</p>
                 <p className="text-sm mt-1 line-clamp-2">{pick(r, ["message", "Message", "Query"])}</p>
               </div>
             ))}
@@ -968,7 +872,7 @@ function ServicesSection({ rows }: { rows: Record<string, string>[] }) {
   const popularity = useMemo(() => {
     const map = new Map<string, number>();
     rows.forEach((r) => {
-      const s = pick(r, ["service", "Service", "Service Type", "Type"]) || "Other";
+      const s = pick(r, ["service", "Service", "Service Needed", "Service_Needed", "Service Type", "Type"]) || "Other";
       map.set(s, (map.get(s) ?? 0) + 1);
     });
     return Array.from(map, ([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
@@ -980,7 +884,7 @@ function ServicesSection({ rows }: { rows: Record<string, string>[] }) {
       map.set(format(subDays(new Date(), i), "MMM dd"), 0);
     }
     rows.forEach((r) => {
-      const d = tryParseDate(pick(r, ["createdAt", "Created At", "Date", "Booking Date", "Timestamp"]));
+      const d = tryParseDate(pick(r, SERVICE_DATE_KEYS));
       if (!d) return;
       const k = format(d, "MMM dd");
       if (map.has(k)) map.set(k, (map.get(k) ?? 0) + 1);
@@ -1005,7 +909,7 @@ function ServicesSection({ rows }: { rows: Record<string, string>[] }) {
               <Button size="sm" variant="outline" onClick={() => downloadFile(toCSV(rows), "services.csv")}>
                 <Download className="w-4 h-4 mr-1" /> CSV
               </Button>
-              <Button size="sm" variant="outline" onClick={() => exportPDF("Services Report", rows.slice(0, 200))}>
+              <Button size="sm" variant="outline" onClick={() => exportPDF("Services Report", rows)}>
                 <Download className="w-4 h-4 mr-1" /> PDF
               </Button>
             </div>

@@ -105,10 +105,15 @@ export const getPublicInvoice = createServerFn({ method: "GET" })
     if (!data.id || !/^MW-[A-Z0-9-]{4,40}$/i.test(data.id)) return null;
     const want = data.id.toUpperCase();
     const rows = await loadInvoices().catch(() => [] as Record<string, string>[]);
-    const match = rows.find((r) => {
+    let match = rows.find((r) => {
       const inv = pick(r, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]);
       return inv.trim().toUpperCase() === want;
     });
+    // Fallback: ask the Apps Script directly (sheet CSV publishes with a delay)
+    if (!match) {
+      const fresh = await fetchFromAppsScript(data.id);
+      if (fresh) match = fresh;
+    }
     if (!match) return null;
     const svc = pick(match, ["service", "serviceType", "serviceNeeded"]);
     const other = pick(match, ["otherService", "otherServiceType"]);

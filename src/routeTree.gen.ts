@@ -17,6 +17,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BookRouteImport } from './routes/book'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AiCheckRouteImport } from './routes/ai-check'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
@@ -77,6 +78,11 @@ const AuthRoute = AuthRouteImport.update({
 const AiCheckRoute = AiCheckRouteImport.update({
   id: '/ai-check',
   path: '/ai-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -195,6 +201,7 @@ const ApiPublicHooksSendMaintenanceRemindersRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/ai-check': typeof AiCheckRoute
   '/auth': typeof AuthRoute
   '/book': typeof BookRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/ai-check': typeof AiCheckRoute
   '/auth': typeof AuthRoute
   '/book': typeof BookRoute
@@ -257,6 +265,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/admin': typeof AdminRoute
   '/ai-check': typeof AiCheckRoute
   '/auth': typeof AuthRoute
   '/book': typeof BookRoute
@@ -289,6 +298,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/ai-check'
     | '/auth'
     | '/book'
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/ai-check'
     | '/auth'
     | '/book'
@@ -350,6 +361,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/admin'
     | '/ai-check'
     | '/auth'
     | '/book'
@@ -382,6 +394,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AdminRoute: typeof AdminRoute
   AiCheckRoute: typeof AiCheckRoute
   AuthRoute: typeof AuthRoute
   BookRoute: typeof BookRoute
@@ -465,6 +478,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-check'
       fullPath: '/ai-check'
       preLoaderRoute: typeof AiCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -633,6 +653,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AdminRoute: AdminRoute,
   AiCheckRoute: AiCheckRoute,
   AuthRoute: AuthRoute,
   BookRoute: BookRoute,

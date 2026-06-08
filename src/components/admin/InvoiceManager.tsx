@@ -410,7 +410,7 @@ export function InvoiceManager({ token }: { token: string }) {
   }
 
   function resetForm() {
-    setInvoiceNumber(nextInvoiceNumber());
+    setInvoiceNumber("");
     setFullName("");
     setMobile("");
     setEmail("");
@@ -434,70 +434,51 @@ export function InvoiceManager({ token }: { token: string }) {
       return;
     }
     setSubmitting(true);
-    let rec = buildRecord();
+    const baseRec = buildRecord();
     try {
-      // Use text/plain so the browser skips the CORS preflight but we
-      // can still READ Apps Script's response and use the authoritative
-      // invoiceNumber it wrote to the sheet. Otherwise the QR points to
-      // a client-only ID that doesn't exist → "Invalid Invoice" on scan.
-      try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "create_invoice",
-            fullName: rec.fullName,
-            mobile: rec.mobile,
-            email: rec.email,
-            vehicleNumber: rec.vehicleNumber,
-            vehicleType: rec.vehicleType,
-            service: rec.service,
-            otherService: rec.otherService,
-            problem: rec.problem,
-            cost: String(rec.cost),
-            gst: String(rec.gst),
-            discount: String(rec.discount),
-            total: String(rec.total),
-            paymentMode: rec.paymentMode,
-            status: rec.status,
-            rating: String(rec.rating),
-            invoiceNumber: rec.invoiceNumber,
-            date: rec.date,
-          }),
-        });
-        if (res.ok) {
-          const text = await res.text();
-          try {
-            const json = JSON.parse(text) as {
-              invoiceNumber?: string;
-              invoiceId?: string;
-              id?: string;
-            };
-            const returned = json.invoiceNumber || json.invoiceId || json.id;
-            if (returned && /^MW-/i.test(returned)) {
-              rec = { ...rec, invoiceNumber: returned };
-            }
-          } catch {
-            /* not JSON — keep client-generated ID */
-          }
-        }
-      } catch (e) {
-        console.warn("Apps Script post warning", e);
-      }
+      // 1. Submit to Apps Script FIRST and wait for the authoritative invoiceId.
+      //    Never use a client-generated ID — the sheet is the single source of truth.
+      const returnedId = await submitToAppsScript({
+        fullName: baseRec.fullName,
+        mobile: baseRec.mobile,
+        email: baseRec.email,
+        vehicleNumber: baseRec.vehicleNumber,
+        vehicleType: baseRec.vehicleType,
+        service: baseRec.service,
+        otherService: baseRec.otherService,
+        problem: baseRec.problem,
+        cost: String(baseRec.cost),
+        gst: String(baseRec.gst),
+        discount: String(baseRec.discount),
+        total: String(baseRec.total),
+        paymentMode: baseRec.paymentMode,
+        status: baseRec.status,
+        rating: String(baseRec.rating),
+        date: baseRec.date,
+      });
+
+      // 2. Use ONLY the returned invoiceId in record, QR, PDF, email, WhatsApp.
+      const rec: InvoiceRecord = { ...baseRec, invoiceNumber: returnedId };
+
+      // 3. Log all IDs to confirm they match.
+      console.log("Generated Invoice ID from Apps Script:", returnedId);
+      console.log("QR Invoice ID:", rec.invoiceNumber);
+      console.log("Saved Invoice ID:", rec.invoiceNumber);
 
       // Save locally for dashboard analytics
       const list = [rec, ...loadInvoices()];
       saveInvoices(list);
       setSavedList(list);
-      commitInvoiceCounter();
+      setLastSavedRec(rec);
+      setInvoiceNumber(returnedId);
 
-      // Build + download PDF (uses sheet's authoritative invoiceNumber)
+      // Build + download PDF (uses sheet's authoritative invoiceId)
       const doc = await buildPDF(rec);
       doc.save(`${rec.invoiceNumber}.pdf`);
 
-      toast.success("✅ Invoice Generated Successfully");
-      resetForm();
+      toast.success(`✅ Invoice ${returnedId} generated`);
     } catch (e) {
+      console.error("Invoice generation failed", e);
       toast.error(e instanceof Error ? e.message : "Failed to generate invoice");
     } finally {
       setSubmitting(false);

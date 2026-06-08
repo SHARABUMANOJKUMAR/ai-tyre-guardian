@@ -37,6 +37,7 @@ import { Route as ToolsAiServiceAdvisorRouteImport } from './routes/tools.ai-ser
 import { Route as ToolsSplatRouteImport } from './routes/tools.$'
 import { Route as AuthenticatedGarageRouteImport } from './routes/_authenticated/garage'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicHooksSendMaintenanceRemindersRouteImport } from './routes/api/public/hooks/send-maintenance-reminders'
 
 const TyreLifeRoute = TyreLifeRouteImport.update({
@@ -186,6 +187,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiPublicHooksSendMaintenanceRemindersRoute =
   ApiPublicHooksSendMaintenanceRemindersRouteImport.update({
     id: '/api/public/hooks/send-maintenance-reminders',
@@ -203,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
@@ -233,6 +240,7 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
@@ -265,6 +273,7 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tyre-life': typeof TyreLifeRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/garage': typeof AuthenticatedGarageRoute
   '/tools/$': typeof ToolsSplatRoute
@@ -297,6 +306,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/sitemap.xml'
     | '/tyre-life'
+    | '/admin'
     | '/dashboard'
     | '/garage'
     | '/tools/$'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/sitemap.xml'
     | '/tyre-life'
+    | '/admin'
     | '/dashboard'
     | '/garage'
     | '/tools/$'
@@ -358,6 +369,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/sitemap.xml'
     | '/tyre-life'
+    | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/garage'
     | '/tools/$'
@@ -607,6 +619,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/hooks/send-maintenance-reminders': {
       id: '/api/public/hooks/send-maintenance-reminders'
       path: '/api/public/hooks/send-maintenance-reminders'
@@ -618,11 +637,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedGarageRoute: typeof AuthenticatedGarageRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedGarageRoute: AuthenticatedGarageRoute,
 }
@@ -664,13 +685,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

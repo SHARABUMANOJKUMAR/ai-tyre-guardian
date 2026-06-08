@@ -86,10 +86,13 @@ async function fetchFromAppsScript(id: string): Promise<Record<string, string> |
     const text = await r.text();
     try {
       const json = JSON.parse(text) as Record<string, unknown>;
+      if (json.success === false) return null;
       const row = (json.invoice ?? json.data ?? json) as Record<string, unknown>;
       if (!row || typeof row !== "object") return null;
       const out: Record<string, string> = {};
       for (const k of Object.keys(row)) out[k] = String(row[k] ?? "");
+      // Ignore empty payloads
+      if (!Object.values(out).some((v) => v && v.trim().length)) return null;
       return out;
     } catch {
       return null;

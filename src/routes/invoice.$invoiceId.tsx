@@ -143,6 +143,46 @@ async function buildInvoicePDF(inv: PublicInvoice): Promise<jsPDF> {
   doc.setTextColor(50, 50, 50); doc.setFont("helvetica", "normal"); doc.setFontSize(9);
   doc.text(`Payment: ${inv.paymentMode || "—"}`, 14, y);
 
+  // Digital signature + stamped verification block
+  y += 14;
+  doc.setDrawColor(180); doc.setLineDashPattern([1, 1], 0);
+  doc.line(10, y - 6, W - 10, y - 6);
+  doc.setLineDashPattern([], 0);
+
+  const sig = invoiceSignature(inv);
+  const hash = invoiceHash(inv);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(20, 20, 20);
+  doc.text("DIGITALLY SIGNED", 14, y);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(90, 90, 90);
+  doc.text("Verified by Manoj Wheels Service Center", 14, y + 5);
+  doc.setFont("courier", "normal"); doc.setFontSize(7.5);
+  doc.text(`SIG : ${sig}`, 14, y + 10);
+  doc.text(`HASH: ${hash}`, 14, y + 14);
+
+  doc.setFont("helvetica", "italic"); doc.setFontSize(18); doc.setTextColor(29, 78, 216);
+  doc.text("Manoj Wheels", W - 14, y + 4, { align: "right" });
+  doc.setDrawColor(40); doc.line(W - 70, y + 6, W - 14, y + 6);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(110, 110, 110);
+  doc.text("Authorized Signatory", W - 14, y + 11, { align: "right" });
+
+  try {
+    const verifyUrl = `${VERIFY_BASE}${inv.invoiceNumber}`;
+    const qr2 = await QRCode.toDataURL(verifyUrl, { width: 220, margin: 1 });
+    doc.addImage(qr2, "PNG", 14, y + 18, 22, 22);
+    doc.setFontSize(7); doc.setTextColor(120, 120, 120);
+    doc.text("Scan to re-verify this invoice", 38, y + 24);
+    doc.setFontSize(6.5);
+    doc.text(verifyUrl, 38, y + 29);
+  } catch { /* ignore */ }
+
+  doc.setDrawColor(29, 78, 216); doc.setLineWidth(0.8);
+  doc.roundedRect(W - 60, y + 18, 46, 22, 2, 2, "S");
+  doc.setTextColor(29, 78, 216); doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+  doc.text("AUTHORIZED", W - 37, y + 24, { align: "center" });
+  doc.setFontSize(9); doc.text("MANOJ WHEELS", W - 37, y + 30, { align: "center" });
+  doc.setFontSize(7); doc.text("SERVICE CENTER", W - 37, y + 35, { align: "center" });
+  doc.setLineWidth(0.2);
+
   doc.setFillColor(0, 0, 0); doc.rect(0, 278, W, 19, "F");
   doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(10);
   doc.text("Thank you for choosing Manoj Wheels.", W / 2, 285, { align: "center" });

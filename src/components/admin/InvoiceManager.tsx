@@ -59,7 +59,16 @@ const INVOICES_CSV =
 const STORAGE_KEY = "mw_invoices_local_v1";
 const COLORS = ["#dc2626", "#1d4ed8", "#000000", "#f59e0b", "#10b981", "#a855f7", "#ec4899"];
 
-const VEHICLE_TYPES = ["Car", "SUV", "Bike", "Tractor", "Truck", "Bus", "Van", "Earthmover"] as const;
+const VEHICLE_TYPES = [
+  "Car",
+  "SUV",
+  "Bike",
+  "Tractor",
+  "Truck",
+  "Bus",
+  "Van",
+  "Earthmover",
+] as const;
 const SERVICES = [
   "Wheel Alignment",
   "Wheel Balancing",
@@ -71,7 +80,15 @@ const SERVICES = [
   "Other Service",
 ] as const;
 const STATUSES = ["Pending", "In Progress", "Completed", "Delivered"] as const;
-const PAYMENT_MODES = ["Cash", "UPI", "PhonePe", "Google Pay", "Paytm", "Card", "Bank Transfer"] as const;
+const PAYMENT_MODES = [
+  "Cash",
+  "UPI",
+  "PhonePe",
+  "Google Pay",
+  "Paytm",
+  "Card",
+  "Bank Transfer",
+] as const;
 
 type InvoiceRecord = {
   invoiceNumber: string;
@@ -101,34 +118,54 @@ function todayStr() {
 
 function parseCSV(text: string): Record<string, string>[] {
   const rows: string[][] = [];
-  let field = "", row: string[] = [], inQuotes = false;
+  let field = "";
+  let row: string[] = [];
+  let inQuotes = false;
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (inQuotes) {
       if (c === '"') {
-        if (text[i + 1] === '"') { field += '"'; i++; } else inQuotes = false;
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
       } else field += c;
     } else if (c === '"') inQuotes = true;
-    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === ",") {
+      row.push(field);
+      field = "";
+    }
     else if (c === "\n" || c === "\r") {
       if (c === "\r" && text[i + 1] === "\n") i++;
-      row.push(field); rows.push(row); row = []; field = "";
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
     } else field += c;
   }
-  if (field.length || row.length) { row.push(field); rows.push(row); }
+  if (field.length || row.length) {
+    row.push(field);
+    rows.push(row);
+  }
   const nonEmpty = rows.filter((r) => r.some((c) => c.trim().length > 0));
   if (!nonEmpty.length) return [];
   const headers = nonEmpty[0].map((h) => h.trim());
   return nonEmpty.slice(1).map((r) => {
     const obj: Record<string, string> = {};
-    headers.forEach((h, i) => { obj[h] = (r[i] ?? "").trim(); });
+    headers.forEach((h, i) => {
+      obj[h] = (r[i] ?? "").trim();
+    });
     return obj;
   });
 }
 
 function rowValue(row: Record<string, string>, keys: string[]): string {
   const normalized: Record<string, string> = {};
-  for (const key of Object.keys(row)) normalized[key.toLowerCase().replace(/[\s_-]/g, "")] = row[key];
+  for (const key of Object.keys(row)) {
+    normalized[key.toLowerCase().replace(/[\s_-]/g, "")] = row[key];
+  }
   for (const key of keys) {
     const value = normalized[key.toLowerCase().replace(/[\s_-]/g, "")];
     if (value) return value;
@@ -143,7 +180,16 @@ function normalizePhone(value: string) {
 function extractInvoiceId(value: unknown): string {
   if (!value || typeof value !== "object") return "";
   const obj = value as Record<string, unknown>;
-  const directKeys = ["invoiceId", "invoice_id", "Invoice_ID", "Invoice Id", "invoiceNumber", "Invoice_Number", "invoiceNo", "id"];
+  const directKeys = [
+    "invoiceId",
+    "invoice_id",
+    "Invoice_ID",
+    "Invoice Id",
+    "invoiceNumber",
+    "Invoice_Number",
+    "invoiceNo",
+    "id",
+  ];
   for (const key of directKeys) {
     const found = obj[key];
     if (typeof found === "string" && /^MW-/i.test(found.trim())) return found.trim();
@@ -155,26 +201,32 @@ function extractInvoiceId(value: unknown): string {
   return "";
 }
 
-async function findLatestSheetInvoiceId(payload: Record<string, string>, afterTs: number): Promise<string> {
+async function findLatestSheetInvoiceId(payload: Record<string, string>): Promise<string> {
   for (let attempt = 0; attempt < 6; attempt++) {
     if (attempt) await new Promise((resolve) => setTimeout(resolve, 900));
-    const res = await fetch(`${INVOICES_CSV}&cb=${Date.now()}`, { cache: "no-store", redirect: "follow" });
+    const res = await fetch(`${INVOICES_CSV}&cb=${Date.now()}`, {
+      cache: "no-store",
+      redirect: "follow",
+    });
     if (!res.ok) continue;
     const rows = parseCSV(await res.text()).reverse();
     const match = rows.find((row) => {
       const id = rowValue(row, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]);
       if (!/^MW-/i.test(id)) return false;
-      const created = Date.parse(rowValue(row, ["createdDate", "date", "createdAt", "timestamp"]).replace(/(\d{2})-(\d{2})-(\d{4})/, "$3-$2-$1"));
-      if (Number.isFinite(created) && created + 120_000 < afterTs) return false;
       return (
-        rowValue(row, ["fullName", "customer", "name", "customerName"]).trim().toLowerCase() === payload.fullName.trim().toLowerCase() &&
-        normalizePhone(rowValue(row, ["mobile", "phone", "phoneNumber", "contact"])) === normalizePhone(payload.mobile) &&
-        rowValue(row, ["vehicleNumber", "vehicleNo", "vehicle"]).trim().toUpperCase() === payload.vehicleNumber.trim().toUpperCase() &&
+        rowValue(row, ["fullName", "customer", "name", "customerName"]).trim().toLowerCase() ===
+          payload.fullName.trim().toLowerCase() &&
+        normalizePhone(rowValue(row, ["mobile", "phone", "phoneNumber", "contact"])) ===
+          normalizePhone(payload.mobile) &&
+        rowValue(row, ["vehicleNumber", "vehicleNo", "vehicle"]).trim().toUpperCase() ===
+          payload.vehicleNumber.trim().toUpperCase() &&
         rowValue(row, ["service", "serviceType", "serviceNeeded"]).trim() === payload.service.trim() &&
         rowValue(row, ["total", "grandTotal", "finalAmount"]).trim() === payload.total.trim()
       );
     });
-    const id = match ? rowValue(match, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]).trim() : "";
+    const id = match
+      ? rowValue(match, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]).trim()
+      : "";
     if (/^MW-/i.test(id)) return id;
   }
   return "";

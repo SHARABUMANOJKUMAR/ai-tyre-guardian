@@ -75,24 +75,27 @@ async function loadInvoices(): Promise<Record<string, string>[]> {
 }
 
 export const getPublicInvoice = createServerFn({ method: "GET" })
-  .inputValidator((d: { id: string }) => ({ id: String(d?.id ?? "").trim().toUpperCase() }))
+  .inputValidator((d: { id: string }) => ({ id: String(d?.id ?? "").trim() }))
   .handler(async ({ data }): Promise<PublicInvoice | null> => {
-    if (!data.id || !/^MW-\d{4}-\d{3,7}$/i.test(data.id)) return null;
+    if (!data.id || !/^MW-[A-Z0-9-]{4,40}$/i.test(data.id)) return null;
+    const want = data.id.toUpperCase();
     const rows = await loadInvoices().catch(() => [] as Record<string, string>[]);
     const match = rows.find((r) => {
-      const inv = pick(r, ["invoiceNumber", "invoiceNo", "invoice", "invoiceId"]);
-      return inv.trim().toUpperCase() === data.id;
+      const inv = pick(r, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]);
+      return inv.trim().toUpperCase() === want;
     });
     if (!match) return null;
+    const svc = pick(match, ["service", "serviceType", "serviceNeeded"]);
+    const other = pick(match, ["otherService", "otherServiceType"]);
     return {
-      invoiceNumber: pick(match, ["invoiceNumber", "invoiceNo", "invoice"]),
-      date: pick(match, ["date", "createdAt", "timestamp"]),
+      invoiceNumber: pick(match, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]),
+      date: pick(match, ["createdDate", "date", "createdAt", "timestamp"]),
       fullName: pick(match, ["fullName", "customer", "name", "customerName"]),
       mobile: pick(match, ["mobile", "phone", "phoneNumber", "contact"]),
       email: pick(match, ["email", "emailAddress"]),
       vehicleNumber: pick(match, ["vehicleNumber", "vehicleNo", "vehicle"]),
       vehicleType: pick(match, ["vehicleType", "type"]),
-      service: pick(match, ["service", "serviceType", "serviceNeeded"]),
+      service: svc === "Other Service" && other ? other : svc,
       problem: pick(match, ["problem", "issue", "description", "notes"]),
       cost: pick(match, ["cost", "amount", "price"]),
       gst: pick(match, ["gst", "tax"]),
@@ -110,6 +113,8 @@ export type InvoiceStatusRow = {
   service: string;
   total: string;
   date: string;
+  vehicleNumber: string;
+  paymentMode: string;
 };
 
 export const getInvoicesForUser = createServerFn({ method: "GET" })
@@ -125,11 +130,17 @@ export const getInvoicesForUser = createServerFn({ method: "GET" })
       const m = pick(r, ["mobile", "phone", "phoneNumber", "contact"]).replace(/\D/g, "").slice(-10);
       return (data.email && e === data.email) || (data.mobile && m && m === data.mobile);
     });
-    return matches.map((r) => ({
-      invoiceNumber: pick(r, ["invoiceNumber", "invoiceNo", "invoice"]),
-      status: pick(r, ["status", "serviceStatus", "currentStatus"]) || "Pending",
-      service: pick(r, ["service", "serviceType", "serviceNeeded"]),
-      total: pick(r, ["total", "grandTotal", "finalAmount"]),
-      date: pick(r, ["date", "createdAt", "timestamp"]),
-    })).filter((r) => r.invoiceNumber);
+    return matches.map((r) => {
+      const svc = pick(r, ["service", "serviceType", "serviceNeeded"]);
+      const other = pick(r, ["otherService", "otherServiceType"]);
+      return {
+        invoiceNumber: pick(r, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]),
+        status: pick(r, ["status", "serviceStatus", "currentStatus"]) || "Pending",
+        service: svc === "Other Service" && other ? other : svc,
+        total: pick(r, ["total", "grandTotal", "finalAmount"]),
+        date: pick(r, ["createdDate", "date", "createdAt", "timestamp"]),
+        vehicleNumber: pick(r, ["vehicleNumber", "vehicleNo", "vehicle"]),
+        paymentMode: pick(r, ["paymentMode", "payment", "paymentMethod"]),
+      };
+    }).filter((r) => r.invoiceNumber).sort((a, b) => b.invoiceNumber.localeCompare(a.invoiceNumber));
   });

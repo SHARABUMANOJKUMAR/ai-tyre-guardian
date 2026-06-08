@@ -6,7 +6,7 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LayoutDashboard, LogOut, FileText, User as UserIcon } from "lucide-react";
+import { LayoutDashboard, LogOut, FileText, User as UserIcon, Receipt } from "lucide-react";
 
 export function UserMenu() {
   const { user, loading } = useAuth();
@@ -39,6 +39,7 @@ export function UserMenu() {
         <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild><Link to="/dashboard"><LayoutDashboard className="w-4 h-4 mr-2" />Dashboard</Link></DropdownMenuItem>
+        <DropdownMenuItem asChild><Link to="/my-invoices"><Receipt className="w-4 h-4 mr-2" />My Invoices</Link></DropdownMenuItem>
         <DropdownMenuItem asChild><Link to="/dashboard"><FileText className="w-4 h-4 mr-2" />My Reports</Link></DropdownMenuItem>
         <DropdownMenuItem asChild><Link to="/dashboard"><UserIcon className="w-4 h-4 mr-2" />Profile</Link></DropdownMenuItem>
         <DropdownMenuSeparator />

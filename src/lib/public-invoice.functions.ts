@@ -63,7 +63,10 @@ function pick(row: Record<string, string>, keys: string[]): string {
 }
 
 let cache: { ts: number; rows: Record<string, string>[] } | null = null;
-const CACHE_MS = 15_000;
+const CACHE_MS = 5_000;
+
+const GAS_URL =
+  "https://script.google.com/macros/s/AKfycbzfalbVv-D4G33l9KA_mUPe7s8uQsWlDeSMaAEtV_cjN77iFlwj5pmrnw-gMa3lFIEW/exec";
 
 async function loadInvoices(): Promise<Record<string, string>[]> {
   if (cache && Date.now() - cache.ts < CACHE_MS) return cache.rows;
@@ -75,16 +78,42 @@ async function loadInvoices(): Promise<Record<string, string>[]> {
   return rows;
 }
 
+async function fetchFromAppsScript(id: string): Promise<Record<string, string> | null> {
+  try {
+    const url = `${GAS_URL}?action=get_invoice&id=${encodeURIComponent(id)}&cb=${Date.now()}`;
+    const r = await fetch(url, { redirect: "follow", cache: "no-store" });
+    if (!r.ok) return null;
+    const text = await r.text();
+    try {
+      const json = JSON.parse(text) as Record<string, unknown>;
+      const row = (json.invoice ?? json.data ?? json) as Record<string, unknown>;
+      if (!row || typeof row !== "object") return null;
+      const out: Record<string, string> = {};
+      for (const k of Object.keys(row)) out[k] = String(row[k] ?? "");
+      return out;
+    } catch {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+}
+
 export const getPublicInvoice = createServerFn({ method: "GET" })
   .inputValidator((d: { id: string }) => ({ id: String(d?.id ?? "").trim() }))
   .handler(async ({ data }): Promise<PublicInvoice | null> => {
     if (!data.id || !/^MW-[A-Z0-9-]{4,40}$/i.test(data.id)) return null;
     const want = data.id.toUpperCase();
     const rows = await loadInvoices().catch(() => [] as Record<string, string>[]);
-    const match = rows.find((r) => {
+    let match = rows.find((r) => {
       const inv = pick(r, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]);
       return inv.trim().toUpperCase() === want;
     });
+    // Fallback: ask the Apps Script directly (sheet CSV publishes with a delay)
+    if (!match) {
+      const fresh = await fetchFromAppsScript(data.id);
+      if (fresh) match = fresh;
+    }
     if (!match) return null;
     const svc = pick(match, ["service", "serviceType", "serviceNeeded"]);
     const other = pick(match, ["otherService", "otherServiceType"]);

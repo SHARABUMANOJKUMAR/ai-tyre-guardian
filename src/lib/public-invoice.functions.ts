@@ -113,6 +113,8 @@ export type InvoiceStatusRow = {
   service: string;
   total: string;
   date: string;
+  vehicleNumber: string;
+  paymentMode: string;
 };
 
 export const getInvoicesForUser = createServerFn({ method: "GET" })
@@ -128,11 +130,17 @@ export const getInvoicesForUser = createServerFn({ method: "GET" })
       const m = pick(r, ["mobile", "phone", "phoneNumber", "contact"]).replace(/\D/g, "").slice(-10);
       return (data.email && e === data.email) || (data.mobile && m && m === data.mobile);
     });
-    return matches.map((r) => ({
-      invoiceNumber: pick(r, ["invoiceNumber", "invoiceNo", "invoice"]),
-      status: pick(r, ["status", "serviceStatus", "currentStatus"]) || "Pending",
-      service: pick(r, ["service", "serviceType", "serviceNeeded"]),
-      total: pick(r, ["total", "grandTotal", "finalAmount"]),
-      date: pick(r, ["date", "createdAt", "timestamp"]),
-    })).filter((r) => r.invoiceNumber);
+    return matches.map((r) => {
+      const svc = pick(r, ["service", "serviceType", "serviceNeeded"]);
+      const other = pick(r, ["otherService", "otherServiceType"]);
+      return {
+        invoiceNumber: pick(r, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]),
+        status: pick(r, ["status", "serviceStatus", "currentStatus"]) || "Pending",
+        service: svc === "Other Service" && other ? other : svc,
+        total: pick(r, ["total", "grandTotal", "finalAmount"]),
+        date: pick(r, ["createdDate", "date", "createdAt", "timestamp"]),
+        vehicleNumber: pick(r, ["vehicleNumber", "vehicleNo", "vehicle"]),
+        paymentMode: pick(r, ["paymentMode", "payment", "paymentMethod"]),
+      };
+    }).filter((r) => r.invoiceNumber).sort((a, b) => b.invoiceNumber.localeCompare(a.invoiceNumber));
   });

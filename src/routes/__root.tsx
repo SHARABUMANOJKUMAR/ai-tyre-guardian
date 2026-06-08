@@ -1,7 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { deriveUserId, logLogin, logSignup } from "@/lib/apps-script-logger";
+import { addNotification } from "@/lib/notifications-store";
+
 import {
   Outlet,
   Link,

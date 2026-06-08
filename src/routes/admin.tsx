@@ -476,7 +476,7 @@ function StatCard({
   );
 }
 
-function DashboardBody({ data }: { data: AdminDataset }) {
+function DashboardBody({ data, token }: { data: AdminDataset; token: string }) {
   const todayStr = format(new Date(), "yyyy-MM-dd");
 
   const stats = useMemo(() => {
@@ -517,14 +517,16 @@ function DashboardBody({ data }: { data: AdminDataset }) {
 
       <DateRangeReports data={data} />
 
-      <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid grid-cols-4 w-full sm:w-auto">
+      <Tabs defaultValue="invoices" className="space-y-4">
+        <TabsList className="grid grid-cols-5 w-full sm:w-auto">
+          <TabsTrigger value="invoices"><ReceiptText className="w-3.5 h-3.5 mr-1" />Invoices</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="logins">Logins</TabsTrigger>
           <TabsTrigger value="contacts">Contacts</TabsTrigger>
           <TabsTrigger value="services">Services</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="invoices"><InvoiceManager token={token} /></TabsContent>
         <TabsContent value="users"><UsersSection rows={data.users} /></TabsContent>
         <TabsContent value="logins"><LoginsSection rows={data.users} /></TabsContent>
         <TabsContent value="contacts"><ContactsSection rows={data.contacts} /></TabsContent>

@@ -6,7 +6,7 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LayoutDashboard, LogOut, FileText, User as UserIcon } from "lucide-react";
+import { LayoutDashboard, LogOut, FileText, User as UserIcon, Receipt } from "lucide-react";
 
 export function UserMenu() {
   const { user, loading } = useAuth();

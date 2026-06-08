@@ -151,6 +151,11 @@ function filterByDateRange(
   });
 }
 
+const USER_DATE_KEYS = ["createdAt", "created_at", "Created At", "Created_Date", "Signup Date", "Date", "Timestamp"];
+const LOGIN_DATE_KEYS = ["lastLogin", "Last Login", "Last_Login", "loginAt", "createdAt", "Created At", "Created_Date", "Date", "Timestamp"];
+const CONTACT_DATE_KEYS = ["Submitted Date", "Submitted_Date", "createdAt", "Created At", "Date", "Timestamp"];
+const SERVICE_DATE_KEYS = ["Booking DateTime", "Booking_DateTime", "createdAt", "Created At", "Date", "Booking Date", "Timestamp"];
+
 /* ============================================================
    PDF EXPORT (branded)
 ============================================================ */

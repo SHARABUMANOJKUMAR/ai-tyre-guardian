@@ -350,6 +350,22 @@ function InvoiceView({ inv }: { inv: PublicInvoice }) {
             </div>
           </div>
 
+          {/* Digital signature */}
+          <div className="px-5 sm:px-7 pb-5">
+            <div className="flex items-end justify-between gap-4 border-t border-dashed border-border/60 pt-4">
+              <div className="text-[10px] text-muted-foreground">
+                <p className="uppercase tracking-wide font-semibold mb-1">Digitally Signed</p>
+                <p>Verified by Manoj Wheels Service Center</p>
+                <p className="font-mono mt-0.5">SIG: {inv.invoiceNumber}-{(inv.date || "").replace(/\D/g, "").slice(0, 8) || "MW"}</p>
+              </div>
+              <div className="text-right">
+                <p className="font-['Brush_Script_MT','Segoe_Script',cursive] text-2xl sm:text-3xl text-blue-700 leading-none">Manoj Wheels</p>
+                <div className="border-t border-foreground/70 w-44 ml-auto mt-1" />
+                <p className="text-[10px] text-muted-foreground mt-1">Authorized Signatory</p>
+              </div>
+            </div>
+          </div>
+
           {/* Footer */}
           <div className="bg-muted/40 px-5 sm:px-7 py-4 border-t border-border/60 text-center">
             <p className="text-[11px] text-muted-foreground">

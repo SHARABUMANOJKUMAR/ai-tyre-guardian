@@ -236,7 +236,6 @@ async function findLatestSheetInvoiceId(payload: Record<string, string>): Promis
 // Throws if Apps Script is unreachable or does not return a valid invoiceId.
 // Never generate IDs on the client — the sheet is the single source of truth.
 async function submitToAppsScript(payload: Record<string, string>): Promise<string> {
-  const submittedAt = Date.now();
   const res = await fetch(GAS_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -256,7 +255,7 @@ async function submitToAppsScript(payload: Record<string, string>): Promise<stri
   const returned = extractInvoiceId(json);
   if (returned) return returned;
 
-  const recovered = await findLatestSheetInvoiceId(payload, submittedAt);
+  const recovered = await findLatestSheetInvoiceId(payload);
   if (!recovered) {
     throw new Error("Invoice was saved, but the authoritative invoice ID could not be read from the sheet yet. Please try Generate again in a few seconds.");
   }

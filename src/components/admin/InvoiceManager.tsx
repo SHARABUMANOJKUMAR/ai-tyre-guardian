@@ -99,17 +99,15 @@ function todayStr() {
 }
 
 function nextInvoiceNumber(): string {
-  if (typeof window === "undefined") return "MW-2026-00001";
-  const stored = parseInt(localStorage.getItem(COUNTER_KEY) ?? "0", 10);
-  const next = isNaN(stored) ? 1 : stored + 1;
-  const year = new Date().getFullYear();
-  return `MW-${year}-${String(next).padStart(5, "0")}`;
+  // MUST match the format Apps Script writes to the sheet (MW-YYYYMMDD-<ms>)
+  // so the QR code's verification URL resolves to a real row.
+  const d = new Date();
+  const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+  return `MW-${ymd}-${Date.now()}`;
 }
 
 function commitInvoiceCounter() {
-  if (typeof window === "undefined") return;
-  const stored = parseInt(localStorage.getItem(COUNTER_KEY) ?? "0", 10);
-  localStorage.setItem(COUNTER_KEY, String((isNaN(stored) ? 0 : stored) + 1));
+  // No-op: IDs are timestamp-based now; kept for call-site compatibility.
 }
 
 function loadInvoices(): InvoiceRecord[] {

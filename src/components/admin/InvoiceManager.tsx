@@ -808,7 +808,7 @@ export function InvoiceManager({ token }: { token: string }) {
               </div>
               <div className="text-right">
                 <p className="text-[10px] opacity-80">INVOICE</p>
-                <p className="text-xs font-mono">{invoiceNumber}</p>
+                <p className="text-xs font-mono">{invoiceNumber || "—"}</p>
                 <p className="text-[10px]">{date}</p>
               </div>
             </div>

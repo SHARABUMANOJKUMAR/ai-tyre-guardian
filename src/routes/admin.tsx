@@ -329,8 +329,10 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
   const { data, isLoading, isFetching, refetch, error } = useQuery<AdminDataset>({
     queryKey: ["admin-dataset"],
     queryFn: () => getDataFn({ data: { token } }),
-    refetchInterval: 30_000, // 30s real-time polling
-    staleTime: 15_000,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
     retry: 1,
   });
 
@@ -385,7 +387,7 @@ function Header({
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
           <p className="text-xs text-muted-foreground">
-            Manoj Wheels • Real-time business intelligence
+            Manoj Wheels • Live Google Sheets business intelligence
             {fetchedAt && ` • Updated ${format(new Date(fetchedAt), "p")}`}
           </p>
         </div>

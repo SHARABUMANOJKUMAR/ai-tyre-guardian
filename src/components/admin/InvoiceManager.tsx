@@ -591,7 +591,7 @@ export function InvoiceManager({ token }: { token: string }) {
     try {
       // 1. Submit to Apps Script FIRST and wait for the authoritative invoiceId.
       //    Never use a client-generated ID — the sheet is the single source of truth.
-      const returnedId = await submitToAppsScript({
+      const response = await submitToAppsScript({
         fullName: baseRec.fullName,
         mobile: baseRec.mobile,
         email: baseRec.email,
@@ -609,9 +609,16 @@ export function InvoiceManager({ token }: { token: string }) {
         rating: String(baseRec.rating),
         date: baseRec.date,
       });
+      const returnedId = response.invoiceId;
+      if (!returnedId) throw new Error("Missing invoiceId from Apps Script");
 
       // 2. Use ONLY the returned invoiceId in record, QR, PDF, email, WhatsApp.
-      const rec: InvoiceRecord = { ...baseRec, invoiceNumber: returnedId };
+      const rec: InvoiceRecord = {
+        ...baseRec,
+        invoiceNumber: returnedId,
+        whatsappMessage: response.whatsappMessage,
+        invoiceUrl: response.invoiceUrl,
+      };
 
       // 3. Log all IDs to confirm they match.
       console.log("Generated Invoice ID from Apps Script:", returnedId);

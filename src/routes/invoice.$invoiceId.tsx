@@ -2,14 +2,37 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getPublicInvoice, type PublicInvoice } from "@/lib/public-invoice.functions";
-import { CheckCircle2, ShieldCheck, XCircle, Loader2, Phone, Mail, Car, Wrench, IndianRupee, Calendar, User, Printer, Download, RefreshCw } from "lucide-react";
+import { CheckCircle2, ShieldCheck, XCircle, Loader2, Phone, Mail, Car, Wrench, IndianRupee, Calendar, User, Printer, Download, RefreshCw, AlertTriangle, FileWarning } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { toast } from "sonner";
 
 const LOGO_URL = "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";
+const VERIFY_BASE = "https://manojwheels.online/invoice/";
+
+// Deterministic FNV-1a hash over canonical invoice fields. Used as a
+// lightweight integrity signature — if the sheet data changes, the hash changes.
+function invoiceHash(inv: PublicInvoice): string {
+  const canonical = [
+    inv.invoiceNumber, inv.date, inv.fullName, inv.mobile, inv.email,
+    inv.vehicleNumber, inv.vehicleType, inv.service, inv.problem,
+    inv.cost, inv.gst, inv.discount, inv.total, inv.paymentMode, inv.status,
+  ].map((v) => String(v ?? "").trim()).join("|");
+  let h = 0x811c9dc5;
+  for (let i = 0; i < canonical.length; i++) {
+    h ^= canonical.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return ("0000000" + h.toString(16).toUpperCase()).slice(-8);
+}
+
+function invoiceSignature(inv: PublicInvoice): string {
+  const dt = (inv.date || "").replace(/\D/g, "").slice(0, 8) || "MW";
+  return `${inv.invoiceNumber}-${dt}-${invoiceHash(inv)}`;
+}
+
 
 async function buildInvoicePDF(inv: PublicInvoice): Promise<jsPDF> {
   const doc = new jsPDF({ unit: "mm", format: "a4" });

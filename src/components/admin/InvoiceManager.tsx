@@ -98,16 +98,31 @@ function todayStr() {
   return `${String(d.getDate()).padStart(2, "0")}-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`;
 }
 
-function nextInvoiceNumber(): string {
-  // MUST match the format Apps Script writes to the sheet (MW-YYYYMMDD-<ms>)
-  // so the QR code's verification URL resolves to a real row.
-  const d = new Date();
-  const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
-  return `MW-${ymd}-${Date.now()}`;
-}
-
-function commitInvoiceCounter() {
-  // No-op: IDs are timestamp-based now; kept for call-site compatibility.
+// Submit invoice to Apps Script and return the authoritative invoiceId.
+// Throws if Apps Script is unreachable or does not return a valid invoiceId.
+// Never generate IDs on the client — the sheet is the single source of truth.
+async function submitToAppsScript(payload: Record<string, string>): Promise<string> {
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action: "create_invoice", ...payload }),
+  });
+  if (!res.ok) throw new Error(`Apps Script HTTP ${res.status}`);
+  const text = await res.text();
+  let json: { success?: boolean; invoiceId?: string; invoiceNumber?: string; id?: string; message?: string };
+  try {
+    json = JSON.parse(text) as typeof json;
+  } catch {
+    throw new Error("Apps Script returned a non-JSON response");
+  }
+  if (json.success === false) {
+    throw new Error(json.message || "Apps Script rejected the invoice");
+  }
+  const returned = json.invoiceId || json.invoiceNumber || json.id || "";
+  if (!returned || !/^MW-/i.test(returned)) {
+    throw new Error("Apps Script did not return a valid invoiceId");
+  }
+  return returned;
 }
 
 function loadInvoices(): InvoiceRecord[] {
@@ -323,7 +338,8 @@ function pdfToBase64(doc: jsPDF): string {
 }
 
 export function InvoiceManager({ token }: { token: string }) {
-  const [invoiceNumber, setInvoiceNumber] = useState(() => nextInvoiceNumber());
+  const [invoiceNumber, setInvoiceNumber] = useState<string>("");
+  const [lastSavedRec, setLastSavedRec] = useState<InvoiceRecord | null>(null);
   const [date] = useState(todayStr());
   const [fullName, setFullName] = useState("");
   const [mobile, setMobile] = useState("");
@@ -353,6 +369,7 @@ export function InvoiceManager({ token }: { token: string }) {
   }, [cost, gst, discount]);
 
   useEffect(() => {
+    if (!invoiceNumber) { setQrPreview(""); return; }
     const verifyUrl = `https://manojwheels.online/invoice/${invoiceNumber}`;
     QRCode.toDataURL(verifyUrl, { width: 220, margin: 1 }).then(setQrPreview).catch(() => setQrPreview(""));
   }, [invoiceNumber]);
@@ -394,7 +411,7 @@ export function InvoiceManager({ token }: { token: string }) {
   }
 
   function resetForm() {
-    setInvoiceNumber(nextInvoiceNumber());
+    setInvoiceNumber("");
     setFullName("");
     setMobile("");
     setEmail("");
@@ -418,70 +435,51 @@ export function InvoiceManager({ token }: { token: string }) {
       return;
     }
     setSubmitting(true);
-    let rec = buildRecord();
+    const baseRec = buildRecord();
     try {
-      // Use text/plain so the browser skips the CORS preflight but we
-      // can still READ Apps Script's response and use the authoritative
-      // invoiceNumber it wrote to the sheet. Otherwise the QR points to
-      // a client-only ID that doesn't exist → "Invalid Invoice" on scan.
-      try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "create_invoice",
-            fullName: rec.fullName,
-            mobile: rec.mobile,
-            email: rec.email,
-            vehicleNumber: rec.vehicleNumber,
-            vehicleType: rec.vehicleType,
-            service: rec.service,
-            otherService: rec.otherService,
-            problem: rec.problem,
-            cost: String(rec.cost),
-            gst: String(rec.gst),
-            discount: String(rec.discount),
-            total: String(rec.total),
-            paymentMode: rec.paymentMode,
-            status: rec.status,
-            rating: String(rec.rating),
-            invoiceNumber: rec.invoiceNumber,
-            date: rec.date,
-          }),
-        });
-        if (res.ok) {
-          const text = await res.text();
-          try {
-            const json = JSON.parse(text) as {
-              invoiceNumber?: string;
-              invoiceId?: string;
-              id?: string;
-            };
-            const returned = json.invoiceNumber || json.invoiceId || json.id;
-            if (returned && /^MW-/i.test(returned)) {
-              rec = { ...rec, invoiceNumber: returned };
-            }
-          } catch {
-            /* not JSON — keep client-generated ID */
-          }
-        }
-      } catch (e) {
-        console.warn("Apps Script post warning", e);
-      }
+      // 1. Submit to Apps Script FIRST and wait for the authoritative invoiceId.
+      //    Never use a client-generated ID — the sheet is the single source of truth.
+      const returnedId = await submitToAppsScript({
+        fullName: baseRec.fullName,
+        mobile: baseRec.mobile,
+        email: baseRec.email,
+        vehicleNumber: baseRec.vehicleNumber,
+        vehicleType: baseRec.vehicleType,
+        service: baseRec.service,
+        otherService: baseRec.otherService,
+        problem: baseRec.problem,
+        cost: String(baseRec.cost),
+        gst: String(baseRec.gst),
+        discount: String(baseRec.discount),
+        total: String(baseRec.total),
+        paymentMode: baseRec.paymentMode,
+        status: baseRec.status,
+        rating: String(baseRec.rating),
+        date: baseRec.date,
+      });
+
+      // 2. Use ONLY the returned invoiceId in record, QR, PDF, email, WhatsApp.
+      const rec: InvoiceRecord = { ...baseRec, invoiceNumber: returnedId };
+
+      // 3. Log all IDs to confirm they match.
+      console.log("Generated Invoice ID from Apps Script:", returnedId);
+      console.log("QR Invoice ID:", rec.invoiceNumber);
+      console.log("Saved Invoice ID:", rec.invoiceNumber);
 
       // Save locally for dashboard analytics
       const list = [rec, ...loadInvoices()];
       saveInvoices(list);
       setSavedList(list);
-      commitInvoiceCounter();
+      setLastSavedRec(rec);
+      setInvoiceNumber(returnedId);
 
-      // Build + download PDF (uses sheet's authoritative invoiceNumber)
+      // Build + download PDF (uses sheet's authoritative invoiceId)
       const doc = await buildPDF(rec);
       doc.save(`${rec.invoiceNumber}.pdf`);
 
-      toast.success("✅ Invoice Generated Successfully");
-      resetForm();
+      toast.success(`✅ Invoice ${returnedId} generated`);
     } catch (e) {
+      console.error("Invoice generation failed", e);
       toast.error(e instanceof Error ? e.message : "Failed to generate invoice");
     } finally {
       setSubmitting(false);
@@ -489,23 +487,27 @@ export function InvoiceManager({ token }: { token: string }) {
   }
 
   async function handlePrintPreview() {
-    const err = validate();
-    if (err) { toast.error(err); return; }
-    const rec = buildRecord();
-    const doc = await buildPDF(rec);
+    if (!lastSavedRec) {
+      toast.error("Please generate the invoice first to get an authoritative ID");
+      return;
+    }
+    const doc = await buildPDF(lastSavedRec);
     window.open(doc.output("bloburl"), "_blank");
   }
 
   const sendEmailFn = useServerFn(sendInvoiceEmail);
   async function handleEmail() {
-    const err = validate();
-    if (err) { toast.error(err); return; }
-    if (!email) { toast.error("Customer email required to send"); return; }
+    if (!lastSavedRec) {
+      toast.error("Please generate the invoice first to get an authoritative ID");
+      return;
+    }
+    if (!lastSavedRec.email) { toast.error("Customer email required to send"); return; }
     setEmailing(true);
     try {
-      const rec = buildRecord();
+      const rec = lastSavedRec;
       const doc = await buildPDF(rec);
       const base64 = pdfToBase64(doc);
+      console.log("Email Invoice ID:", rec.invoiceNumber);
       await sendEmailFn({
         data: {
           token,
@@ -527,13 +529,17 @@ export function InvoiceManager({ token }: { token: string }) {
   }
 
   function handleWhatsApp() {
-    const err = validate();
-    if (err) { toast.error(err); return; }
-    const rec = buildRecord();
+    if (!lastSavedRec) {
+      toast.error("Please generate the invoice first to get an authoritative ID");
+      return;
+    }
+    const rec = lastSavedRec;
     const svc = rec.service === "Other Service" ? rec.otherService : rec.service;
+    console.log("WhatsApp Invoice ID:", rec.invoiceNumber);
     const text = encodeURIComponent(
       `*Manoj Wheels — Service Invoice*\n\n` +
       `Invoice: ${rec.invoiceNumber}\n` +
+      `Verify: https://manojwheels.online/invoice/${rec.invoiceNumber}\n` +
       `Date: ${rec.date}\n` +
       `Customer: ${rec.fullName}\n` +
       `Vehicle: ${rec.vehicleNumber} (${rec.vehicleType})\n` +
@@ -669,7 +675,7 @@ export function InvoiceManager({ token }: { token: string }) {
               <FileText className="w-5 h-5 text-primary" /> Create Invoice
             </CardTitle>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="outline" className="font-mono">{invoiceNumber}</Badge>
+              <Badge variant="outline" className="font-mono">{invoiceNumber || "ID assigned after Generate"}</Badge>
               <Badge variant="outline">{date}</Badge>
             </div>
           </CardHeader>
@@ -802,7 +808,7 @@ export function InvoiceManager({ token }: { token: string }) {
               </div>
               <div className="text-right">
                 <p className="text-[10px] opacity-80">INVOICE</p>
-                <p className="text-xs font-mono">{invoiceNumber}</p>
+                <p className="text-xs font-mono">{invoiceNumber || "—"}</p>
                 <p className="text-[10px]">{date}</p>
               </div>
             </div>

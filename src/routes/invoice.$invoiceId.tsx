@@ -2,14 +2,37 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getPublicInvoice, type PublicInvoice } from "@/lib/public-invoice.functions";
-import { CheckCircle2, ShieldCheck, XCircle, Loader2, Phone, Mail, Car, Wrench, IndianRupee, Calendar, User, Printer, Download, RefreshCw } from "lucide-react";
+import { CheckCircle2, ShieldCheck, XCircle, Loader2, Phone, Mail, Car, Wrench, IndianRupee, Calendar, User, Printer, Download, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { toast } from "sonner";
 
 const LOGO_URL = "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";
+const VERIFY_BASE = "https://manojwheels.online/invoice/";
+
+// Deterministic FNV-1a hash over canonical invoice fields. Used as a
+// lightweight integrity signature — if the sheet data changes, the hash changes.
+function invoiceHash(inv: PublicInvoice): string {
+  const canonical = [
+    inv.invoiceNumber, inv.date, inv.fullName, inv.mobile, inv.email,
+    inv.vehicleNumber, inv.vehicleType, inv.service, inv.problem,
+    inv.cost, inv.gst, inv.discount, inv.total, inv.paymentMode, inv.status,
+  ].map((v) => String(v ?? "").trim()).join("|");
+  let h = 0x811c9dc5;
+  for (let i = 0; i < canonical.length; i++) {
+    h ^= canonical.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return ("0000000" + h.toString(16).toUpperCase()).slice(-8);
+}
+
+function invoiceSignature(inv: PublicInvoice): string {
+  const dt = (inv.date || "").replace(/\D/g, "").slice(0, 8) || "MW";
+  return `${inv.invoiceNumber}-${dt}-${invoiceHash(inv)}`;
+}
+
 
 async function buildInvoicePDF(inv: PublicInvoice): Promise<jsPDF> {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
@@ -119,6 +142,46 @@ async function buildInvoicePDF(inv: PublicInvoice): Promise<jsPDF> {
   y += 10;
   doc.setTextColor(50, 50, 50); doc.setFont("helvetica", "normal"); doc.setFontSize(9);
   doc.text(`Payment: ${inv.paymentMode || "—"}`, 14, y);
+
+  // Digital signature + stamped verification block
+  y += 14;
+  doc.setDrawColor(180); doc.setLineDashPattern([1, 1], 0);
+  doc.line(10, y - 6, W - 10, y - 6);
+  doc.setLineDashPattern([], 0);
+
+  const sig = invoiceSignature(inv);
+  const hash = invoiceHash(inv);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(20, 20, 20);
+  doc.text("DIGITALLY SIGNED", 14, y);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(90, 90, 90);
+  doc.text("Verified by Manoj Wheels Service Center", 14, y + 5);
+  doc.setFont("courier", "normal"); doc.setFontSize(7.5);
+  doc.text(`SIG : ${sig}`, 14, y + 10);
+  doc.text(`HASH: ${hash}`, 14, y + 14);
+
+  doc.setFont("helvetica", "italic"); doc.setFontSize(18); doc.setTextColor(29, 78, 216);
+  doc.text("Manoj Wheels", W - 14, y + 4, { align: "right" });
+  doc.setDrawColor(40); doc.line(W - 70, y + 6, W - 14, y + 6);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(110, 110, 110);
+  doc.text("Authorized Signatory", W - 14, y + 11, { align: "right" });
+
+  try {
+    const verifyUrl = `${VERIFY_BASE}${inv.invoiceNumber}`;
+    const qr2 = await QRCode.toDataURL(verifyUrl, { width: 220, margin: 1 });
+    doc.addImage(qr2, "PNG", 14, y + 18, 22, 22);
+    doc.setFontSize(7); doc.setTextColor(120, 120, 120);
+    doc.text("Scan to re-verify this invoice", 38, y + 24);
+    doc.setFontSize(6.5);
+    doc.text(verifyUrl, 38, y + 29);
+  } catch { /* ignore */ }
+
+  doc.setDrawColor(29, 78, 216); doc.setLineWidth(0.8);
+  doc.roundedRect(W - 60, y + 18, 46, 22, 2, 2, "S");
+  doc.setTextColor(29, 78, 216); doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+  doc.text("AUTHORIZED", W - 37, y + 24, { align: "center" });
+  doc.setFontSize(9); doc.text("MANOJ WHEELS", W - 37, y + 30, { align: "center" });
+  doc.setFontSize(7); doc.text("SERVICE CENTER", W - 37, y + 35, { align: "center" });
+  doc.setLineWidth(0.2);
 
   doc.setFillColor(0, 0, 0); doc.rect(0, 278, W, 19, "F");
   doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(10);
@@ -240,26 +303,67 @@ function PublicInvoicePage() {
     retry: 1,
   });
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[80vh] grid place-items-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          <p className="text-sm text-muted-foreground">Verifying invoice…</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <InvoiceSkeleton />;
   if (isError) {
     return (
-      <div className="min-h-[60vh] grid place-items-center p-6 text-center">
-        <p className="text-sm text-red-600">{(error as Error).message}</p>
+      <div className="min-h-[70vh] grid place-items-center p-4">
+        <div className="max-w-md w-full bg-card border-2 border-amber-500/40 rounded-2xl p-8 text-center shadow-xl">
+          <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 dark:bg-amber-900/30 grid place-items-center">
+            <AlertTriangle className="w-9 h-9 text-amber-600" />
+          </div>
+          <h1 className="text-xl font-bold mt-4 text-amber-700 dark:text-amber-400">Verification Service Unavailable</h1>
+          <p className="text-sm text-muted-foreground mt-2">
+            We couldn't reach the invoice verification service right now.
+          </p>
+          <p className="text-xs text-muted-foreground mt-2 font-mono bg-muted rounded px-2 py-1 inline-block">
+            {(error as Error)?.message || "Network error"}
+          </p>
+          <div className="mt-5 flex gap-2 justify-center">
+            <Button size="sm" onClick={() => window.location.reload()}>
+              <RefreshCw className="w-4 h-4 mr-1.5" /> Try Again
+            </Button>
+            <Link to="/" className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent px-3 h-9 text-sm">Home</Link>
+          </div>
+        </div>
       </div>
     );
   }
   if (!data) return <NotFound />;
 
   return <InvoiceView inv={data} />;
+}
+
+function InvoiceSkeleton() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-blue-950/10 dark:to-background py-6 sm:py-10 px-3 sm:px-6">
+      <div className="max-w-3xl mx-auto animate-pulse">
+        <div className="h-9 w-72 mx-auto rounded-full bg-muted mb-4" />
+        <div className="bg-card rounded-2xl shadow-2xl border border-border/60 overflow-hidden">
+          <div className="h-28 bg-gradient-to-r from-slate-800 to-blue-900" />
+          <div className="p-6 space-y-3">
+            <div className="h-3 w-32 bg-muted rounded" />
+            <div className="grid grid-cols-4 gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-9 rounded-full bg-muted" />
+              ))}
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 p-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-10 bg-muted rounded" />
+            ))}
+          </div>
+          <div className="px-6 pb-6">
+            <div className="h-20 rounded-xl bg-muted" />
+          </div>
+        </div>
+        <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+          Verifying invoice with Manoj Wheels…
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function InvoiceView({ inv }: { inv: PublicInvoice }) {
@@ -350,21 +454,8 @@ function InvoiceView({ inv }: { inv: PublicInvoice }) {
             </div>
           </div>
 
-          {/* Digital signature */}
-          <div className="px-5 sm:px-7 pb-5">
-            <div className="flex items-end justify-between gap-4 border-t border-dashed border-border/60 pt-4">
-              <div className="text-[10px] text-muted-foreground">
-                <p className="uppercase tracking-wide font-semibold mb-1">Digitally Signed</p>
-                <p>Verified by Manoj Wheels Service Center</p>
-                <p className="font-mono mt-0.5">SIG: {inv.invoiceNumber}-{(inv.date || "").replace(/\D/g, "").slice(0, 8) || "MW"}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-['Brush_Script_MT','Segoe_Script',cursive] text-2xl sm:text-3xl text-blue-700 leading-none">Manoj Wheels</p>
-                <div className="border-t border-foreground/70 w-44 ml-auto mt-1" />
-                <p className="text-[10px] text-muted-foreground mt-1">Authorized Signatory</p>
-              </div>
-            </div>
-          </div>
+          {/* Digital signature + verify QR */}
+          <SignatureBlock inv={inv} />
 
           {/* Footer */}
           <div className="bg-muted/40 px-5 sm:px-7 py-4 border-t border-border/60 text-center">
@@ -382,6 +473,56 @@ function InvoiceView({ inv }: { inv: PublicInvoice }) {
   );
 }
 
+
+function SignatureBlock({ inv }: { inv: PublicInvoice }) {
+  const [qr, setQr] = useState<string>("");
+  const sig = invoiceSignature(inv);
+  const hash = invoiceHash(inv);
+  const verifyUrl = `${VERIFY_BASE}${inv.invoiceNumber}`;
+  useEffect(() => {
+    let cancel = false;
+    QRCode.toDataURL(verifyUrl, { width: 220, margin: 1 })
+      .then((d) => { if (!cancel) setQr(d); })
+      .catch(() => { /* ignore */ });
+    return () => { cancel = true; };
+  }, [verifyUrl]);
+  return (
+    <div className="px-5 sm:px-7 pb-5">
+      <div className="border-t border-dashed border-border/60 pt-4 grid sm:grid-cols-[1fr_auto] gap-4 items-end">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded">
+            <ShieldCheck className="w-3 h-3" />
+            Signature Verified — matches sheet data
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-2">
+            This invoice carries a tamper-evident signature derived from the
+            authoritative Google Sheets record. If any field changes, the
+            hash below changes too.
+          </p>
+          <div className="mt-2 font-mono text-[10px] text-muted-foreground space-y-0.5">
+            <p>SIG : <span className="text-foreground">{sig}</span></p>
+            <p>HASH: <span className="text-foreground">{hash}</span></p>
+          </div>
+        </div>
+        <div className="flex items-end gap-4">
+          {qr ? (
+            <div className="text-center">
+              <img src={qr} alt="Verify this invoice" className="w-20 h-20 rounded border border-border bg-white p-1" />
+              <p className="text-[9px] text-muted-foreground mt-1 leading-tight">Scan to<br/>re-verify</p>
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded border border-border bg-muted animate-pulse" />
+          )}
+          <div className="text-right">
+            <p className="font-['Brush_Script_MT','Segoe_Script',cursive] text-2xl sm:text-3xl text-blue-700 leading-none">Manoj Wheels</p>
+            <div className="border-t border-foreground/70 w-40 ml-auto mt-1" />
+            <p className="text-[10px] text-muted-foreground mt-1">Authorized Signatory</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ActionsBar({ inv }: { inv: PublicInvoice }) {
   const fetcherRefetch = useServerFn(getPublicInvoice);

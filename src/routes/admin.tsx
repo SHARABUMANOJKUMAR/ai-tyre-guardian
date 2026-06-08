@@ -62,6 +62,7 @@ import { format, parseISO, subDays, isValid } from "date-fns";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
 import { InvoiceManager } from "@/components/admin/InvoiceManager";
+import { InvoiceAnalytics } from "@/components/admin/InvoiceAnalytics";
 
 const LOGO_URL =
   "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";
@@ -518,8 +519,9 @@ function DashboardBody({ data, token }: { data: AdminDataset; token: string }) {
       <DateRangeReports data={data} />
 
       <Tabs defaultValue="invoices" className="space-y-4">
-        <TabsList className="grid grid-cols-5 w-full sm:w-auto">
+        <TabsList className="grid grid-cols-6 w-full sm:w-auto">
           <TabsTrigger value="invoices"><ReceiptText className="w-3.5 h-3.5 mr-1" />Invoices</TabsTrigger>
+          <TabsTrigger value="analytics"><FileDown className="w-3.5 h-3.5 mr-1" />Analytics</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="logins">Logins</TabsTrigger>
           <TabsTrigger value="contacts">Contacts</TabsTrigger>
@@ -527,6 +529,7 @@ function DashboardBody({ data, token }: { data: AdminDataset; token: string }) {
         </TabsList>
 
         <TabsContent value="invoices"><InvoiceManager token={token} /></TabsContent>
+        <TabsContent value="analytics"><InvoiceAnalytics /></TabsContent>
         <TabsContent value="users"><UsersSection rows={data.users} /></TabsContent>
         <TabsContent value="logins"><LoginsSection rows={data.users} /></TabsContent>
         <TabsContent value="contacts"><ContactsSection rows={data.contacts} /></TabsContent>

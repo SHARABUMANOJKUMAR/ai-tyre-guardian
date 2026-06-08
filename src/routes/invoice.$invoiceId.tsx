@@ -2,8 +2,134 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getPublicInvoice, type PublicInvoice } from "@/lib/public-invoice.functions";
-import { CheckCircle2, ShieldCheck, XCircle, Loader2, Phone, Mail, Car, Wrench, IndianRupee, Calendar, User, Printer } from "lucide-react";
+import { CheckCircle2, ShieldCheck, XCircle, Loader2, Phone, Mail, Car, Wrench, IndianRupee, Calendar, User, Printer, Download, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import jsPDF from "jspdf";
+import QRCode from "qrcode";
+import { toast } from "sonner";
+
+const LOGO_URL = "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";
+
+async function buildInvoicePDF(inv: PublicInvoice): Promise<jsPDF> {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const W = 210;
+  doc.setFillColor(0, 0, 0);
+  doc.rect(0, 0, W, 32, "F");
+  doc.setFillColor(220, 38, 38);
+  doc.rect(0, 32, W, 4, "F");
+  try {
+    const img = await fetch(LOGO_URL).then((r) => r.blob()).then(
+      (b) => new Promise<string>((res) => {
+        const r = new FileReader();
+        r.onloadend = () => res(r.result as string);
+        r.readAsDataURL(b);
+      }),
+    );
+    doc.addImage(img, "PNG", 10, 6, 22, 22);
+  } catch { /* ignore */ }
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.text("MANOJ WHEELS", 36, 16);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.text("Premium Tyre & Wheel Care Center", 36, 22);
+  doc.text("Pulivendula, AP  •  +91 88972 30858", 36, 27);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text("VERIFIED INVOICE", W - 10, 14, { align: "right" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text(`Invoice: ${inv.invoiceNumber}`, W - 10, 20, { align: "right" });
+  doc.text(`Date: ${inv.date || "—"}`, W - 10, 25, { align: "right" });
+  try {
+    const qr = await QRCode.toDataURL(`https://manojwheels.online/invoice/${inv.invoiceNumber}`, { width: 220, margin: 1 });
+    doc.addImage(qr, "PNG", W - 32, 40, 22, 22);
+    doc.setFontSize(7);
+    doc.setTextColor(120, 120, 120);
+    doc.text("Scan to verify", W - 21, 65, { align: "center" });
+  } catch { /* ignore */ }
+
+  let y = 46;
+  doc.setTextColor(0, 0, 0);
+  doc.setFillColor(29, 78, 216);
+  doc.setTextColor(255, 255, 255);
+  doc.rect(10, y - 5, 100, 7, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.text("CUSTOMER", 12, y);
+  doc.setTextColor(0, 0, 0);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9.5);
+  y += 7;
+  const cust: Array<[string, string]> = [
+    ["Name", inv.fullName],
+    ["Mobile", inv.mobile],
+    ["Email", inv.email || "—"],
+    ["Vehicle", `${inv.vehicleNumber} (${inv.vehicleType})`],
+  ];
+  cust.forEach(([k, v]) => {
+    doc.setTextColor(110, 110, 110); doc.text(`${k}:`, 12, y);
+    doc.setTextColor(20, 20, 20); doc.text(String(v).slice(0, 60), 42, y);
+    y += 5.5;
+  });
+
+  y += 4;
+  doc.setFillColor(29, 78, 216); doc.setTextColor(255, 255, 255);
+  doc.rect(10, y - 5, W - 20, 7, "F");
+  doc.setFont("helvetica", "bold"); doc.text("SERVICE", 12, y);
+  doc.setFont("helvetica", "normal"); doc.setTextColor(0, 0, 0);
+  y += 7;
+  doc.setTextColor(110, 110, 110); doc.text("Service:", 12, y);
+  doc.setTextColor(20, 20, 20); doc.text(inv.service || "—", 42, y);
+  y += 5.5;
+  doc.setTextColor(110, 110, 110); doc.text("Status:", 12, y);
+  doc.setTextColor(20, 20, 20); doc.text(inv.status || "Pending", 42, y);
+  y += 5.5;
+  if (inv.problem) {
+    doc.setTextColor(110, 110, 110); doc.text("Notes:", 12, y);
+    const lines = doc.splitTextToSize(inv.problem, W - 60);
+    doc.setTextColor(20, 20, 20); doc.text(lines, 42, y);
+    y += lines.length * 5 + 2;
+  }
+
+  y += 4;
+  doc.setFillColor(0, 0, 0); doc.setTextColor(255, 255, 255);
+  doc.rect(10, y - 5, W - 20, 7, "F");
+  doc.setFont("helvetica", "bold"); doc.text("COST DETAILS", 12, y);
+  doc.setFont("helvetica", "normal"); doc.setTextColor(0, 0, 0);
+  y += 8;
+  const num = (v: string) => Number(v || 0).toFixed(2);
+  const rows: Array<[string, string]> = [
+    ["Service Cost", `Rs. ${num(inv.cost)}`],
+    ["GST", `+ Rs. ${num(inv.gst)}`],
+    ["Discount", `- Rs. ${num(inv.discount)}`],
+  ];
+  rows.forEach(([k, v]) => {
+    doc.setTextColor(80, 80, 80); doc.text(k, 14, y);
+    doc.text(v, W - 14, y, { align: "right" });
+    y += 5.5;
+  });
+  doc.setDrawColor(220); doc.line(10, y, W - 10, y); y += 6;
+  doc.setFillColor(220, 38, 38); doc.rect(10, y - 5, W - 20, 9, "F");
+  doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+  doc.text("TOTAL", 14, y);
+  doc.text(`Rs. ${num(inv.total)}`, W - 14, y, { align: "right" });
+  y += 10;
+  doc.setTextColor(50, 50, 50); doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+  doc.text(`Payment: ${inv.paymentMode || "—"}`, 14, y);
+
+  doc.setFillColor(0, 0, 0); doc.rect(0, 278, W, 19, "F");
+  doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+  doc.text("Thank you for choosing Manoj Wheels.", W / 2, 285, { align: "center" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+  doc.text("Drive Safe • Drive Confident", W / 2, 290, { align: "center" });
+  doc.setTextColor(220, 38, 38);
+  doc.text("www.manojwheels.online", W / 2, 294, { align: "center" });
+  return doc;
+}
+
 
 export const Route = createFileRoute("/invoice/$invoiceId")({
   head: ({ params }) => ({
@@ -107,7 +233,10 @@ function PublicInvoicePage() {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["public-invoice", invoiceId],
     queryFn: () => fetcher({ data: { id: invoiceId } }),
-    staleTime: 30_000,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 30_000,
     retry: 1,
   });
 
@@ -231,16 +360,48 @@ function InvoiceView({ inv }: { inv: PublicInvoice }) {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="mt-5 flex flex-wrap justify-center gap-2 print:hidden">
-          <Button variant="outline" size="sm" onClick={() => window.print()}>
-            <Printer className="w-4 h-4 mr-1.5" /> Print
-          </Button>
-          <Link to="/" className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent px-3 h-9 text-sm">
-            ← Manoj Wheels Home
-          </Link>
-        </div>
+        <ActionsBar inv={inv} />
       </div>
+    </div>
+  );
+}
+
+
+function ActionsBar({ inv }: { inv: PublicInvoice }) {
+  const fetcherRefetch = useServerFn(getPublicInvoice);
+  const { refetch, isFetching } = useQuery({
+    queryKey: ["public-invoice", inv.invoiceNumber],
+    queryFn: () => fetcherRefetch({ data: { id: inv.invoiceNumber } }),
+    enabled: false,
+  });
+  const [downloading, setDownloading] = useState(false);
+  async function handleDownload() {
+    setDownloading(true);
+    try {
+      const doc = await buildInvoicePDF(inv);
+      doc.save(`${inv.invoiceNumber}.pdf`);
+      toast.success("Invoice PDF downloaded");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to generate PDF");
+    } finally {
+      setDownloading(false);
+    }
+  }
+  return (
+    <div className="mt-5 flex flex-wrap justify-center gap-2 print:hidden">
+      <Button size="sm" onClick={handleDownload} disabled={downloading} className="bg-blue-600 hover:bg-blue-700">
+        {downloading ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Download className="w-4 h-4 mr-1.5" />}
+        Download PDF
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => window.print()}>
+        <Printer className="w-4 h-4 mr-1.5" /> Print
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+        <RefreshCw className={`w-4 h-4 mr-1.5 ${isFetching ? "animate-spin" : ""}`} /> Refresh
+      </Button>
+      <Link to="/" className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent px-3 h-9 text-sm">
+        ← Manoj Wheels Home
+      </Link>
     </div>
   );
 }

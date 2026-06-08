@@ -144,3 +144,30 @@ export const getInvoicesForUser = createServerFn({ method: "GET" })
       };
     }).filter((r) => r.invoiceNumber).sort((a, b) => b.invoiceNumber.localeCompare(a.invoiceNumber));
   });
+
+export const getAllInvoices = createServerFn({ method: "GET" })
+  .handler(async (): Promise<PublicInvoice[]> => {
+    const rows = await loadInvoices().catch(() => [] as Record<string, string>[]);
+    return rows.map((r) => {
+      const svc = pick(r, ["service", "serviceType", "serviceNeeded"]);
+      const other = pick(r, ["otherService", "otherServiceType"]);
+      return {
+        invoiceNumber: pick(r, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]),
+        date: pick(r, ["createdDate", "date", "createdAt", "timestamp"]),
+        fullName: pick(r, ["fullName", "customer", "name", "customerName"]),
+        mobile: pick(r, ["mobile", "phone", "phoneNumber", "contact"]),
+        email: pick(r, ["email", "emailAddress"]),
+        vehicleNumber: pick(r, ["vehicleNumber", "vehicleNo", "vehicle"]),
+        vehicleType: pick(r, ["vehicleType", "type"]),
+        service: svc === "Other Service" && other ? other : svc,
+        problem: pick(r, ["problem", "issue", "description", "notes"]),
+        cost: pick(r, ["cost", "amount", "price"]),
+        gst: pick(r, ["gst", "tax"]),
+        discount: pick(r, ["discount"]),
+        total: pick(r, ["total", "grandTotal", "finalAmount"]),
+        paymentMode: pick(r, ["paymentMode", "payment", "paymentMethod"]),
+        status: pick(r, ["status", "serviceStatus", "currentStatus"]) || "Pending",
+        rating: pick(r, ["rating", "stars"]),
+      };
+    }).filter((r) => r.invoiceNumber);
+  });

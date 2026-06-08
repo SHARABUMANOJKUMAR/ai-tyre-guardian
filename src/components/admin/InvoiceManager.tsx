@@ -109,6 +109,8 @@ type InvoiceRecord = {
   status: string;
   rating: number;
   createdAt: number;
+  whatsappMessage?: string;
+  invoiceUrl?: string;
 };
 
 function todayStr() {

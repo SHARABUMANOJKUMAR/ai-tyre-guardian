@@ -675,7 +675,7 @@ export function InvoiceManager({ token }: { token: string }) {
               <FileText className="w-5 h-5 text-primary" /> Create Invoice
             </CardTitle>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="outline" className="font-mono">{invoiceNumber}</Badge>
+              <Badge variant="outline" className="font-mono">{invoiceNumber || "ID assigned after Generate"}</Badge>
               <Badge variant="outline">{date}</Badge>
             </div>
           </CardHeader>

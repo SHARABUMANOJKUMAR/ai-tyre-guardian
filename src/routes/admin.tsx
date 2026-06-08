@@ -62,6 +62,7 @@ import { format, parseISO, subDays, isValid } from "date-fns";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
 import { InvoiceManager } from "@/components/admin/InvoiceManager";
+import { InvoiceAnalytics } from "@/components/admin/InvoiceAnalytics";
 
 const LOGO_URL =
   "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";

@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { verifyAdminToken } from "./admin-auth.functions";
 
 const CSV_URLS = {
@@ -17,6 +18,13 @@ export type AdminDataset = {
   users: Record<string, string>[];
   services: Record<string, string>[];
   contacts: Record<string, string>[];
+};
+
+export type ActivityCounts = {
+  fetchedAt: string;
+  users: number;
+  services: number;
+  contacts: number;
 };
 
 function parseCSV(text: string): Record<string, string>[] {
@@ -70,13 +78,14 @@ function parseCSV(text: string): Record<string, string>[] {
   });
 }
 
-const CACHE_MS = 60 * 1000; // 1 min cache so notifications stay fresh
+const CACHE_MS = 10 * 1000; // keep Sheets fresh while avoiding duplicate rapid fetches
 const cache: Partial<Record<SourceKey, { ts: number; data: Record<string, string>[] }>> = {};
 
 async function loadSource(key: SourceKey): Promise<Record<string, string>[]> {
   const cached = cache[key];
   if (cached && Date.now() - cached.ts < CACHE_MS) return cached.data;
-  const r = await fetch(CSV_URLS[key], { redirect: "follow" });
+  const url = `${CSV_URLS[key]}&cacheBust=${Date.now()}`;
+  const r = await fetch(url, { redirect: "follow", cache: "no-store" });
   if (!r.ok) throw new Error(`Failed to fetch ${key}: ${r.status}`);
   const text = await r.text();
   const data = parseCSV(text);
@@ -96,4 +105,20 @@ export const getAdminDataset = createServerFn({ method: "POST" })
       loadSource("contacts").catch(() => []),
     ]);
     return { fetchedAt: new Date().toISOString(), users, services, contacts };
+  });
+
+export const getUserActivityCounts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async (): Promise<ActivityCounts> => {
+    const [users, services, contacts] = await Promise.all([
+      loadSource("users").catch(() => []),
+      loadSource("services").catch(() => []),
+      loadSource("contacts").catch(() => []),
+    ]);
+    return {
+      fetchedAt: new Date().toISOString(),
+      users: users.length,
+      services: services.length,
+      contacts: contacts.length,
+    };
   });

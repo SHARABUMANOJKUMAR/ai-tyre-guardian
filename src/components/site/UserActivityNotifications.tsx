@@ -52,7 +52,6 @@ function showNativeNotification(type: ActivityKey, count: number) {
       icon: LOGO_URL,
       badge: LOGO_URL,
       tag: `manoj-wheels-${type}`,
-      renotify: true,
     });
     notification.onclick = () => {
       window.focus();

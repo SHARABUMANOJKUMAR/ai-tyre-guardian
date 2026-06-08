@@ -107,15 +107,16 @@ export const getPublicInvoice = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<PublicInvoice | null> => {
     if (!data.id || !/^MW-[A-Z0-9-]{4,40}$/i.test(data.id)) return null;
     const want = data.id.toUpperCase();
-    const rows = await loadInvoices().catch(() => [] as Record<string, string>[]);
-    let match = rows.find((r) => {
-      const inv = pick(r, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]);
-      return inv.trim().toUpperCase() === want;
-    });
-    // Fallback: ask the Apps Script directly (sheet CSV publishes with a delay)
+    // Real-time: ask Apps Script first (authoritative, latest status)
+    let match: Record<string, string> | undefined =
+      (await fetchFromAppsScript(data.id)) ?? undefined;
+    // Fallback to published CSV if Apps Script is unreachable
     if (!match) {
-      const fresh = await fetchFromAppsScript(data.id);
-      if (fresh) match = fresh;
+      const rows = await loadInvoices().catch(() => [] as Record<string, string>[]);
+      match = rows.find((r) => {
+        const inv = pick(r, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]);
+        return inv.trim().toUpperCase() === want;
+      });
     }
     if (!match) return null;
     const svc = pick(match, ["service", "serviceType", "serviceNeeded"]);

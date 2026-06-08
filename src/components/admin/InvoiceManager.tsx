@@ -697,22 +697,23 @@ export function InvoiceManager({ token }: { token: string }) {
     const rec = lastSavedRec;
     const svc = rec.service === "Other Service" ? rec.otherService : rec.service;
     console.log("WhatsApp Invoice ID:", rec.invoiceNumber);
-    const text = encodeURIComponent(
+    const verifyUrl =
+      rec.invoiceUrl || `https://manojwheels.online/invoice/${rec.invoiceNumber}`;
+    const message =
+      rec.whatsappMessage ||
       `*Manoj Wheels — Service Invoice*\n\n` +
-      `Invoice: ${rec.invoiceNumber}\n` +
-      `Verify: https://manojwheels.online/invoice/${rec.invoiceNumber}\n` +
-      `Date: ${rec.date}\n` +
-      `Customer: ${rec.fullName}\n` +
-      `Vehicle: ${rec.vehicleNumber} (${rec.vehicleType})\n` +
-      `Service: ${svc}\n` +
-      `Total: ₹${rec.total.toFixed(2)}\n` +
-      `Payment: ${rec.paymentMode} • Status: ${rec.status}\n\n` +
-      `Thank you for choosing Manoj Wheels.\nwww.manojwheels.online`,
-    );
+        `Invoice: ${rec.invoiceNumber}\n` +
+        `Verify: ${verifyUrl}\n` +
+        `Date: ${rec.date}\n` +
+        `Customer: ${rec.fullName}\n` +
+        `Vehicle: ${rec.vehicleNumber} (${rec.vehicleType})\n` +
+        `Service: ${svc}\n` +
+        `Total: ₹${rec.total.toFixed(2)}\n` +
+        `Payment: ${rec.paymentMode} • Status: ${rec.status}\n\n` +
+        `Thank you for choosing Manoj Wheels.\nwww.manojwheels.online`;
+    const text = encodeURIComponent(message);
     const phone = rec.mobile.replace(/\D/g, "");
-    const url = phone
-      ? `https://wa.me/91${phone}?text=${text}`
-      : `https://wa.me/?text=${text}`;
+    const url = phone ? `https://wa.me/91${phone}?text=${text}` : `https://wa.me/?text=${text}`;
     window.open(url, "_blank");
   }
 

@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { FloatingActions } from "@/components/site/FloatingActions";
+import { UserActivityNotifications } from "@/components/site/UserActivityNotifications";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -163,6 +164,7 @@ function RootComponent() {
         </main>
         <Footer />
         <FloatingActions />
+        <UserActivityNotifications />
         <Toaster />
       </div>
     </QueryClientProvider>

@@ -8,7 +8,15 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/api/public/hooks/send-maintenance-reminders")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        // Auth: require Supabase anon/publishable apikey header (used by pg_cron).
+        const apikey = request.headers.get("apikey") || request.headers.get("x-api-key");
+        const expected =
+          process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
+        if (!expected || !apikey || apikey !== expected) {
+          return new Response("Forbidden", { status: 403 });
+        }
+
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         const now = new Date();

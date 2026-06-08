@@ -145,8 +145,12 @@ export const getInvoicesForUser = createServerFn({ method: "GET" })
     }).filter((r) => r.invoiceNumber).sort((a, b) => b.invoiceNumber.localeCompare(a.invoiceNumber));
   });
 
-export const getAllInvoices = createServerFn({ method: "GET" })
-  .handler(async (): Promise<PublicInvoice[]> => {
+import { verifyAdminToken } from "./admin-auth.functions";
+
+export const getAllInvoices = createServerFn({ method: "POST" })
+  .inputValidator((d: { token: string }) => ({ token: String(d?.token ?? "") }))
+  .handler(async ({ data }): Promise<PublicInvoice[]> => {
+    if (!verifyAdminToken(data.token)) throw new Error("Unauthorized");
     const rows = await loadInvoices().catch(() => [] as Record<string, string>[]);
     return rows.map((r) => {
       const svc = pick(r, ["service", "serviceType", "serviceNeeded"]);

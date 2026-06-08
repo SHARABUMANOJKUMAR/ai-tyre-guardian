@@ -7,7 +7,7 @@ import {
   Wrench, Gauge, Wind, Droplets, Disc3, Cog, Star, ArrowRight, CheckCircle2,
   Truck, Car, Bike, Trophy
 } from "lucide-react";
-import heroImg from "@/assets/hero-tyre.jpg";
+import { CinematicHero } from "@/components/site/CinematicHero";
 import alignmentImg from "@/assets/alignment.jpg";
 import tyreImg from "@/assets/tyre-closeup.jpg";
 import { openExternal } from "@/lib/external-link";

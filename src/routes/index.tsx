@@ -94,15 +94,7 @@ function HomePage() {
 
           <div className="relative animate-fade-in">
             <div className="absolute -inset-4 bg-gradient-primary opacity-20 blur-3xl rounded-full" aria-hidden />
-            <div className="relative rounded-2xl overflow-hidden shadow-elegant border border-border">
-              <img
-                src={heroImg}
-                alt="Premium black sports car receiving AI-powered tyre service at Manoj Wheels"
-                width={1920}
-                height={1080}
-                className="w-full h-auto object-cover"
-              />
-            </div>
+            <CinematicHero />
 
             {/* Floating stat cards */}
             <div className="hidden md:flex absolute -left-6 top-10 glass rounded-xl p-4 shadow-elegant items-center gap-3">

@@ -343,74 +343,12 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
     }
   }, [error, onLogout]);
 
-  // Web Notification permission
-  const [notifPerm, setNotifPerm] = useState<NotificationPermission>(() =>
-    typeof window !== "undefined" && "Notification" in window
-      ? Notification.permission
-      : "denied",
-  );
-  const requestNotif = useCallback(async () => {
-    if (!("Notification" in window)) {
-      toast.error("This browser does not support notifications");
-      return;
-    }
-    const p = await Notification.requestPermission();
-    setNotifPerm(p);
-    if (p === "granted") {
-      toast.success("Notifications enabled");
-      browserNotify("Notifications Enabled", "You'll be alerted for new signups, contacts & bookings.");
-    }
-  }, []);
-
-  // New-item detection with localStorage persistence
-  const seenRef = useRef<{ users: number; contacts: number; services: number } | null>(null);
-  useEffect(() => {
-    if (!data) return;
-    if (!seenRef.current) {
-      const raw = localStorage.getItem(SEEN_KEY);
-      seenRef.current = raw ? JSON.parse(raw) : { users: 0, contacts: 0, services: 0 };
-    }
-    const prev = seenRef.current!;
-    const cur = {
-      users: data.users.length,
-      contacts: data.contacts.length,
-      services: data.services.length,
-    };
-
-    if (prev.users && cur.users > prev.users) {
-      const n = cur.users - prev.users;
-      toast.success(`🎉 ${n} new user signup${n > 1 ? "s" : ""}`, {
-        description: "View the Users tab for details.",
-      });
-      browserNotify("New User Signup", `${n} new user${n > 1 ? "s" : ""} just registered on Manoj Wheels.`);
-    }
-    if (prev.contacts && cur.contacts > prev.contacts) {
-      const n = cur.contacts - prev.contacts;
-      toast.success(`📩 ${n} new contact request${n > 1 ? "s" : ""}`, {
-        description: "Check the Contacts tab.",
-      });
-      browserNotify("New Contact Request", `${n} customer${n > 1 ? "s" : ""} just reached out.`);
-    }
-    if (prev.services && cur.services > prev.services) {
-      const n = cur.services - prev.services;
-      toast.success(`🔧 ${n} new service booking${n > 1 ? "s" : ""}`, {
-        description: "View the Services tab.",
-      });
-      browserNotify("New Service Booking", `${n} new booking${n > 1 ? "s" : ""} received.`);
-    }
-
-    seenRef.current = cur;
-    localStorage.setItem(SEEN_KEY, JSON.stringify(cur));
-  }, [data]);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container py-6 space-y-6">
         <Header
           fetchedAt={data?.fetchedAt}
           isFetching={isFetching}
-          notifPerm={notifPerm}
-          onEnableNotif={requestNotif}
           onRefresh={() => refetch()}
           onLogout={onLogout}
         />
@@ -432,15 +370,11 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
 function Header({
   fetchedAt,
   isFetching,
-  notifPerm,
-  onEnableNotif,
   onRefresh,
   onLogout,
 }: {
   fetchedAt?: string;
   isFetching: boolean;
-  notifPerm: NotificationPermission;
-  onEnableNotif: () => void;
   onRefresh: () => void;
   onLogout: () => void;
 }) {
@@ -457,20 +391,6 @@ function Header({
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
-        {notifPerm !== "granted" && (
-          <Button variant="outline" size="sm" onClick={onEnableNotif}>
-            {notifPerm === "denied" ? (
-              <><BellOff className="w-4 h-4 mr-1" /> Notifications Blocked</>
-            ) : (
-              <><Bell className="w-4 h-4 mr-1" /> Enable Notifications</>
-            )}
-          </Button>
-        )}
-        {notifPerm === "granted" && (
-          <Badge variant="secondary" className="gap-1 self-center">
-            <Bell className="w-3 h-3" /> Alerts On
-          </Badge>
-        )}
         <Button variant="outline" size="sm" onClick={onRefresh} disabled={isFetching}>
           <RefreshCw className={`w-4 h-4 mr-1 ${isFetching ? "animate-spin" : ""}`} />
           Refresh

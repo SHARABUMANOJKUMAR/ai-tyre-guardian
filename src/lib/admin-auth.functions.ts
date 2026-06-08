@@ -1,13 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import crypto from "crypto";
 
-// Credentials are read from env (with safe defaults). Server-side only.
-const ADMIN_USERNAME = (process.env.ADMIN_USERNAME ?? "manoj wheels").trim();
-const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD ?? "manojwheels").trim();
-const TOKEN_SECRET =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.SUPABASE_PUBLISHABLE_KEY ||
-  "mw-admin-fallback-secret";
+// Credentials are read from env; no insecure defaults.
+const ADMIN_USERNAME = (process.env.ADMIN_USERNAME ?? "").trim();
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD ?? "").trim();
+// Signing secret MUST be a dedicated secret — never reuse the publicly-known
+// Supabase anon/publishable key (would let any browser forge admin tokens).
+const TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET ?? "";
 const TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 function sign(payload: string): string {

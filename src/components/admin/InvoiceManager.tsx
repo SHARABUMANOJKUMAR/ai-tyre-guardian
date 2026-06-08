@@ -486,23 +486,27 @@ export function InvoiceManager({ token }: { token: string }) {
   }
 
   async function handlePrintPreview() {
-    const err = validate();
-    if (err) { toast.error(err); return; }
-    const rec = buildRecord();
-    const doc = await buildPDF(rec);
+    if (!lastSavedRec) {
+      toast.error("Please generate the invoice first to get an authoritative ID");
+      return;
+    }
+    const doc = await buildPDF(lastSavedRec);
     window.open(doc.output("bloburl"), "_blank");
   }
 
   const sendEmailFn = useServerFn(sendInvoiceEmail);
   async function handleEmail() {
-    const err = validate();
-    if (err) { toast.error(err); return; }
-    if (!email) { toast.error("Customer email required to send"); return; }
+    if (!lastSavedRec) {
+      toast.error("Please generate the invoice first to get an authoritative ID");
+      return;
+    }
+    if (!lastSavedRec.email) { toast.error("Customer email required to send"); return; }
     setEmailing(true);
     try {
-      const rec = buildRecord();
+      const rec = lastSavedRec;
       const doc = await buildPDF(rec);
       const base64 = pdfToBase64(doc);
+      console.log("Email Invoice ID:", rec.invoiceNumber);
       await sendEmailFn({
         data: {
           token,
@@ -524,13 +528,17 @@ export function InvoiceManager({ token }: { token: string }) {
   }
 
   function handleWhatsApp() {
-    const err = validate();
-    if (err) { toast.error(err); return; }
-    const rec = buildRecord();
+    if (!lastSavedRec) {
+      toast.error("Please generate the invoice first to get an authoritative ID");
+      return;
+    }
+    const rec = lastSavedRec;
     const svc = rec.service === "Other Service" ? rec.otherService : rec.service;
+    console.log("WhatsApp Invoice ID:", rec.invoiceNumber);
     const text = encodeURIComponent(
       `*Manoj Wheels — Service Invoice*\n\n` +
       `Invoice: ${rec.invoiceNumber}\n` +
+      `Verify: https://manojwheels.online/invoice/${rec.invoiceNumber}\n` +
       `Date: ${rec.date}\n` +
       `Customer: ${rec.fullName}\n` +
       `Vehicle: ${rec.vehicleNumber} (${rec.vehicleType})\n` +

@@ -31,6 +31,18 @@ export function CinematicHero() {
         <span className="ch-streak ch-streak-6" />
       </div>
 
+      {/* Spinning wheel overlays — positioned over the front & rear wheels of the hero image */}
+      <div className="ch-wheels pointer-events-none absolute inset-0" aria-hidden>
+        <div className="ch-wheel ch-wheel-front">
+          <WheelSVG />
+          <span className="ch-wheel-blur" />
+        </div>
+        <div className="ch-wheel ch-wheel-rear">
+          <WheelSVG />
+          <span className="ch-wheel-blur" />
+        </div>
+      </div>
+
       {/* Drifting smoke / ground haze */}
       <div className="ch-smoke pointer-events-none absolute inset-0" aria-hidden />
 
@@ -99,10 +111,106 @@ export function CinematicHero() {
             linear-gradient(90deg, rgba(0,0,0,0.35), transparent 12%, transparent 88%, rgba(0,0,0,0.35));
         }
 
+        /* Wheel overlays — tuned to match the hero car image */
+        .ch-wheel {
+          position: absolute;
+          border-radius: 50%;
+          transform-style: preserve-3d;
+          mix-blend-mode: screen;
+          opacity: 0.92;
+        }
+        /* Front wheel (camera-left, slightly larger because closer to camera) */
+        .ch-wheel-front {
+          width: 16%;
+          aspect-ratio: 1 / 1;
+          left: 30.5%;
+          top: 56%;
+          transform: perspective(800px) rotateY(-18deg) rotateX(6deg);
+        }
+        /* Rear wheel (further from camera, smaller, more skewed) */
+        .ch-wheel-rear {
+          width: 11.5%;
+          aspect-ratio: 1 / 1;
+          left: 64.5%;
+          top: 58%;
+          transform: perspective(800px) rotateY(-32deg) rotateX(8deg) scaleX(0.85);
+        }
+        .ch-wheel svg {
+          width: 100%;
+          height: 100%;
+          display: block;
+          animation: ch-spin 0.45s linear infinite;
+          filter: blur(0.6px) drop-shadow(0 0 6px rgba(255,180,80,0.35));
+        }
+        .ch-wheel-blur {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background:
+            conic-gradient(from 0deg,
+              rgba(255,255,255,0.0) 0deg,
+              rgba(255,255,255,0.22) 30deg,
+              rgba(255,255,255,0.0) 90deg,
+              rgba(255,255,255,0.22) 180deg,
+              rgba(255,255,255,0.0) 240deg,
+              rgba(255,255,255,0.22) 320deg,
+              rgba(255,255,255,0.0) 360deg);
+          filter: blur(6px);
+          animation: ch-spin 0.25s linear infinite;
+          mix-blend-mode: screen;
+          opacity: 0.7;
+        }
+        @keyframes ch-spin {
+          to { transform: rotate(360deg); }
+        }
+
         @media (prefers-reduced-motion: reduce) {
-          .ch-car, .ch-streak, .ch-smoke { animation: none !important; }
+          .ch-car, .ch-streak, .ch-smoke,
+          .ch-wheel svg, .ch-wheel-blur { animation: none !important; }
         }
       `}</style>
     </div>
+  );
+}
+
+function WheelSVG() {
+  // Stylized 5-twin-spoke alloy with brake caliper hint
+  return (
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <defs>
+        <radialGradient id="rim" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#cfd6df" />
+          <stop offset="55%" stopColor="#8a96a4" />
+          <stop offset="100%" stopColor="#2a2f36" />
+        </radialGradient>
+        <radialGradient id="hub" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#e8edf3" />
+          <stop offset="100%" stopColor="#4a525c" />
+        </radialGradient>
+      </defs>
+      {/* tyre */}
+      <circle cx="50" cy="50" r="49" fill="#0a0a0a" />
+      {/* rim outer */}
+      <circle cx="50" cy="50" r="40" fill="url(#rim)" />
+      {/* spokes — 5 pairs */}
+      <g stroke="#dfe5ec" strokeWidth="3.2" strokeLinecap="round" opacity="0.95">
+        {Array.from({ length: 5 }).map((_, i) => {
+          const a = (i * 72 * Math.PI) / 180;
+          const dx = Math.cos(a) * 36;
+          const dy = Math.sin(a) * 36;
+          const dx2 = Math.cos(a + 0.18) * 36;
+          const dy2 = Math.sin(a + 0.18) * 36;
+          return (
+            <g key={i}>
+              <line x1="50" y1="50" x2={50 + dx} y2={50 + dy} />
+              <line x1="50" y1="50" x2={50 + dx2} y2={50 + dy2} />
+            </g>
+          );
+        })}
+      </g>
+      {/* hub */}
+      <circle cx="50" cy="50" r="11" fill="url(#hub)" stroke="#1a1d22" strokeWidth="1" />
+      <circle cx="50" cy="50" r="3" fill="#1a1d22" />
+    </svg>
   );
 }

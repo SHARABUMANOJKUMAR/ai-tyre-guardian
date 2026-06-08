@@ -529,7 +529,7 @@ function DashboardBody({ data, token }: { data: AdminDataset; token: string }) {
         </TabsList>
 
         <TabsContent value="invoices"><InvoiceManager token={token} /></TabsContent>
-        <TabsContent value="analytics"><InvoiceAnalytics /></TabsContent>
+        <TabsContent value="analytics"><InvoiceAnalytics token={token} /></TabsContent>
         <TabsContent value="users"><UsersSection rows={data.users} /></TabsContent>
         <TabsContent value="logins"><LoginsSection rows={data.users} /></TabsContent>
         <TabsContent value="contacts"><ContactsSection rows={data.contacts} /></TabsContent>

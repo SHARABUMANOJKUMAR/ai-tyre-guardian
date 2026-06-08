@@ -705,7 +705,7 @@ function LoginsSection({ rows }: { rows: Record<string, string>[] }) {
       map.set(d, 0);
     }
     rows.forEach((r) => {
-      const ds = pick(r, ["lastLogin", "Last Login", "loginAt", "createdAt", "Created At", "Date", "Timestamp"]);
+      const ds = pick(r, LOGIN_DATE_KEYS);
       const d = tryParseDate(ds);
       if (!d) return;
       const k = format(d, "MMM dd");
@@ -796,7 +796,7 @@ function LoginsSection({ rows }: { rows: Record<string, string>[] }) {
 function ContactsSection({ rows }: { rows: Record<string, string>[] }) {
   const todayStr = format(new Date(), "yyyy-MM-dd");
   const newToday = rows.filter((r) => {
-    const d = tryParseDate(pick(r, ["createdAt", "Created At", "Date", "Timestamp"]));
+    const d = tryParseDate(pick(r, CONTACT_DATE_KEYS));
     return d && format(d, "yyyy-MM-dd") === todayStr;
   }).length;
 
@@ -850,10 +850,10 @@ function ContactsSection({ rows }: { rows: Record<string, string>[] }) {
             {recent.map((r, i) => (
               <div key={i} className="border-b border-border/40 pb-2 last:border-0 last:pb-0">
                 <div className="flex justify-between text-sm font-medium">
-                  <span>{pick(r, ["name", "Name", "Full Name"]) || "Anonymous"}</span>
-                  <span className="text-xs text-muted-foreground">{pick(r, ["createdAt", "Date", "Timestamp"])}</span>
+                  <span>{pick(r, ["name", "Name", "Full Name", "Full_Name"]) || "Anonymous"}</span>
+                  <span className="text-xs text-muted-foreground">{pick(r, CONTACT_DATE_KEYS)}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">{pick(r, ["email", "Email"])}{pick(r, ["phone", "Phone"]) ? ` • ${pick(r, ["phone", "Phone"])}` : ""}</p>
+                <p className="text-xs text-muted-foreground">{pick(r, ["email", "Email"])}{pick(r, ["phone", "Phone", "Phone Number", "Phone_Number"]) ? ` • ${pick(r, ["phone", "Phone", "Phone Number", "Phone_Number"])}` : ""}</p>
                 <p className="text-sm mt-1 line-clamp-2">{pick(r, ["message", "Message", "Query"])}</p>
               </div>
             ))}
@@ -872,7 +872,7 @@ function ServicesSection({ rows }: { rows: Record<string, string>[] }) {
   const popularity = useMemo(() => {
     const map = new Map<string, number>();
     rows.forEach((r) => {
-      const s = pick(r, ["service", "Service", "Service Type", "Type"]) || "Other";
+      const s = pick(r, ["service", "Service", "Service Needed", "Service_Needed", "Service Type", "Type"]) || "Other";
       map.set(s, (map.get(s) ?? 0) + 1);
     });
     return Array.from(map, ([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
@@ -884,7 +884,7 @@ function ServicesSection({ rows }: { rows: Record<string, string>[] }) {
       map.set(format(subDays(new Date(), i), "MMM dd"), 0);
     }
     rows.forEach((r) => {
-      const d = tryParseDate(pick(r, ["createdAt", "Created At", "Date", "Booking Date", "Timestamp"]));
+      const d = tryParseDate(pick(r, SERVICE_DATE_KEYS));
       if (!d) return;
       const k = format(d, "MMM dd");
       if (map.has(k)) map.set(k, (map.get(k) ?? 0) + 1);

@@ -169,6 +169,7 @@ function RootComponent() {
         <Footer />
         <FloatingActions />
         <UserActivityNotifications />
+        <InvoiceStatusWatcher />
         <Toaster />
       </div>
     </QueryClientProvider>

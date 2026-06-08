@@ -357,32 +357,12 @@ function InvoiceView({ inv }: { inv: PublicInvoice }) {
           </div>
         </div>
 
-  const fetcherRefetch = useServerFn(getPublicInvoice);
-  const { refetch, isFetching } = useQuery({
-    queryKey: ["public-invoice", inv.invoiceNumber],
-    queryFn: () => fetcherRefetch({ data: { id: inv.invoiceNumber } }),
-    enabled: false,
-  });
-  const [downloading, setDownloading] = useState(false);
-  async function handleDownload() {
-    setDownloading(true);
-    try {
-      const doc = await buildInvoicePDF(inv);
-      doc.save(`${inv.invoiceNumber}.pdf`);
-      toast.success("Invoice PDF downloaded");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to generate PDF");
-    } finally {
-      setDownloading(false);
-    }
-  }
-
-  return (
-    <>
-      {/* Actions handled in parent — keep rendering below */}
-    </>
+        <ActionsBar inv={inv} />
+      </div>
+    </div>
   );
 }
+
 
 function ActionsBar({ inv }: { inv: PublicInvoice }) {
   const fetcherRefetch = useServerFn(getPublicInvoice);

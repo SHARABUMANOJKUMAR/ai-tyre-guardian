@@ -31,6 +31,18 @@ export function CinematicHero() {
         <span className="ch-streak ch-streak-6" />
       </div>
 
+      {/* Spinning wheel overlays — positioned over the front & rear wheels of the hero image */}
+      <div className="ch-wheels pointer-events-none absolute inset-0" aria-hidden>
+        <div className="ch-wheel ch-wheel-front">
+          <WheelSVG />
+          <span className="ch-wheel-blur" />
+        </div>
+        <div className="ch-wheel ch-wheel-rear">
+          <WheelSVG />
+          <span className="ch-wheel-blur" />
+        </div>
+      </div>
+
       {/* Drifting smoke / ground haze */}
       <div className="ch-smoke pointer-events-none absolute inset-0" aria-hidden />
 

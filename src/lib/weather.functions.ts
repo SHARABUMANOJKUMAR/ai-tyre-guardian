@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, getRequestHeader } from "@tanstack/react-start";
 import { z } from "zod";
 
 const Schema = z.object({
@@ -17,9 +17,37 @@ export interface WeatherSnapshot {
   windKph: number;
 }
 
+// Simple in-memory IP rate limiter: 10 requests / minute per IP.
+const RL_MAX = 10;
+const RL_WINDOW_MS = 60_000;
+const rlBuckets = new Map<string, number[]>();
+function rateLimit(ip: string) {
+  const now = Date.now();
+  const arr = (rlBuckets.get(ip) ?? []).filter((t) => now - t < RL_WINDOW_MS);
+  if (arr.length >= RL_MAX) return false;
+  arr.push(now);
+  rlBuckets.set(ip, arr);
+  // Opportunistic cleanup
+  if (rlBuckets.size > 500) {
+    for (const [k, v] of rlBuckets) {
+      if (!v.length || now - v[v.length - 1] > RL_WINDOW_MS) rlBuckets.delete(k);
+    }
+  }
+  return true;
+}
+
 export const getWeather = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => Schema.parse(d))
   .handler(async ({ data }): Promise<WeatherSnapshot> => {
+    const ip =
+      (getRequestHeader("cf-connecting-ip") ||
+        getRequestHeader("x-forwarded-for")?.split(",")[0].trim() ||
+        getRequestHeader("x-real-ip") ||
+        "unknown") as string;
+    if (!rateLimit(ip)) {
+      throw new Error("Too many weather requests. Please wait a minute and try again.");
+    }
+
     const key = process.env.OPENWEATHER_API_KEY;
     if (!key) throw new Error("Weather service not configured");
     const u = new URL("https://api.openweathermap.org/data/2.5/weather");

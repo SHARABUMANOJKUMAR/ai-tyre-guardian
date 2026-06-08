@@ -391,7 +391,7 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
           </Card>
         )}
 
-        {isLoading || !data ? <LoadingSkeleton /> : <DashboardBody data={data} />}
+        {isLoading || !data ? <LoadingSkeleton /> : <DashboardBody data={data} token={token} />}
       </div>
     </div>
   );

@@ -21,7 +21,7 @@ function makeToken(): string {
 }
 
 export function verifyAdminToken(token: string | undefined | null): boolean {
-  if (!token) return false;
+  if (!token || !TOKEN_SECRET) return false;
   try {
     const decoded = Buffer.from(token, "base64").toString("utf-8");
     const parts = decoded.split(":");
@@ -46,6 +46,11 @@ export const adminLogin = createServerFn({ method: "POST" })
     password: String(d?.password ?? ""),
   }))
   .handler(async ({ data }) => {
+    if (!ADMIN_USERNAME || !ADMIN_PASSWORD || !TOKEN_SECRET) {
+      throw new Error(
+        "Admin auth is not configured. Set ADMIN_USERNAME, ADMIN_PASSWORD and ADMIN_TOKEN_SECRET secrets.",
+      );
+    }
     const u = data.username.trim();
     const p = data.password.trim();
     // Case-insensitive username, exact password.

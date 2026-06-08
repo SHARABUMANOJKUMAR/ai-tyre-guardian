@@ -39,7 +39,7 @@ export function UserMenu() {
         <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild><Link to="/dashboard"><LayoutDashboard className="w-4 h-4 mr-2" />Dashboard</Link></DropdownMenuItem>
-        <DropdownMenuItem asChild><Link to="/_authenticated/my-invoices"><Receipt className="w-4 h-4 mr-2" />My Invoices</Link></DropdownMenuItem>
+        <DropdownMenuItem asChild><Link to="/my-invoices"><Receipt className="w-4 h-4 mr-2" />My Invoices</Link></DropdownMenuItem>
         <DropdownMenuItem asChild><Link to="/dashboard"><FileText className="w-4 h-4 mr-2" />My Reports</Link></DropdownMenuItem>
         <DropdownMenuItem asChild><Link to="/dashboard"><UserIcon className="w-4 h-4 mr-2" />Profile</Link></DropdownMenuItem>
         <DropdownMenuSeparator />

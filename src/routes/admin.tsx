@@ -253,6 +253,27 @@ function AdminPage() {
     toast.success("Logged out");
   }, []);
 
+  // Auto-logout after 30 minutes of inactivity
+  useEffect(() => {
+    if (!token) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const INACTIVITY_MS = 30 * 60 * 1000;
+    const reset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        toast.warning("Logged out due to inactivity");
+        handleLogout();
+      }, INACTIVITY_MS);
+    };
+    const events: Array<keyof WindowEventMap> = ["mousemove", "keydown", "click", "touchstart", "scroll"];
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => {
+      clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, reset));
+    };
+  }, [token, handleLogout]);
+
   if (!token) {
     return <LoginScreen onSuccess={(t) => setToken(t)} />;
   }

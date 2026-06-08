@@ -357,16 +357,68 @@ function InvoiceView({ inv }: { inv: PublicInvoice }) {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="mt-5 flex flex-wrap justify-center gap-2 print:hidden">
-          <Button variant="outline" size="sm" onClick={() => window.print()}>
-            <Printer className="w-4 h-4 mr-1.5" /> Print
-          </Button>
-          <Link to="/" className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent px-3 h-9 text-sm">
-            ← Manoj Wheels Home
-          </Link>
-        </div>
-      </div>
+  const fetcherRefetch = useServerFn(getPublicInvoice);
+  const { refetch, isFetching } = useQuery({
+    queryKey: ["public-invoice", inv.invoiceNumber],
+    queryFn: () => fetcherRefetch({ data: { id: inv.invoiceNumber } }),
+    enabled: false,
+  });
+  const [downloading, setDownloading] = useState(false);
+  async function handleDownload() {
+    setDownloading(true);
+    try {
+      const doc = await buildInvoicePDF(inv);
+      doc.save(`${inv.invoiceNumber}.pdf`);
+      toast.success("Invoice PDF downloaded");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to generate PDF");
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <>
+      {/* Actions handled in parent — keep rendering below */}
+    </>
+  );
+}
+
+function ActionsBar({ inv }: { inv: PublicInvoice }) {
+  const fetcherRefetch = useServerFn(getPublicInvoice);
+  const { refetch, isFetching } = useQuery({
+    queryKey: ["public-invoice", inv.invoiceNumber],
+    queryFn: () => fetcherRefetch({ data: { id: inv.invoiceNumber } }),
+    enabled: false,
+  });
+  const [downloading, setDownloading] = useState(false);
+  async function handleDownload() {
+    setDownloading(true);
+    try {
+      const doc = await buildInvoicePDF(inv);
+      doc.save(`${inv.invoiceNumber}.pdf`);
+      toast.success("Invoice PDF downloaded");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to generate PDF");
+    } finally {
+      setDownloading(false);
+    }
+  }
+  return (
+    <div className="mt-5 flex flex-wrap justify-center gap-2 print:hidden">
+      <Button size="sm" onClick={handleDownload} disabled={downloading} className="bg-blue-600 hover:bg-blue-700">
+        {downloading ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Download className="w-4 h-4 mr-1.5" />}
+        Download PDF
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => window.print()}>
+        <Printer className="w-4 h-4 mr-1.5" /> Print
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+        <RefreshCw className={`w-4 h-4 mr-1.5 ${isFetching ? "animate-spin" : ""}`} /> Refresh
+      </Button>
+      <Link to="/" className="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent px-3 h-9 text-sm">
+        ← Manoj Wheels Home
+      </Link>
     </div>
   );
 }

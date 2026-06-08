@@ -369,6 +369,7 @@ export function InvoiceManager({ token }: { token: string }) {
   }, [cost, gst, discount]);
 
   useEffect(() => {
+    if (!invoiceNumber) { setQrPreview(""); return; }
     const verifyUrl = `https://manojwheels.online/invoice/${invoiceNumber}`;
     QRCode.toDataURL(verifyUrl, { width: 220, margin: 1 }).then(setQrPreview).catch(() => setQrPreview(""));
   }, [invoiceNumber]);

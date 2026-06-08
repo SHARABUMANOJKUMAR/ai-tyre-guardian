@@ -103,3 +103,33 @@ export const getPublicInvoice = createServerFn({ method: "GET" })
       rating: pick(match, ["rating", "stars"]),
     };
   });
+
+export type InvoiceStatusRow = {
+  invoiceNumber: string;
+  status: string;
+  service: string;
+  total: string;
+  date: string;
+};
+
+export const getInvoicesForUser = createServerFn({ method: "GET" })
+  .inputValidator((d: { email?: string; mobile?: string }) => ({
+    email: String(d?.email ?? "").trim().toLowerCase(),
+    mobile: String(d?.mobile ?? "").replace(/\D/g, "").slice(-10),
+  }))
+  .handler(async ({ data }): Promise<InvoiceStatusRow[]> => {
+    if (!data.email && !data.mobile) return [];
+    const rows = await loadInvoices().catch(() => [] as Record<string, string>[]);
+    const matches = rows.filter((r) => {
+      const e = pick(r, ["email", "emailAddress"]).toLowerCase();
+      const m = pick(r, ["mobile", "phone", "phoneNumber", "contact"]).replace(/\D/g, "").slice(-10);
+      return (data.email && e === data.email) || (data.mobile && m && m === data.mobile);
+    });
+    return matches.map((r) => ({
+      invoiceNumber: pick(r, ["invoiceNumber", "invoiceNo", "invoice"]),
+      status: pick(r, ["status", "serviceStatus", "currentStatus"]) || "Pending",
+      service: pick(r, ["service", "serviceType", "serviceNeeded"]),
+      total: pick(r, ["total", "grandTotal", "finalAmount"]),
+      date: pick(r, ["date", "createdAt", "timestamp"]),
+    })).filter((r) => r.invoiceNumber);
+  });

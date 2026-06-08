@@ -19,6 +19,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { FloatingActions } from "@/components/site/FloatingActions";
 import { UserActivityNotifications } from "@/components/site/UserActivityNotifications";
+import { InvoiceStatusWatcher } from "@/components/site/InvoiceStatusWatcher";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -168,6 +169,7 @@ function RootComponent() {
         <Footer />
         <FloatingActions />
         <UserActivityNotifications />
+        <InvoiceStatusWatcher />
         <Toaster />
       </div>
     </QueryClientProvider>

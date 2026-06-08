@@ -167,16 +167,10 @@ async function buildPDF(inv: InvoiceRecord): Promise<jsPDF> {
   doc.text(`Invoice No: ${inv.invoiceNumber}`, W - 10, 20, { align: "right" });
   doc.text(`Date: ${inv.date}`, W - 10, 25, { align: "right" });
 
-  // QR Code
+  // QR Code → public verification URL (scan opens branded verification page)
   try {
-    const qrPayload = JSON.stringify({
-      inv: inv.invoiceNumber,
-      cust: inv.fullName,
-      veh: inv.vehicleNumber,
-      amt: inv.total,
-      date: inv.date,
-    });
-    const qrData = await QRCode.toDataURL(qrPayload, { width: 200, margin: 1 });
+    const verifyUrl = `https://manojwheels.online/invoice/${inv.invoiceNumber}`;
+    const qrData = await QRCode.toDataURL(verifyUrl, { width: 200, margin: 1 });
     doc.addImage(qrData, "PNG", W - 32, 40, 22, 22);
     doc.setFontSize(7);
     doc.setTextColor(100, 100, 100);
@@ -361,15 +355,9 @@ export function InvoiceManager({ token }: { token: string }) {
   }, [cost, gst, discount]);
 
   useEffect(() => {
-    const payload = JSON.stringify({
-      inv: invoiceNumber,
-      cust: fullName,
-      veh: vehicleNumber,
-      amt: totals.total,
-      date,
-    });
-    QRCode.toDataURL(payload, { width: 220, margin: 1 }).then(setQrPreview).catch(() => setQrPreview(""));
-  }, [invoiceNumber, fullName, vehicleNumber, totals.total, date]);
+    const verifyUrl = `https://manojwheels.online/invoice/${invoiceNumber}`;
+    QRCode.toDataURL(verifyUrl, { width: 220, margin: 1 }).then(setQrPreview).catch(() => setQrPreview(""));
+  }, [invoiceNumber]);
 
   const showRating = status === "Completed" || status === "Delivered";
 

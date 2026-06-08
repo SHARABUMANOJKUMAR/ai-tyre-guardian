@@ -36,6 +36,7 @@ import { Route as ToolsAiTyreComparisonRouteImport } from './routes/tools.ai-tyr
 import { Route as ToolsAiTyreBrandRecommenderRouteImport } from './routes/tools.ai-tyre-brand-recommender'
 import { Route as ToolsAiServiceAdvisorRouteImport } from './routes/tools.ai-service-advisor'
 import { Route as ToolsSplatRouteImport } from './routes/tools.$'
+import { Route as InvoiceInvoiceIdRouteImport } from './routes/invoice.$invoiceId'
 import { Route as AuthenticatedGarageRouteImport } from './routes/_authenticated/garage'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as ApiPublicHooksSendMaintenanceRemindersRouteImport } from './routes/api/public/hooks/send-maintenance-reminders'
@@ -182,6 +183,11 @@ const ToolsSplatRoute = ToolsSplatRouteImport.update({
   path: '/tools/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InvoiceInvoiceIdRoute = InvoiceInvoiceIdRouteImport.update({
+  id: '/invoice/$invoiceId',
+  path: '/invoice/$invoiceId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedGarageRoute = AuthenticatedGarageRouteImport.update({
   id: '/garage',
   path: '/garage',
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/garage': typeof AuthenticatedGarageRoute
+  '/invoice/$invoiceId': typeof InvoiceInvoiceIdRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/ai-tyre-brand-recommender': typeof ToolsAiTyreBrandRecommenderRoute
@@ -243,6 +250,7 @@ export interface FileRoutesByTo {
   '/tyre-life': typeof TyreLifeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/garage': typeof AuthenticatedGarageRoute
+  '/invoice/$invoiceId': typeof InvoiceInvoiceIdRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/ai-tyre-brand-recommender': typeof ToolsAiTyreBrandRecommenderRoute
@@ -276,6 +284,7 @@ export interface FileRoutesById {
   '/tyre-life': typeof TyreLifeRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/garage': typeof AuthenticatedGarageRoute
+  '/invoice/$invoiceId': typeof InvoiceInvoiceIdRoute
   '/tools/$': typeof ToolsSplatRoute
   '/tools/ai-service-advisor': typeof ToolsAiServiceAdvisorRoute
   '/tools/ai-tyre-brand-recommender': typeof ToolsAiTyreBrandRecommenderRoute
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/dashboard'
     | '/garage'
+    | '/invoice/$invoiceId'
     | '/tools/$'
     | '/tools/ai-service-advisor'
     | '/tools/ai-tyre-brand-recommender'
@@ -340,6 +350,7 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/dashboard'
     | '/garage'
+    | '/invoice/$invoiceId'
     | '/tools/$'
     | '/tools/ai-service-advisor'
     | '/tools/ai-tyre-brand-recommender'
@@ -372,6 +383,7 @@ export interface FileRouteTypes {
     | '/tyre-life'
     | '/_authenticated/dashboard'
     | '/_authenticated/garage'
+    | '/invoice/$invoiceId'
     | '/tools/$'
     | '/tools/ai-service-advisor'
     | '/tools/ai-tyre-brand-recommender'
@@ -403,6 +415,7 @@ export interface RootRouteChildren {
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TyreLifeRoute: typeof TyreLifeRoute
+  InvoiceInvoiceIdRoute: typeof InvoiceInvoiceIdRoute
   ToolsSplatRoute: typeof ToolsSplatRoute
   ToolsAiServiceAdvisorRoute: typeof ToolsAiServiceAdvisorRoute
   ToolsAiTyreBrandRecommenderRoute: typeof ToolsAiTyreBrandRecommenderRoute
@@ -613,6 +626,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invoice/$invoiceId': {
+      id: '/invoice/$invoiceId'
+      path: '/invoice/$invoiceId'
+      fullPath: '/invoice/$invoiceId'
+      preLoaderRoute: typeof InvoiceInvoiceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/garage': {
       id: '/_authenticated/garage'
       path: '/garage'
@@ -662,6 +682,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TyreLifeRoute: TyreLifeRoute,
+  InvoiceInvoiceIdRoute: InvoiceInvoiceIdRoute,
   ToolsSplatRoute: ToolsSplatRoute,
   ToolsAiServiceAdvisorRoute: ToolsAiServiceAdvisorRoute,
   ToolsAiTyreBrandRecommenderRoute: ToolsAiTyreBrandRecommenderRoute,

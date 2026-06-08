@@ -355,15 +355,9 @@ export function InvoiceManager({ token }: { token: string }) {
   }, [cost, gst, discount]);
 
   useEffect(() => {
-    const payload = JSON.stringify({
-      inv: invoiceNumber,
-      cust: fullName,
-      veh: vehicleNumber,
-      amt: totals.total,
-      date,
-    });
-    QRCode.toDataURL(payload, { width: 220, margin: 1 }).then(setQrPreview).catch(() => setQrPreview(""));
-  }, [invoiceNumber, fullName, vehicleNumber, totals.total, date]);
+    const verifyUrl = `https://manojwheels.online/invoice/${invoiceNumber}`;
+    QRCode.toDataURL(verifyUrl, { width: 220, margin: 1 }).then(setQrPreview).catch(() => setQrPreview(""));
+  }, [invoiceNumber]);
 
   const showRating = status === "Completed" || status === "Delivered";
 

@@ -458,11 +458,11 @@ function DashboardBody({ data }: { data: AdminDataset }) {
 
   const stats = useMemo(() => {
     const newUsersToday = data.users.filter((u) => {
-      const d = tryParseDate(pick(u, ["createdAt", "created_at", "Created At", "Signup Date", "Date", "Timestamp"]));
+      const d = tryParseDate(pick(u, USER_DATE_KEYS));
       return d && format(d, "yyyy-MM-dd") === todayStr;
     }).length;
     const newContactsToday = data.contacts.filter((c) => {
-      const d = tryParseDate(pick(c, ["createdAt", "Created At", "Date", "Timestamp"]));
+      const d = tryParseDate(pick(c, CONTACT_DATE_KEYS));
       return d && format(d, "yyyy-MM-dd") === todayStr;
     }).length;
     const totalLogins =
@@ -518,17 +518,12 @@ function DateRangeReports({ data }: { data: AdminDataset }) {
   const [from, setFrom] = useState(format(subDays(new Date(), 30), "yyyy-MM-dd"));
   const [to, setTo] = useState(format(new Date(), "yyyy-MM-dd"));
 
-  const USER_DATE = ["createdAt", "Created At", "Signup Date", "Date", "Timestamp"];
-  const LOGIN_DATE = ["lastLogin", "Last Login", "loginAt", "createdAt", "Created At", "Date", "Timestamp"];
-  const CONTACT_DATE = ["createdAt", "Created At", "Date", "Timestamp"];
-  const SERVICE_DATE = ["createdAt", "Created At", "Date", "Booking Date", "Timestamp"];
-
   const reports = useMemo(
     () => [
-      { key: "users", label: "Users", icon: Users, rows: filterByDateRange(data.users, from, to, USER_DATE) },
-      { key: "logins", label: "Logins", icon: LogIn, rows: filterByDateRange(data.users, from, to, LOGIN_DATE) },
-      { key: "contacts", label: "Contacts", icon: MessageSquare, rows: filterByDateRange(data.contacts, from, to, CONTACT_DATE) },
-      { key: "services", label: "Services", icon: Wrench, rows: filterByDateRange(data.services, from, to, SERVICE_DATE) },
+      { key: "users", label: "Users", icon: Users, rows: filterByDateRange(data.users, from, to, USER_DATE_KEYS) },
+      { key: "logins", label: "Logins", icon: LogIn, rows: filterByDateRange(data.users, from, to, LOGIN_DATE_KEYS) },
+      { key: "contacts", label: "Contacts", icon: MessageSquare, rows: filterByDateRange(data.contacts, from, to, CONTACT_DATE_KEYS) },
+      { key: "services", label: "Services", icon: Wrench, rows: filterByDateRange(data.services, from, to, SERVICE_DATE_KEYS) },
     ],
     [data, from, to],
   );

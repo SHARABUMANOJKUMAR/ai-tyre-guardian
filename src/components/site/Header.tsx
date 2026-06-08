@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "./UserMenu";
+import { NotificationInbox } from "./NotificationInbox";
+
 
 const LOGO_URL =
   "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";
@@ -61,7 +63,9 @@ export function Header() {
           <Button asChild variant="hero" size="sm" className="hidden sm:inline-flex">
             <Link to="/book">Book Now</Link>
           </Button>
+          <NotificationInbox />
           <UserMenu />
+
           <button
             className="lg:hidden p-2 rounded-md hover:bg-accent"
             onClick={() => setOpen((v) => !v)}

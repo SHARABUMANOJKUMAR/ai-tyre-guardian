@@ -3,7 +3,7 @@ import crypto from "crypto";
 
 // Credentials are read from env (with safe defaults). Server-side only.
 const ADMIN_USERNAME = (process.env.ADMIN_USERNAME ?? "manoj wheels").trim();
-const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD ?? "manoj wheels").trim();
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD ?? "manojwheels").trim();
 const TOKEN_SECRET =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.SUPABASE_PUBLISHABLE_KEY ||

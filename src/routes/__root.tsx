@@ -1,7 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { deriveUserId, logLogin, logSignup } from "@/lib/apps-script-logger";
+import { addNotification } from "@/lib/notifications-store";
+
 import {
   Outlet,
   Link,
@@ -197,7 +200,22 @@ function useAppsScriptAuthSync() {
         });
       }
       await logLogin({ userId, email: user.email ?? "" });
+
+      // User-facing login notification + persistent inbox entry
+      const when = new Date();
+      const timeStr = when.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const displayName = String(meta.full_name ?? meta.name ?? user.email ?? "there").split(" ")[0];
+      toast.success(`Welcome back, ${displayName}!`, {
+        description: `Signed in via ${authType} • ${timeStr}`,
+        duration: 5000,
+      });
+      addNotification(user.id, {
+        type: "login",
+        title: isNew ? "Account created" : "New sign-in detected",
+        message: `Signed in via ${authType} at ${timeStr}${user.email ? ` • ${user.email}` : ""}`,
+      });
     });
+
     return () => sub.subscription.unsubscribe();
   }, []);
 }

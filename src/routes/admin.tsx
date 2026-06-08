@@ -56,10 +56,12 @@ import {
   Lock,
   Loader2,
   FileDown,
+  ReceiptText,
 } from "lucide-react";
 import { format, parseISO, subDays, isValid } from "date-fns";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
+import { InvoiceManager } from "@/components/admin/InvoiceManager";
 
 const LOGO_URL =
   "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";
@@ -251,6 +253,27 @@ function AdminPage() {
     toast.success("Logged out");
   }, []);
 
+  // Auto-logout after 30 minutes of inactivity
+  useEffect(() => {
+    if (!token) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const INACTIVITY_MS = 30 * 60 * 1000;
+    const reset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        toast.warning("Logged out due to inactivity");
+        handleLogout();
+      }, INACTIVITY_MS);
+    };
+    const events: Array<keyof WindowEventMap> = ["mousemove", "keydown", "click", "touchstart", "scroll"];
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => {
+      clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, reset));
+    };
+  }, [token, handleLogout]);
+
   if (!token) {
     return <LoginScreen onSuccess={(t) => setToken(t)} />;
   }
@@ -368,7 +391,7 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
           </Card>
         )}
 
-        {isLoading || !data ? <LoadingSkeleton /> : <DashboardBody data={data} />}
+        {isLoading || !data ? <LoadingSkeleton /> : <DashboardBody data={data} token={token} />}
       </div>
     </div>
   );
@@ -453,7 +476,7 @@ function StatCard({
   );
 }
 
-function DashboardBody({ data }: { data: AdminDataset }) {
+function DashboardBody({ data, token }: { data: AdminDataset; token: string }) {
   const todayStr = format(new Date(), "yyyy-MM-dd");
 
   const stats = useMemo(() => {
@@ -494,14 +517,16 @@ function DashboardBody({ data }: { data: AdminDataset }) {
 
       <DateRangeReports data={data} />
 
-      <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid grid-cols-4 w-full sm:w-auto">
+      <Tabs defaultValue="invoices" className="space-y-4">
+        <TabsList className="grid grid-cols-5 w-full sm:w-auto">
+          <TabsTrigger value="invoices"><ReceiptText className="w-3.5 h-3.5 mr-1" />Invoices</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="logins">Logins</TabsTrigger>
           <TabsTrigger value="contacts">Contacts</TabsTrigger>
           <TabsTrigger value="services">Services</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="invoices"><InvoiceManager token={token} /></TabsContent>
         <TabsContent value="users"><UsersSection rows={data.users} /></TabsContent>
         <TabsContent value="logins"><LoginsSection rows={data.users} /></TabsContent>
         <TabsContent value="contacts"><ContactsSection rows={data.contacts} /></TabsContent>

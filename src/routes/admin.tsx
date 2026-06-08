@@ -602,7 +602,7 @@ function UsersSection({ rows }: { rows: Record<string, string>[] }) {
   const authTypes = useMemo(() => {
     const set = new Set<string>();
     rows.forEach((r) => {
-      const t = pick(r, ["authType", "Auth Type", "provider", "Provider"]);
+      const t = pick(r, ["authType", "Auth Type", "Auth_Type", "provider", "Provider"]);
       if (t) set.add(t);
     });
     return Array.from(set);
@@ -612,9 +612,9 @@ function UsersSection({ rows }: { rows: Record<string, string>[] }) {
     return rows.filter((r) => {
       const name = pick(r, ["fullName", "Full Name", "name", "Name"]);
       const email = pick(r, ["email", "Email"]);
-      const phone = pick(r, ["phoneNumber", "Phone Number", "phone"]);
-      const auth = pick(r, ["authType", "Auth Type", "provider"]);
-      const ds = pick(r, ["createdAt", "Created At", "Signup Date", "Date", "Timestamp"]);
+      const phone = pick(r, ["phoneNumber", "Phone Number", "Phone_Number", "phone"]);
+      const auth = pick(r, ["authType", "Auth Type", "Auth_Type", "provider"]);
+      const ds = pick(r, USER_DATE_KEYS);
       const d = tryParseDate(ds);
       if (q && ![name, email, phone].some((v) => v.toLowerCase().includes(q.toLowerCase()))) return false;
       if (authFilter !== "all" && auth !== authFilter) return false;
@@ -670,9 +670,9 @@ function UsersSection({ rows }: { rows: Record<string, string>[] }) {
                 <TableRow key={i}>
                   <TableCell className="font-medium">{pick(r, ["fullName", "Full Name", "name"])}</TableCell>
                   <TableCell>{pick(r, ["email", "Email"])}</TableCell>
-                  <TableCell>{pick(r, ["phoneNumber", "Phone Number", "phone"])}</TableCell>
-                  <TableCell><Badge variant="secondary">{pick(r, ["authType", "Auth Type", "provider"]) || "—"}</Badge></TableCell>
-                  <TableCell>{pick(r, ["createdAt", "Created At", "Signup Date", "Date", "Timestamp"])}</TableCell>
+                  <TableCell>{pick(r, ["phoneNumber", "Phone Number", "Phone_Number", "phone"])}</TableCell>
+                  <TableCell><Badge variant="secondary">{pick(r, ["authType", "Auth Type", "Auth_Type", "provider"]) || "—"}</Badge></TableCell>
+                  <TableCell>{pick(r, USER_DATE_KEYS)}</TableCell>
                 </TableRow>
               ))}
               {!pageRows.length && (

@@ -109,6 +109,8 @@ type InvoiceRecord = {
   status: string;
   rating: number;
   createdAt: number;
+  whatsappMessage?: string;
+  invoiceUrl?: string;
 };
 
 function todayStr() {
@@ -232,10 +234,18 @@ async function findLatestSheetInvoiceId(payload: Record<string, string>): Promis
   return "";
 }
 
+export type AppsScriptInvoiceResponse = {
+  invoiceId: string;
+  invoiceUrl?: string;
+  whatsappMessage?: string;
+};
+
 // Submit invoice to Apps Script and return the authoritative invoiceId.
 // Throws if Apps Script is unreachable or does not return a valid invoiceId.
 // Never generate IDs on the client — the sheet is the single source of truth.
-async function submitToAppsScript(payload: Record<string, string>): Promise<string> {
+async function submitToAppsScript(
+  payload: Record<string, string>,
+): Promise<AppsScriptInvoiceResponse> {
   const res = await fetch(GAS_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -252,15 +262,21 @@ async function submitToAppsScript(payload: Record<string, string>): Promise<stri
   if (json.success === false) {
     throw new Error(String(json.message || "Apps Script rejected the invoice"));
   }
+  const invoiceUrl = typeof json.invoiceUrl === "string" ? json.invoiceUrl : undefined;
+  const whatsappMessage =
+    typeof json.whatsappMessage === "string" ? json.whatsappMessage : undefined;
+
   const returned = extractInvoiceId(json);
-  if (returned) return returned;
+  if (returned) return { invoiceId: returned, invoiceUrl, whatsappMessage };
 
   const recovered = await findLatestSheetInvoiceId(payload);
   if (!recovered) {
-    throw new Error("Invoice was saved, but the authoritative invoice ID could not be read from the sheet yet. Please try Generate again in a few seconds.");
+    throw new Error(
+      "Invoice was saved, but no invoiceId was returned. Please try Generate again in a few seconds.",
+    );
   }
-  console.warn("Apps Script response omitted invoiceId; recovered authoritative ID from sheet:", recovered);
-  return recovered;
+  console.warn("Apps Script response omitted invoiceId; recovered from sheet:", recovered);
+  return { invoiceId: recovered, invoiceUrl, whatsappMessage };
 }
 
 function loadInvoices(): InvoiceRecord[] {
@@ -577,7 +593,7 @@ export function InvoiceManager({ token }: { token: string }) {
     try {
       // 1. Submit to Apps Script FIRST and wait for the authoritative invoiceId.
       //    Never use a client-generated ID — the sheet is the single source of truth.
-      const returnedId = await submitToAppsScript({
+      const response = await submitToAppsScript({
         fullName: baseRec.fullName,
         mobile: baseRec.mobile,
         email: baseRec.email,
@@ -595,9 +611,16 @@ export function InvoiceManager({ token }: { token: string }) {
         rating: String(baseRec.rating),
         date: baseRec.date,
       });
+      const returnedId = response.invoiceId;
+      if (!returnedId) throw new Error("Missing invoiceId from Apps Script");
 
       // 2. Use ONLY the returned invoiceId in record, QR, PDF, email, WhatsApp.
-      const rec: InvoiceRecord = { ...baseRec, invoiceNumber: returnedId };
+      const rec: InvoiceRecord = {
+        ...baseRec,
+        invoiceNumber: returnedId,
+        whatsappMessage: response.whatsappMessage,
+        invoiceUrl: response.invoiceUrl,
+      };
 
       // 3. Log all IDs to confirm they match.
       console.log("Generated Invoice ID from Apps Script:", returnedId);
@@ -674,22 +697,23 @@ export function InvoiceManager({ token }: { token: string }) {
     const rec = lastSavedRec;
     const svc = rec.service === "Other Service" ? rec.otherService : rec.service;
     console.log("WhatsApp Invoice ID:", rec.invoiceNumber);
-    const text = encodeURIComponent(
+    const verifyUrl =
+      rec.invoiceUrl || `https://manojwheels.online/invoice/${rec.invoiceNumber}`;
+    const message =
+      rec.whatsappMessage ||
       `*Manoj Wheels — Service Invoice*\n\n` +
-      `Invoice: ${rec.invoiceNumber}\n` +
-      `Verify: https://manojwheels.online/invoice/${rec.invoiceNumber}\n` +
-      `Date: ${rec.date}\n` +
-      `Customer: ${rec.fullName}\n` +
-      `Vehicle: ${rec.vehicleNumber} (${rec.vehicleType})\n` +
-      `Service: ${svc}\n` +
-      `Total: ₹${rec.total.toFixed(2)}\n` +
-      `Payment: ${rec.paymentMode} • Status: ${rec.status}\n\n` +
-      `Thank you for choosing Manoj Wheels.\nwww.manojwheels.online`,
-    );
+        `Invoice: ${rec.invoiceNumber}\n` +
+        `Verify: ${verifyUrl}\n` +
+        `Date: ${rec.date}\n` +
+        `Customer: ${rec.fullName}\n` +
+        `Vehicle: ${rec.vehicleNumber} (${rec.vehicleType})\n` +
+        `Service: ${svc}\n` +
+        `Total: ₹${rec.total.toFixed(2)}\n` +
+        `Payment: ${rec.paymentMode} • Status: ${rec.status}\n\n` +
+        `Thank you for choosing Manoj Wheels.\nwww.manojwheels.online`;
+    const text = encodeURIComponent(message);
     const phone = rec.mobile.replace(/\D/g, "");
-    const url = phone
-      ? `https://wa.me/91${phone}?text=${text}`
-      : `https://wa.me/?text=${text}`;
+    const url = phone ? `https://wa.me/91${phone}?text=${text}` : `https://wa.me/?text=${text}`;
     window.open(url, "_blank");
   }
 

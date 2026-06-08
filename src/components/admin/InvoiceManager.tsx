@@ -98,16 +98,31 @@ function todayStr() {
   return `${String(d.getDate()).padStart(2, "0")}-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`;
 }
 
-function nextInvoiceNumber(): string {
-  // MUST match the format Apps Script writes to the sheet (MW-YYYYMMDD-<ms>)
-  // so the QR code's verification URL resolves to a real row.
-  const d = new Date();
-  const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
-  return `MW-${ymd}-${Date.now()}`;
-}
-
-function commitInvoiceCounter() {
-  // No-op: IDs are timestamp-based now; kept for call-site compatibility.
+// Submit invoice to Apps Script and return the authoritative invoiceId.
+// Throws if Apps Script is unreachable or does not return a valid invoiceId.
+// Never generate IDs on the client — the sheet is the single source of truth.
+async function submitToAppsScript(payload: Record<string, string>): Promise<string> {
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action: "create_invoice", ...payload }),
+  });
+  if (!res.ok) throw new Error(`Apps Script HTTP ${res.status}`);
+  const text = await res.text();
+  let json: { success?: boolean; invoiceId?: string; invoiceNumber?: string; id?: string; message?: string };
+  try {
+    json = JSON.parse(text) as typeof json;
+  } catch {
+    throw new Error("Apps Script returned a non-JSON response");
+  }
+  if (json.success === false) {
+    throw new Error(json.message || "Apps Script rejected the invoice");
+  }
+  const returned = json.invoiceId || json.invoiceNumber || json.id || "";
+  if (!returned || !/^MW-/i.test(returned)) {
+    throw new Error("Apps Script did not return a valid invoiceId");
+  }
+  return returned;
 }
 
 function loadInvoices(): InvoiceRecord[] {

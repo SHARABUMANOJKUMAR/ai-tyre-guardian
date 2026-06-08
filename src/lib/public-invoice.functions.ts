@@ -146,8 +146,6 @@ export const getInvoicesForUser = createServerFn({ method: "GET" })
     }).filter((r) => r.invoiceNumber).sort((a, b) => b.invoiceNumber.localeCompare(a.invoiceNumber));
   });
 
-import { verifyAdminToken } from "./admin-auth.functions";
-
 export const getAllInvoices = createServerFn({ method: "POST" })
   .inputValidator((d: { token: string }) => ({ token: String(d?.token ?? "") }))
   .handler(async ({ data }): Promise<PublicInvoice[]> => {

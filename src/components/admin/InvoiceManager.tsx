@@ -54,8 +54,9 @@ const LOGO_URL =
   "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbzfalbVv-D4G33l9KA_mUPe7s8uQsWlDeSMaAEtV_cjN77iFlwj5pmrnw-gMa3lFIEW/exec";
+const INVOICES_CSV =
+  "https://docs.google.com/spreadsheets/d/1ozWAb4-IyaSkaWq-mIMrSq4DFNBW-IDDS4C7MQYgpGc/export?format=csv";
 const STORAGE_KEY = "mw_invoices_local_v1";
-const COUNTER_KEY = "mw_invoice_counter";
 const COLORS = ["#dc2626", "#1d4ed8", "#000000", "#f59e0b", "#10b981", "#a855f7", "#ec4899"];
 
 const VEHICLE_TYPES = ["Car", "SUV", "Bike", "Tractor", "Truck", "Bus", "Van", "Earthmover"] as const;
@@ -98,10 +99,92 @@ function todayStr() {
   return `${String(d.getDate()).padStart(2, "0")}-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`;
 }
 
+function parseCSV(text: string): Record<string, string>[] {
+  const rows: string[][] = [];
+  let field = "", row: string[] = [], inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } else inQuotes = false;
+      } else field += c;
+    } else if (c === '"') inQuotes = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(field); rows.push(row); row = []; field = "";
+    } else field += c;
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  const nonEmpty = rows.filter((r) => r.some((c) => c.trim().length > 0));
+  if (!nonEmpty.length) return [];
+  const headers = nonEmpty[0].map((h) => h.trim());
+  return nonEmpty.slice(1).map((r) => {
+    const obj: Record<string, string> = {};
+    headers.forEach((h, i) => { obj[h] = (r[i] ?? "").trim(); });
+    return obj;
+  });
+}
+
+function rowValue(row: Record<string, string>, keys: string[]): string {
+  const normalized: Record<string, string> = {};
+  for (const key of Object.keys(row)) normalized[key.toLowerCase().replace(/[\s_-]/g, "")] = row[key];
+  for (const key of keys) {
+    const value = normalized[key.toLowerCase().replace(/[\s_-]/g, "")];
+    if (value) return value;
+  }
+  return "";
+}
+
+function normalizePhone(value: string) {
+  return value.replace(/\D/g, "").slice(-10);
+}
+
+function extractInvoiceId(value: unknown): string {
+  if (!value || typeof value !== "object") return "";
+  const obj = value as Record<string, unknown>;
+  const directKeys = ["invoiceId", "invoice_id", "Invoice_ID", "Invoice Id", "invoiceNumber", "Invoice_Number", "invoiceNo", "id"];
+  for (const key of directKeys) {
+    const found = obj[key];
+    if (typeof found === "string" && /^MW-/i.test(found.trim())) return found.trim();
+  }
+  for (const nestedKey of ["invoice", "data", "result", "record"]) {
+    const nested = extractInvoiceId(obj[nestedKey]);
+    if (nested) return nested;
+  }
+  return "";
+}
+
+async function findLatestSheetInvoiceId(payload: Record<string, string>, afterTs: number): Promise<string> {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    if (attempt) await new Promise((resolve) => setTimeout(resolve, 900));
+    const res = await fetch(`${INVOICES_CSV}&cb=${Date.now()}`, { cache: "no-store", redirect: "follow" });
+    if (!res.ok) continue;
+    const rows = parseCSV(await res.text()).reverse();
+    const match = rows.find((row) => {
+      const id = rowValue(row, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]);
+      if (!/^MW-/i.test(id)) return false;
+      const created = Date.parse(rowValue(row, ["createdDate", "date", "createdAt", "timestamp"]).replace(/(\d{2})-(\d{2})-(\d{4})/, "$3-$2-$1"));
+      if (Number.isFinite(created) && created + 120_000 < afterTs) return false;
+      return (
+        rowValue(row, ["fullName", "customer", "name", "customerName"]).trim().toLowerCase() === payload.fullName.trim().toLowerCase() &&
+        normalizePhone(rowValue(row, ["mobile", "phone", "phoneNumber", "contact"])) === normalizePhone(payload.mobile) &&
+        rowValue(row, ["vehicleNumber", "vehicleNo", "vehicle"]).trim().toUpperCase() === payload.vehicleNumber.trim().toUpperCase() &&
+        rowValue(row, ["service", "serviceType", "serviceNeeded"]).trim() === payload.service.trim() &&
+        rowValue(row, ["total", "grandTotal", "finalAmount"]).trim() === payload.total.trim()
+      );
+    });
+    const id = match ? rowValue(match, ["invoiceId", "invoiceNumber", "invoiceNo", "invoice", "id"]).trim() : "";
+    if (/^MW-/i.test(id)) return id;
+  }
+  return "";
+}
+
 // Submit invoice to Apps Script and return the authoritative invoiceId.
 // Throws if Apps Script is unreachable or does not return a valid invoiceId.
 // Never generate IDs on the client — the sheet is the single source of truth.
 async function submitToAppsScript(payload: Record<string, string>): Promise<string> {
+  const submittedAt = Date.now();
   const res = await fetch(GAS_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -109,20 +192,24 @@ async function submitToAppsScript(payload: Record<string, string>): Promise<stri
   });
   if (!res.ok) throw new Error(`Apps Script HTTP ${res.status}`);
   const text = await res.text();
-  let json: { success?: boolean; invoiceId?: string; invoiceNumber?: string; id?: string; message?: string };
+  let json: Record<string, unknown>;
   try {
-    json = JSON.parse(text) as typeof json;
+    json = JSON.parse(text) as Record<string, unknown>;
   } catch {
     throw new Error("Apps Script returned a non-JSON response");
   }
   if (json.success === false) {
-    throw new Error(json.message || "Apps Script rejected the invoice");
+    throw new Error(String(json.message || "Apps Script rejected the invoice"));
   }
-  const returned = json.invoiceId || json.invoiceNumber || json.id || "";
-  if (!returned || !/^MW-/i.test(returned)) {
-    throw new Error("Apps Script did not return a valid invoiceId");
+  const returned = extractInvoiceId(json);
+  if (returned) return returned;
+
+  const recovered = await findLatestSheetInvoiceId(payload, submittedAt);
+  if (!recovered) {
+    throw new Error("Invoice was saved, but the authoritative invoice ID could not be read from the sheet yet. Please try Generate again in a few seconds.");
   }
-  return returned;
+  console.warn("Apps Script response omitted invoiceId; recovered authoritative ID from sheet:", recovered);
+  return recovered;
 }
 
 function loadInvoices(): InvoiceRecord[] {

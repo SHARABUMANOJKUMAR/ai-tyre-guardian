@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getAdminDataset, type AdminDataset } from "@/lib/admin-data.functions";
@@ -53,8 +53,6 @@ import {
   Download,
   RefreshCw,
   LogOut,
-  Bell,
-  BellOff,
   Lock,
   Loader2,
   FileDown,
@@ -66,7 +64,6 @@ import { toast } from "sonner";
 const LOGO_URL =
   "https://res.cloudinary.com/dwv8kc9vb/image/upload/v1780845528/Finally_Logo_oxkjjv.png";
 const TOKEN_KEY = "mw_admin_token";
-const SEEN_KEY = "mw_admin_seen_counts";
 const BRAND_COLOR = "#ef4444";
 
 export const Route = createFileRoute("/admin")({
@@ -88,8 +85,10 @@ const COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"
    HELPERS
 ============================================================ */
 function pick(row: Record<string, string>, keys: string[]): string {
+  const norm = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
   for (const k of keys) {
-    const found = Object.keys(row).find((rk) => rk.toLowerCase().trim() === k.toLowerCase());
+    const wanted = norm(k);
+    const found = Object.keys(row).find((rk) => norm(rk) === wanted);
     if (found && row[found]) return row[found];
   }
   return "";
@@ -100,6 +99,12 @@ function tryParseDate(v: string): Date | null {
   const s = v.trim();
   const iso = parseISO(s);
   if (isValid(iso)) return iso;
+  const indian = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (indian) {
+    const [, dd, mm, yyyy, hh = "0", min = "0", sec = "0"] = indian;
+    const parsed = new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(min), Number(sec));
+    if (isValid(parsed)) return parsed;
+  }
   const d = new Date(s);
   return isValid(d) ? d : null;
 }
@@ -224,29 +229,6 @@ function exportPDF(
     );
   }
   doc.save(`${title.toLowerCase().replace(/\s+/g, "-")}.pdf`);
-}
-
-/* ============================================================
-   WEB NOTIFICATIONS
-============================================================ */
-function browserNotify(title: string, body: string) {
-  try {
-    if (typeof window === "undefined" || !("Notification" in window)) return;
-    if (Notification.permission !== "granted") return;
-    const n = new Notification(`🛞 ${title}`, {
-      body,
-      icon: LOGO_URL,
-      badge: LOGO_URL,
-      tag: "manoj-wheels-admin",
-      requireInteraction: false,
-    });
-    n.onclick = () => {
-      window.focus();
-      n.close();
-    };
-  } catch {
-    /* ignore */
-  }
 }
 
 /* ============================================================

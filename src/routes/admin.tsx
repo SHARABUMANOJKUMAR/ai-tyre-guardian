@@ -635,7 +635,7 @@ function UsersSection({ rows }: { rows: Record<string, string>[] }) {
           <Button size="sm" variant="outline" onClick={() => downloadFile(toCSV(filtered), "users.csv")}>
             <Download className="w-4 h-4 mr-1" /> CSV
           </Button>
-          <Button size="sm" variant="outline" onClick={() => exportPDF("Users Report", filtered.slice(0, 200), { from: dateFrom, to: dateTo })}>
+          <Button size="sm" variant="outline" onClick={() => exportPDF("Users Report", filtered, { from: dateFrom, to: dateTo })}>
             <Download className="w-4 h-4 mr-1" /> PDF
           </Button>
         </div>
@@ -841,7 +841,7 @@ function ContactsSection({ rows }: { rows: Record<string, string>[] }) {
               <Button size="sm" variant="outline" onClick={() => downloadFile(toCSV(rows), "contacts.csv")}>
                 <Download className="w-4 h-4 mr-1" /> CSV
               </Button>
-              <Button size="sm" variant="outline" onClick={() => exportPDF("Contacts Report", rows.slice(0, 200))}>
+              <Button size="sm" variant="outline" onClick={() => exportPDF("Contacts Report", rows)}>
                 <Download className="w-4 h-4 mr-1" /> PDF
               </Button>
             </div>
@@ -909,7 +909,7 @@ function ServicesSection({ rows }: { rows: Record<string, string>[] }) {
               <Button size="sm" variant="outline" onClick={() => downloadFile(toCSV(rows), "services.csv")}>
                 <Download className="w-4 h-4 mr-1" /> CSV
               </Button>
-              <Button size="sm" variant="outline" onClick={() => exportPDF("Services Report", rows.slice(0, 200))}>
+              <Button size="sm" variant="outline" onClick={() => exportPDF("Services Report", rows)}>
                 <Download className="w-4 h-4 mr-1" /> PDF
               </Button>
             </div>

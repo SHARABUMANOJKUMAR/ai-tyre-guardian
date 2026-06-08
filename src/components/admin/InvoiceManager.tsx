@@ -418,14 +418,16 @@ export function InvoiceManager({ token }: { token: string }) {
       return;
     }
     setSubmitting(true);
-    const rec = buildRecord();
+    let rec = buildRecord();
     try {
-      // Fire-and-forget POST to Google Apps Script (no-cors to avoid CORS preflight)
+      // Use text/plain so the browser skips the CORS preflight but we
+      // can still READ Apps Script's response and use the authoritative
+      // invoiceNumber it wrote to the sheet. Otherwise the QR points to
+      // a client-only ID that doesn't exist → "Invalid Invoice" on scan.
       try {
-        await fetch(GAS_URL, {
+        const res = await fetch(GAS_URL, {
           method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
             action: "create_invoice",
             fullName: rec.fullName,
@@ -447,6 +449,22 @@ export function InvoiceManager({ token }: { token: string }) {
             date: rec.date,
           }),
         });
+        if (res.ok) {
+          const text = await res.text();
+          try {
+            const json = JSON.parse(text) as {
+              invoiceNumber?: string;
+              invoiceId?: string;
+              id?: string;
+            };
+            const returned = json.invoiceNumber || json.invoiceId || json.id;
+            if (returned && /^MW-/i.test(returned)) {
+              rec = { ...rec, invoiceNumber: returned };
+            }
+          } catch {
+            /* not JSON — keep client-generated ID */
+          }
+        }
       } catch (e) {
         console.warn("Apps Script post warning", e);
       }
@@ -457,7 +475,7 @@ export function InvoiceManager({ token }: { token: string }) {
       setSavedList(list);
       commitInvoiceCounter();
 
-      // Build + download PDF
+      // Build + download PDF (uses sheet's authoritative invoiceNumber)
       const doc = await buildPDF(rec);
       doc.save(`${rec.invoiceNumber}.pdf`);
 

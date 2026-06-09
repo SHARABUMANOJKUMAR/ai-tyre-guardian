@@ -85,44 +85,47 @@ export const analyzeTyre = createServerFn({ method: "POST" })
       // If request context is unavailable, proceed without throttle.
     }
 
-    const apiKey = process.env.Gimini_API_Key;
+    const apiKey = process.env.OpenRouter_API_Key999;
     if (!apiKey) {
-      throw new Error("Server is missing Gemini API key configuration.");
+      throw new Error("Server is missing OpenRouter API key configuration.");
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const mime = data.mime || "image/jpeg";
+    const dataUrl = `data:${mime};base64,${data.imageBase64}`;
 
-    const resp = await fetch(url, {
+    const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
       body: JSON.stringify({
-        contents: [
+        model: "google/gemini-2.5-flash",
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+        messages: [
           {
             role: "user",
-            parts: [
-              { text: PROMPT },
-              { inline_data: { mime_type: data.mime || "image/jpeg", data: data.imageBase64 } },
+            content: [
+              { type: "text", text: PROMPT },
+              { type: "image_url", image_url: { url: dataUrl } },
             ],
           },
         ],
-        generationConfig: {
-          temperature: 0.2,
-          responseMimeType: "application/json",
-        },
       }),
     });
 
     if (!resp.ok) {
       const errText = await resp.text();
-      console.error("Gemini API error:", resp.status, errText);
-      throw new Error(`Gemini API error (${resp.status}). Please try again.`);
+      console.error("OpenRouter API error:", resp.status, errText);
+      throw new Error(`AI service error (${resp.status}). Please try again.`);
     }
 
     const json = (await resp.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      choices?: Array<{ message?: { content?: string } }>;
     };
 
-    const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = json.choices?.[0]?.message?.content;
     if (!text) throw new Error("Empty response from AI model.");
 
     let parsed: TyreAnalysis;

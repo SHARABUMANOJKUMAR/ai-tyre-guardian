@@ -31,32 +31,37 @@ export type TyreAnalysis = {
   cracks: "None" | "Minor" | "Moderate" | "Severe";
   remainingKm: number;
   confidence: number;
-  recommendation: "Safe to Use" | "Monitor Soon" | "Replace Immediately";
+  recommendation: "Safe to Use" | "Monitor Soon" | "Replace Immediately" | "Inconclusive — Retake Photo";
   notes: string;
   observations: string[];
+  imageQuality?: "Good" | "Fair" | "Poor";
+  inconclusive?: boolean;
 };
 
-const PROMPT = `You are an expert automotive tyre inspector. Carefully analyse the provided photo of a tyre and produce an HONEST, conservative safety report.
+const PROMPT = `You are a forensic automotive tyre inspector. Analyse the photo and report ONLY what is clearly visible. Do NOT guess, estimate, or invent details.
 
-Return ONLY valid JSON with this exact shape (no markdown, no commentary):
+Return ONLY valid JSON in this exact shape (no markdown, no commentary):
 {
-  "isTyre": boolean,                       // false if the image is not clearly a tyre/wheel
-  "score": number,                         // overall health 0-100 (100 = brand new)
-  "tread": number,                         // estimated tread WEAR percentage 0-100 (0 = full tread, 100 = bald)
+  "isTyre": boolean,
+  "imageQuality": "Good" | "Fair" | "Poor",
+  "score": number,
+  "tread": number,
   "cracks": "None" | "Minor" | "Moderate" | "Severe",
-  "remainingKm": number,                   // realistic remaining life in km (0 - 60000)
-  "confidence": number,                    // your confidence 0-100
-  "recommendation": "Safe to Use" | "Monitor Soon" | "Replace Immediately",
-  "notes": string,                         // one short customer-friendly sentence
-  "observations": string[]                 // 2-4 short factual observations from the photo
+  "remainingKm": number,
+  "confidence": number,
+  "recommendation": "Safe to Use" | "Monitor Soon" | "Replace Immediately" | "Inconclusive — Retake Photo",
+  "notes": string,
+  "observations": string[]
 }
 
-Rules:
-- Be truthful. If the photo is blurry, dark, or not a tyre, set isTyre=false, confidence low, score 0 and explain in notes.
-- If tread is heavily worn, sidewall cracks visible, or bulges present, recommend "Replace Immediately".
-- If moderate wear, recommend "Monitor Soon".
-- Base remainingKm on visible tread depth; bald/cracked = near 0 km.
-- Do NOT invent details that are not visible. Stay conservative on safety.`;
+STRICT RULES (truth-first):
+1. If the image is NOT a clear tyre/tread close-up (blurry, dark, far away, wrong subject, occluded, glare, or you cannot see tread blocks): set isTyre=false, imageQuality="Poor", confidence <= 30, score=0, tread=0, cracks="None", remainingKm=0, recommendation="Inconclusive — Retake Photo", and explain in notes what is missing (e.g. "Tread surface not visible, please retake from 30cm directly facing tread").
+2. NEVER invent tread depth, crack severity, brand, size, or mileage. If you cannot see it, mark it inconclusive.
+3. Only set confidence >= 70 when tread blocks AND sidewall are both clearly visible and sharp.
+4. Observations must each reference something you can literally see in the photo. If you can't list 2 real observations, the image is inconclusive.
+5. tread = wear percentage (0 = brand new full tread, 100 = bald). cracks based only on visible sidewall damage.
+6. remainingKm must be consistent with tread wear; if uncertain, return 0 and mark inconclusive.
+7. Be conservative on safety — when in doubt, recommend inspection over "Safe to Use".`;
 
 export const analyzeTyre = createServerFn({ method: "POST" })
   .inputValidator((d: { imageBase64: string; mime: string }) => {
@@ -100,10 +105,16 @@ export const analyzeTyre = createServerFn({ method: "POST" })
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        temperature: 0.2,
+        model: "google/gemini-2.5-pro",
+        temperature: 0,
+        top_p: 0.1,
         response_format: { type: "json_object" },
         messages: [
+          {
+            role: "system",
+            content:
+              "You are a forensic tyre inspector. You only report what is visually verifiable. You refuse to guess. When uncertain, you mark the result inconclusive and ask for a better photo.",
+          },
           {
             role: "user",
             content: [
@@ -143,7 +154,55 @@ export const analyzeTyre = createServerFn({ method: "POST" })
     parsed.remainingKm = clamp(Number(parsed.remainingKm) || 0, 0, 60000);
     parsed.confidence = clamp(Number(parsed.confidence) || 0, 0, 100);
     if (!Array.isArray(parsed.observations)) parsed.observations = [];
+    parsed.observations = parsed.observations
+      .filter((o) => typeof o === "string" && o.trim().length > 4)
+      .slice(0, 5);
 
+    // Truth gate: reject low-confidence / inconsistent output instead of showing fake numbers.
+    const tooLowConfidence = parsed.confidence < 60;
+    const notATyre = parsed.isTyre === false;
+    const poorImage = parsed.imageQuality === "Poor";
+    const notEnoughEvidence = parsed.observations.length < 2;
+
+    if (notATyre || tooLowConfidence || poorImage || notEnoughEvidence) {
+      return {
+        isTyre: parsed.isTyre ?? false,
+        imageQuality: parsed.imageQuality ?? "Poor",
+        score: 0,
+        tread: 0,
+        cracks: "None",
+        remainingKm: 0,
+        confidence: parsed.confidence,
+        recommendation: "Inconclusive — Retake Photo",
+        notes:
+          parsed.notes && parsed.notes.length > 8
+            ? parsed.notes
+            : "We couldn't verify this image with confidence. Please upload a sharp close-up (about 30 cm away) directly facing the tread, with good lighting.",
+        observations: parsed.observations,
+        inconclusive: true,
+      };
+    }
+
+    // Cross-check remainingKm against tread wear — overwrite if inconsistent.
+    const derivedKm = Math.round(((100 - parsed.tread) / 100) * 50000);
+    const crackPenalty =
+      parsed.cracks === "Severe" ? 0.1
+      : parsed.cracks === "Moderate" ? 0.4
+      : parsed.cracks === "Minor" ? 0.75
+      : 1;
+    const safeKm = Math.round(derivedKm * crackPenalty);
+    if (Math.abs(parsed.remainingKm - safeKm) / Math.max(safeKm, 1) > 0.5) {
+      parsed.remainingKm = safeKm;
+    }
+
+    // Force recommendation to match evidence.
+    if (parsed.cracks === "Severe" || parsed.tread >= 80) {
+      parsed.recommendation = "Replace Immediately";
+    } else if (parsed.cracks === "Moderate" || parsed.tread >= 55) {
+      if (parsed.recommendation === "Safe to Use") parsed.recommendation = "Monitor Soon";
+    }
+
+    parsed.inconclusive = false;
     return parsed;
   });
 

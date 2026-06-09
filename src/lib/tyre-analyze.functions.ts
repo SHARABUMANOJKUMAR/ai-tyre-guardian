@@ -65,16 +65,16 @@ STRICT RULES (truth-first):
 const SYSTEM_PROMPT =
   "You are a forensic tyre inspector. You only report what is visually verifiable. You refuse to guess. When uncertain, you mark the result inconclusive and ask for a better photo. Always respond with valid JSON only, no markdown fences.";
 
+// Vision-capable models only. Tyre analysis requires image input support.
 const OPENROUTER_MODELS = [
-  "deepseek/deepseek-r1-0528:free",
-  "deepseek/deepseek-chat-v3:free",
-  "qwen/qwen3-32b:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "mistralai/mistral-small-3.1:free",
+  "google/gemini-2.5-flash",
+  "google/gemini-2.0-flash-001",
+  "openai/gpt-4o-mini",
+  "anthropic/claude-3.5-sonnet",
 ];
 
-const USER_FACING_ERROR = "AI analysis is temporarily unavailable. Please try again.";
-const MAX_RETRIES_PER_MODEL = 3;
+const USER_FACING_ERROR = "AI service temporarily unavailable. Please try again later.";
+const MAX_RETRIES_PER_MODEL = 2;
 
 async function callOpenRouter(model: string, apiKey: string, dataUrl: string): Promise<string> {
   const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -110,42 +110,6 @@ async function callOpenRouter(model: string, apiKey: string, dataUrl: string): P
   return text;
 }
 
-async function callGemini(apiKey: string, base64: string, mime: string): Promise<string> {
-  const resp = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: PROMPT },
-              { inline_data: { mime_type: mime, data: base64 } },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0,
-          topP: 0.1,
-          responseMimeType: "application/json",
-        },
-      }),
-    },
-  );
-  if (!resp.ok) {
-    const errText = await resp.text().catch(() => "");
-    throw new Error(`Gemini ${resp.status}: ${errText.slice(0, 200)}`);
-  }
-  const json = (await resp.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Gemini: empty response");
-  return text;
-}
 
 async function tryWithRetries(
   label: string,
@@ -194,7 +158,6 @@ export const analyzeTyre = createServerFn({ method: "POST" })
     }
 
     const openRouterKey = process.env.OpenRouter_API_Key999;
-    const geminiKey = process.env.Gimini_API_Key || process.env.gemini;
 
     const mime = data.mime || "image/jpeg";
     const dataUrl = `data:${mime};base64,${data.imageBase64}`;
@@ -202,47 +165,38 @@ export const analyzeTyre = createServerFn({ method: "POST" })
     const started = Date.now();
     let rawText: string | null = null;
     let usedModel = "";
+    const failures: string[] = [];
 
-    // Try OpenRouter free models in order
-    if (openRouterKey) {
-      for (const model of OPENROUTER_MODELS) {
-        try {
-          rawText = await tryWithRetries(
-            `openrouter:${model}`,
-            () => callOpenRouter(model, openRouterKey, dataUrl),
-            MAX_RETRIES_PER_MODEL,
-          );
-          usedModel = `openrouter:${model}`;
-          break;
-        } catch (e) {
-          console.warn(`[tyre-ai] model ${model} exhausted, falling back. Reason:`, e instanceof Error ? e.message : e);
-        }
-      }
-    } else {
-      console.warn("[tyre-ai] OpenRouter API key not configured, skipping to Gemini fallback");
+    if (!openRouterKey) {
+      console.error("[tyre-ai] OpenRouter API key not configured");
+      throw new Error(USER_FACING_ERROR);
     }
 
-    // Final fallback: Gemini
-    if (!rawText) {
-      if (!geminiKey) {
-        console.error("[tyre-ai] All models failed and Gemini key missing");
-        throw new Error(USER_FACING_ERROR);
-      }
+    for (const model of OPENROUTER_MODELS) {
+      const modelStart = Date.now();
       try {
         rawText = await tryWithRetries(
-          "gemini-fallback",
-          () => callGemini(geminiKey, data.imageBase64, mime),
+          `openrouter:${model}`,
+          () => callOpenRouter(model, openRouterKey, dataUrl),
           MAX_RETRIES_PER_MODEL,
         );
-        usedModel = "gemini:2.0-flash";
+        usedModel = `openrouter:${model}`;
+        console.info(`[tyre-ai] model=${model} status=success duration=${Date.now() - modelStart}ms`);
+        break;
       } catch (e) {
-        console.error("[tyre-ai] Gemini fallback also failed:", e instanceof Error ? e.message : e);
-        throw new Error(USER_FACING_ERROR);
+        const reason = e instanceof Error ? e.message : String(e);
+        failures.push(`${model}: ${reason}`);
+        console.warn(`[tyre-ai] model=${model} status=failure duration=${Date.now() - modelStart}ms reason=${reason}`);
       }
+    }
+
+    if (!rawText) {
+      console.error("[tyre-ai] all vision models failed:", failures.join(" | "));
+      throw new Error(USER_FACING_ERROR);
     }
 
     const durationMs = Date.now() - started;
-    console.info(`[tyre-ai] success model=${usedModel} duration=${durationMs}ms`);
+    console.info(`[tyre-ai] success model=${usedModel} total_duration=${durationMs}ms`);
 
     let parsed: TyreAnalysis;
     try {

@@ -154,7 +154,55 @@ export const analyzeTyre = createServerFn({ method: "POST" })
     parsed.remainingKm = clamp(Number(parsed.remainingKm) || 0, 0, 60000);
     parsed.confidence = clamp(Number(parsed.confidence) || 0, 0, 100);
     if (!Array.isArray(parsed.observations)) parsed.observations = [];
+    parsed.observations = parsed.observations
+      .filter((o) => typeof o === "string" && o.trim().length > 4)
+      .slice(0, 5);
 
+    // Truth gate: reject low-confidence / inconsistent output instead of showing fake numbers.
+    const tooLowConfidence = parsed.confidence < 60;
+    const notATyre = parsed.isTyre === false;
+    const poorImage = parsed.imageQuality === "Poor";
+    const notEnoughEvidence = parsed.observations.length < 2;
+
+    if (notATyre || tooLowConfidence || poorImage || notEnoughEvidence) {
+      return {
+        isTyre: parsed.isTyre ?? false,
+        imageQuality: parsed.imageQuality ?? "Poor",
+        score: 0,
+        tread: 0,
+        cracks: "None",
+        remainingKm: 0,
+        confidence: parsed.confidence,
+        recommendation: "Inconclusive — Retake Photo",
+        notes:
+          parsed.notes && parsed.notes.length > 8
+            ? parsed.notes
+            : "We couldn't verify this image with confidence. Please upload a sharp close-up (about 30 cm away) directly facing the tread, with good lighting.",
+        observations: parsed.observations,
+        inconclusive: true,
+      };
+    }
+
+    // Cross-check remainingKm against tread wear — overwrite if inconsistent.
+    const derivedKm = Math.round(((100 - parsed.tread) / 100) * 50000);
+    const crackPenalty =
+      parsed.cracks === "Severe" ? 0.1
+      : parsed.cracks === "Moderate" ? 0.4
+      : parsed.cracks === "Minor" ? 0.75
+      : 1;
+    const safeKm = Math.round(derivedKm * crackPenalty);
+    if (Math.abs(parsed.remainingKm - safeKm) / Math.max(safeKm, 1) > 0.5) {
+      parsed.remainingKm = safeKm;
+    }
+
+    // Force recommendation to match evidence.
+    if (parsed.cracks === "Severe" || parsed.tread >= 80) {
+      parsed.recommendation = "Replace Immediately";
+    } else if (parsed.cracks === "Moderate" || parsed.tread >= 55) {
+      if (parsed.recommendation === "Safe to Use") parsed.recommendation = "Monitor Soon";
+    }
+
+    parsed.inconclusive = false;
     return parsed;
   });
 

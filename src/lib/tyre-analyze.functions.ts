@@ -105,10 +105,16 @@ export const analyzeTyre = createServerFn({ method: "POST" })
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        temperature: 0.2,
+        model: "google/gemini-2.5-pro",
+        temperature: 0,
+        top_p: 0.1,
         response_format: { type: "json_object" },
         messages: [
+          {
+            role: "system",
+            content:
+              "You are a forensic tyre inspector. You only report what is visually verifiable. You refuse to guess. When uncertain, you mark the result inconclusive and ask for a better photo.",
+          },
           {
             role: "user",
             content: [

@@ -73,8 +73,8 @@ const OPENROUTER_MODELS = [
   "anthropic/claude-3.5-sonnet",
 ];
 
-const USER_FACING_ERROR = "AI analysis is temporarily unavailable. Please try again.";
-const MAX_RETRIES_PER_MODEL = 3;
+const USER_FACING_ERROR = "AI service temporarily unavailable. Please try again later.";
+const MAX_RETRIES_PER_MODEL = 2;
 
 async function callOpenRouter(model: string, apiKey: string, dataUrl: string): Promise<string> {
   const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {

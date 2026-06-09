@@ -38,27 +38,30 @@ export type TyreAnalysis = {
   inconclusive?: boolean;
 };
 
-const PROMPT = `You are an expert automotive tyre inspector. Carefully analyse the provided photo of a tyre and produce an HONEST, conservative safety report.
+const PROMPT = `You are a forensic automotive tyre inspector. Analyse the photo and report ONLY what is clearly visible. Do NOT guess, estimate, or invent details.
 
-Return ONLY valid JSON with this exact shape (no markdown, no commentary):
+Return ONLY valid JSON in this exact shape (no markdown, no commentary):
 {
-  "isTyre": boolean,                       // false if the image is not clearly a tyre/wheel
-  "score": number,                         // overall health 0-100 (100 = brand new)
-  "tread": number,                         // estimated tread WEAR percentage 0-100 (0 = full tread, 100 = bald)
+  "isTyre": boolean,
+  "imageQuality": "Good" | "Fair" | "Poor",
+  "score": number,
+  "tread": number,
   "cracks": "None" | "Minor" | "Moderate" | "Severe",
-  "remainingKm": number,                   // realistic remaining life in km (0 - 60000)
-  "confidence": number,                    // your confidence 0-100
-  "recommendation": "Safe to Use" | "Monitor Soon" | "Replace Immediately",
-  "notes": string,                         // one short customer-friendly sentence
-  "observations": string[]                 // 2-4 short factual observations from the photo
+  "remainingKm": number,
+  "confidence": number,
+  "recommendation": "Safe to Use" | "Monitor Soon" | "Replace Immediately" | "Inconclusive — Retake Photo",
+  "notes": string,
+  "observations": string[]
 }
 
-Rules:
-- Be truthful. If the photo is blurry, dark, or not a tyre, set isTyre=false, confidence low, score 0 and explain in notes.
-- If tread is heavily worn, sidewall cracks visible, or bulges present, recommend "Replace Immediately".
-- If moderate wear, recommend "Monitor Soon".
-- Base remainingKm on visible tread depth; bald/cracked = near 0 km.
-- Do NOT invent details that are not visible. Stay conservative on safety.`;
+STRICT RULES (truth-first):
+1. If the image is NOT a clear tyre/tread close-up (blurry, dark, far away, wrong subject, occluded, glare, or you cannot see tread blocks): set isTyre=false, imageQuality="Poor", confidence <= 30, score=0, tread=0, cracks="None", remainingKm=0, recommendation="Inconclusive — Retake Photo", and explain in notes what is missing (e.g. "Tread surface not visible, please retake from 30cm directly facing tread").
+2. NEVER invent tread depth, crack severity, brand, size, or mileage. If you cannot see it, mark it inconclusive.
+3. Only set confidence >= 70 when tread blocks AND sidewall are both clearly visible and sharp.
+4. Observations must each reference something you can literally see in the photo. If you can't list 2 real observations, the image is inconclusive.
+5. tread = wear percentage (0 = brand new full tread, 100 = bald). cracks based only on visible sidewall damage.
+6. remainingKm must be consistent with tread wear; if uncertain, return 0 and mark inconclusive.
+7. Be conservative on safety — when in doubt, recommend inspection over "Safe to Use".`;
 
 export const analyzeTyre = createServerFn({ method: "POST" })
   .inputValidator((d: { imageBase64: string; mime: string }) => {

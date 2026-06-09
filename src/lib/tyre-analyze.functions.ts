@@ -31,9 +31,11 @@ export type TyreAnalysis = {
   cracks: "None" | "Minor" | "Moderate" | "Severe";
   remainingKm: number;
   confidence: number;
-  recommendation: "Safe to Use" | "Monitor Soon" | "Replace Immediately";
+  recommendation: "Safe to Use" | "Monitor Soon" | "Replace Immediately" | "Inconclusive — Retake Photo";
   notes: string;
   observations: string[];
+  imageQuality?: "Good" | "Fair" | "Poor";
+  inconclusive?: boolean;
 };
 
 const PROMPT = `You are an expert automotive tyre inspector. Carefully analyse the provided photo of a tyre and produce an HONEST, conservative safety report.

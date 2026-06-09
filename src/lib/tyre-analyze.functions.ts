@@ -110,42 +110,6 @@ async function callOpenRouter(model: string, apiKey: string, dataUrl: string): P
   return text;
 }
 
-async function callGemini(apiKey: string, base64: string, mime: string): Promise<string> {
-  const resp = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: PROMPT },
-              { inline_data: { mime_type: mime, data: base64 } },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0,
-          topP: 0.1,
-          responseMimeType: "application/json",
-        },
-      }),
-    },
-  );
-  if (!resp.ok) {
-    const errText = await resp.text().catch(() => "");
-    throw new Error(`Gemini ${resp.status}: ${errText.slice(0, 200)}`);
-  }
-  const json = (await resp.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Gemini: empty response");
-  return text;
-}
 
 async function tryWithRetries(
   label: string,

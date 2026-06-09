@@ -65,12 +65,12 @@ STRICT RULES (truth-first):
 const SYSTEM_PROMPT =
   "You are a forensic tyre inspector. You only report what is visually verifiable. You refuse to guess. When uncertain, you mark the result inconclusive and ask for a better photo. Always respond with valid JSON only, no markdown fences.";
 
+// Vision-capable models only. Tyre analysis requires image input support.
 const OPENROUTER_MODELS = [
-  "deepseek/deepseek-r1-0528:free",
-  "deepseek/deepseek-chat-v3:free",
-  "qwen/qwen3-32b:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "mistralai/mistral-small-3.1:free",
+  "google/gemini-2.5-flash",
+  "google/gemini-2.0-flash-001",
+  "openai/gpt-4o-mini",
+  "anthropic/claude-3.5-sonnet",
 ];
 
 const USER_FACING_ERROR = "AI analysis is temporarily unavailable. Please try again.";
